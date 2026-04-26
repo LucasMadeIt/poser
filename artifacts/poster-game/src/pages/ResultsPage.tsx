@@ -20,10 +20,10 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
     <div style={{ minHeight: "100vh", background: "#E8E2D9", display: "flex", flexDirection: "column" }}>
       {/* Header */}
       <div style={{ background: "#2C2C2C", padding: "0.6rem 1.25rem", borderBottom: "2px solid #1a1a1a", display: "flex", alignItems: "center", gap: "1rem" }}>
-        <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.6rem", color: "#E8E2D9", letterSpacing: "0.06em", lineHeight: 1 }}>
+        <span style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "1.6rem", color: "#E8E2D9", letterSpacing: "0.06em", lineHeight: 1 }}>
           PO<span style={{ color: "#CC2200" }}>S</span>TER
         </span>
-        <div style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.12em", fontSize: "1.1rem", color: isEnded ? "#CC2200" : "#E8E2D9" }}>
+        <div style={{ fontFamily: "'Rubik Dirt', sans-serif", letterSpacing: "0.12em", fontSize: "1.1rem", color: isEnded ? "#CC2200" : "#E8E2D9" }}>
           {isEnded ? "GAME OVER" : `ROUND ${room.round} RESULTS`}
         </div>
       </div>
@@ -34,14 +34,14 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
           {/* Imposter reveal */}
           {latestResult && (
             <div style={{ background: "#2C2C2C", border: "2px solid #1a1a1a", boxShadow: "6px 6px 0 rgba(0,0,0,0.2)", padding: "1.75rem" }}>
-              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "0.75rem", letterSpacing: "0.15em", color: "rgba(232,226,217,0.5)", marginBottom: "0.75rem" }}>
+              <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.75rem", letterSpacing: "0.15em", color: "rgba(232,226,217,0.5)", marginBottom: "0.75rem" }}>
                 THE IMPOSTER WAS...
               </div>
               {imposter && (
                 <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
                   <div style={{ width: 48, height: 48, borderRadius: "50%", background: imposter.color, boxShadow: `0 0 16px ${imposter.color}88` }} />
                   <div>
-                    <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "2.5rem", color: "#E8E2D9", letterSpacing: "0.06em", lineHeight: 1 }}>
+                    <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "2.5rem", color: "#E8E2D9", letterSpacing: "0.06em", lineHeight: 1 }}>
                       {imposter.name}
                     </div>
                     {imposter.id === myPlayerId && (
@@ -50,7 +50,7 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
                   </div>
                   <div style={{ marginLeft: "auto", textAlign: "right" }}>
                     <div style={{
-                      fontFamily: "'Bebas Neue', sans-serif",
+                      fontFamily: "'Rubik Dirt', sans-serif",
                       fontSize: "1.75rem",
                       color: latestResult.caught ? "#E87DBB" : "#3ECFCF",
                       letterSpacing: "0.05em",
@@ -67,8 +67,8 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
               {/* AI Feedback */}
               {latestResult.feedback && (
                 <div style={{ borderTop: "1px solid rgba(232,226,217,0.12)", paddingTop: "1rem" }}>
-                  <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "0.7rem", letterSpacing: "0.12em", color: "#CC2200", marginBottom: "0.5rem" }}>
-                    AI DESIGN CRITIQUE
+                  <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.7rem", letterSpacing: "0.12em", color: "#CC2200", marginBottom: "0.5rem" }}>
+                    DESIGN CRITIQUE
                   </div>
                   <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.85rem", color: "rgba(232,226,217,0.8)", lineHeight: 1.55, margin: 0 }}>
                     {latestResult.feedback}
@@ -81,7 +81,7 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
           {/* Vote tally */}
           {latestResult && room.votes && Object.keys(room.votes).length > 0 && (
             <div style={{ background: "rgba(44,44,44,0.07)", border: "1px solid rgba(44,44,44,0.12)", padding: "1rem 1.25rem" }}>
-              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "0.7rem", letterSpacing: "0.12em", color: "rgba(44,44,44,0.5)", marginBottom: "0.75rem" }}>
+              <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.7rem", letterSpacing: "0.12em", color: "rgba(44,44,44,0.5)", marginBottom: "0.75rem" }}>
                 VOTE BREAKDOWN
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
@@ -117,12 +117,12 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
               padding: "1.5rem",
               textAlign: "center",
             }}>
-              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "0.75rem", letterSpacing: "0.2em", color: "#CC2200", marginBottom: "0.4rem" }}>
+              <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.75rem", letterSpacing: "0.2em", color: "#CC2200", marginBottom: "0.4rem" }}>
                 WINNER
               </div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem" }}>
                 <div style={{ width: 40, height: 40, borderRadius: "50%", background: winner.color, boxShadow: `0 0 16px ${winner.color}88` }} />
-                <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "3rem", color: "#E8E2D9", letterSpacing: "0.05em", lineHeight: 1 }}>
+                <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "3rem", color: "#E8E2D9", letterSpacing: "0.05em", lineHeight: 1 }}>
                   {winner.name}
                 </div>
               </div>
@@ -135,7 +135,7 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
                   onClick={onPlayAgain}
                   style={{
                     marginTop: "1.25rem",
-                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontFamily: "'Rubik Dirt', sans-serif",
                     letterSpacing: "0.1em",
                     fontSize: "1.4rem",
                     color: "#E8E2D9",
@@ -168,7 +168,7 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
 
         {/* Right: Scoreboard */}
         <div style={{ width: "260px", background: "#2C2C2C", borderLeft: "2px solid #1a1a1a", padding: "1.5rem 1rem", display: "flex", flexDirection: "column", gap: "0.5rem", flexShrink: 0 }}>
-          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "0.75rem", letterSpacing: "0.15em", color: "rgba(232,226,217,0.5)", marginBottom: "0.5rem" }}>
+          <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.75rem", letterSpacing: "0.15em", color: "rgba(232,226,217,0.5)", marginBottom: "0.5rem" }}>
             LEADERBOARD
           </div>
           {sortedPlayers.map((player, rank) => {
@@ -187,7 +187,7 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
                   border: isMe ? "1px solid rgba(232,226,217,0.2)" : "1px solid rgba(232,226,217,0.06)",
                 }}
               >
-                <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.1rem", color: rank === 0 ? "#F5A623" : "rgba(232,226,217,0.3)", width: "18px", textAlign: "center" }}>
+                <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "1.1rem", color: rank === 0 ? "#F5A623" : "rgba(232,226,217,0.3)", width: "18px", textAlign: "center" }}>
                   {rank + 1}
                 </div>
                 <div style={{ width: 10, height: 10, borderRadius: "50%", background: player.color, flexShrink: 0 }} />
@@ -202,7 +202,7 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
                     </div>
                   )}
                 </div>
-                <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.4rem", color: "#E8E2D9", letterSpacing: "0.03em" }}>
+                <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "1.4rem", color: "#E8E2D9", letterSpacing: "0.03em" }}>
                   {player.score}
                 </div>
               </div>
@@ -212,14 +212,14 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
           {/* Round history */}
           {room.results.length > 0 && (
             <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid rgba(232,226,217,0.1)" }}>
-              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "0.65rem", letterSpacing: "0.12em", color: "rgba(232,226,217,0.35)", marginBottom: "0.5rem" }}>
+              <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.65rem", letterSpacing: "0.12em", color: "rgba(232,226,217,0.35)", marginBottom: "0.5rem" }}>
                 ROUND HISTORY
               </div>
               {room.results.map((r) => (
                 <div key={r.round} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
-                  <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "0.65rem", color: "rgba(232,226,217,0.35)" }}>R{r.round}</span>
+                  <span style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.65rem", color: "rgba(232,226,217,0.35)" }}>R{r.round}</span>
                   <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.65rem", color: "rgba(232,226,217,0.4)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.prompt}</span>
-                  <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "0.65rem", color: r.caught ? "#E87DBB" : "#3ECFCF" }}>{r.caught ? "CAUGHT" : "FREE"}</span>
+                  <span style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.65rem", color: r.caught ? "#E87DBB" : "#3ECFCF" }}>{r.caught ? "CAUGHT" : "FREE"}</span>
                 </div>
               ))}
             </div>

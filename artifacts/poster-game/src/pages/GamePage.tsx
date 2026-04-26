@@ -83,7 +83,7 @@ function renderElement(el: CanvasElement, myPlayerId: string) {
       style: {
         ...base,
         ...ownerRing,
-        fontFamily: "'Bebas Neue', sans-serif",
+        fontFamily: "'Rubik Dirt', sans-serif",
         fontSize: el.fontSize ?? 36,
         color: el.fill,
         display: "flex",
@@ -232,14 +232,14 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
           borderBottom: "2px solid #1a1a1a",
         }}
       >
-        <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.6rem", color: "#E8E2D9", letterSpacing: "0.06em", lineHeight: 1 }}>
+        <span style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "1.6rem", color: "#E8E2D9", letterSpacing: "0.06em", lineHeight: 1 }}>
           PO<span style={{ color: "#CC2200" }}>S</span>TER
         </span>
 
         <div style={{ width: "1px", height: "24px", background: "rgba(232,226,217,0.2)" }} />
 
         <div>
-          <div style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.1em", fontSize: "0.7rem", color: "rgba(232,226,217,0.5)", marginBottom: "1px" }}>
+          <div style={{ fontFamily: "'Rubik Dirt', sans-serif", letterSpacing: "0.1em", fontSize: "0.7rem", color: "rgba(232,226,217,0.5)", marginBottom: "1px" }}>
             Round {room.round}/{room.maxRounds}
           </div>
           <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.85rem", color: "#E8E2D9", fontWeight: 500 }}>
@@ -250,7 +250,7 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "1rem" }}>
           {isImposter && (
             <div style={{
-              fontFamily: "'Bebas Neue', sans-serif",
+              fontFamily: "'Rubik Dirt', sans-serif",
               fontSize: "0.75rem",
               letterSpacing: "0.12em",
               color: "#CC2200",
@@ -264,7 +264,7 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
           )}
           {!isImposter && (
             <div style={{
-              fontFamily: "'Bebas Neue', sans-serif",
+              fontFamily: "'Rubik Dirt', sans-serif",
               fontSize: "0.75rem",
               letterSpacing: "0.12em",
               color: "rgba(232,226,217,0.5)",
@@ -276,7 +276,7 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
           )}
 
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "0.6rem", color: "rgba(232,226,217,0.4)", letterSpacing: "0.1em" }}>TIME</div>
+            <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.6rem", color: "rgba(232,226,217,0.4)", letterSpacing: "0.1em" }}>TIME</div>
             <Timer endTime={room.phaseEndTime} />
           </div>
 
@@ -284,7 +284,7 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
             <button
               onClick={onSkip}
               style={{
-                fontFamily: "'Bebas Neue', sans-serif",
+                fontFamily: "'Rubik Dirt', sans-serif",
                 letterSpacing: "0.08em",
                 fontSize: "0.85rem",
                 color: "#E8E2D9",
@@ -316,7 +316,7 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
             overflowY: "auto",
           }}
         >
-          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "0.65rem", letterSpacing: "0.15em", color: "rgba(232,226,217,0.4)", textAlign: "center", marginBottom: "0.25rem" }}>
+          <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.65rem", letterSpacing: "0.15em", color: "rgba(232,226,217,0.4)", textAlign: "center", marginBottom: "0.25rem" }}>
             ADD ELEMENT
           </div>
           {TOOLS.map((tool) => (
@@ -418,7 +418,7 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
                 justifyContent: "center",
                 pointerEvents: "none",
               }}>
-                <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.5rem", color: "rgba(44,44,44,0.15)", letterSpacing: "0.1em" }}>
+                <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "1.5rem", color: "rgba(44,44,44,0.15)", letterSpacing: "0.1em" }}>
                   {room.prompt}
                 </div>
                 <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.8rem", color: "rgba(44,44,44,0.2)", marginTop: "0.5rem" }}>

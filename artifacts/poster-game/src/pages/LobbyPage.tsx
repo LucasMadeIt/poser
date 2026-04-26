@@ -24,7 +24,7 @@ export function LobbyPage({ room, myPlayerId, amIHost, onStart }: Props) {
 
       <div className="relative z-10 w-full max-w-lg px-6">
         <div className="text-center mb-8">
-          <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "3.5rem", letterSpacing: "0.06em", color: "#2C2C2C", lineHeight: 1 }}>
+          <span style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "3.5rem", letterSpacing: "0.06em", color: "#2C2C2C", lineHeight: 1 }}>
             PO<span style={{ color: "#CC2200" }}>S</span>TER
           </span>
         </div>
@@ -33,10 +33,10 @@ export function LobbyPage({ room, myPlayerId, amIHost, onStart }: Props) {
           {/* Room code */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem", paddingBottom: "1rem", borderBottom: "1px solid rgba(232,226,217,0.2)" }}>
             <div>
-              <div style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.15em", color: "#E8E2D9", fontSize: "0.8rem", opacity: 0.6, marginBottom: "0.2rem" }}>
+              <div style={{ fontFamily: "'Rubik Dirt', sans-serif", letterSpacing: "0.15em", color: "#E8E2D9", fontSize: "0.8rem", opacity: 0.6, marginBottom: "0.2rem" }}>
                 Room Code
               </div>
-              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "2.5rem", letterSpacing: "0.3em", color: "#CC2200", lineHeight: 1 }}>
+              <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "2.5rem", letterSpacing: "0.3em", color: "#CC2200", lineHeight: 1 }}>
                 {room.id}
               </div>
             </div>
@@ -48,7 +48,7 @@ export function LobbyPage({ room, myPlayerId, amIHost, onStart }: Props) {
             </button>
           </div>
 
-          <div style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.12em", color: "#E8E2D9", fontSize: "0.85rem", marginBottom: "0.75rem", opacity: 0.7 }}>
+          <div style={{ fontFamily: "'Rubik Dirt', sans-serif", letterSpacing: "0.12em", color: "#E8E2D9", fontSize: "0.85rem", marginBottom: "0.75rem", opacity: 0.7 }}>
             Players ({room.players.length}/5)
           </div>
 
@@ -73,7 +73,7 @@ export function LobbyPage({ room, myPlayerId, amIHost, onStart }: Props) {
                     {isMe && <span style={{ fontSize: "0.7rem", color: "rgba(232,226,217,0.5)", marginLeft: "0.4rem" }}>(you)</span>}
                   </span>
                   {player.isHost && (
-                    <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "0.7rem", letterSpacing: "0.1em", color: "#CC2200", background: "rgba(204,34,0,0.15)", padding: "0.15rem 0.4rem", border: "1px solid rgba(204,34,0,0.3)" }}>
+                    <span style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.7rem", letterSpacing: "0.1em", color: "#CC2200", background: "rgba(204,34,0,0.15)", padding: "0.15rem 0.4rem", border: "1px solid rgba(204,34,0,0.3)" }}>
                       Host
                     </span>
                   )}
@@ -116,7 +116,7 @@ export function LobbyPage({ room, myPlayerId, amIHost, onStart }: Props) {
             { n: "45s", label: "Voting" },
           ].map(({ n, label }) => (
             <div key={label} style={{ textAlign: "center" }}>
-              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.5rem", color: "#CC2200", lineHeight: 1 }}>{n}</div>
+              <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "1.5rem", color: "#CC2200", lineHeight: 1 }}>{n}</div>
               <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.7rem", color: "#5C5C5C", letterSpacing: "0.08em", textTransform: "uppercase" }}>{label}</div>
             </div>
           ))}

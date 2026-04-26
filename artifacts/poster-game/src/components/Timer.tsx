@@ -29,7 +29,7 @@ export function Timer({ endTime, onExpired }: Props) {
   return (
     <span
       style={{
-        fontFamily: "'Bebas Neue', sans-serif",
+        fontFamily: "'Rubik Dirt', sans-serif",
         fontSize: "2rem",
         letterSpacing: "0.05em",
         color: isUrgent ? "#CC2200" : "#E8E2D9",

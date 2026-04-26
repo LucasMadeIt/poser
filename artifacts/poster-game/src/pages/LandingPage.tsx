@@ -46,7 +46,7 @@ export function LandingPage({ onCreateRoom, onJoinRoom, error }: Props) {
           <div className="inline-block relative mb-2">
             <span
               style={{
-                fontFamily: "'Bebas Neue', Impact, sans-serif",
+                fontFamily: "'Rubik Dirt', Impact, sans-serif",
                 fontSize: "clamp(4rem, 12vw, 7rem)",
                 letterSpacing: "0.06em",
                 color: "#2C2C2C",
@@ -85,7 +85,7 @@ export function LandingPage({ onCreateRoom, onJoinRoom, error }: Props) {
           <div style={{ marginBottom: "1.5rem" }}>
             <label
               style={{
-                fontFamily: "'Bebas Neue', sans-serif",
+                fontFamily: "'Rubik Dirt', sans-serif",
                 letterSpacing: "0.1em",
                 color: "#E8E2D9",
                 fontSize: "0.85rem",
@@ -118,7 +118,7 @@ export function LandingPage({ onCreateRoom, onJoinRoom, error }: Props) {
               onClick={() => setMode("create")}
               style={{
                 flex: 1,
-                fontFamily: "'Bebas Neue', sans-serif",
+                fontFamily: "'Rubik Dirt', sans-serif",
                 letterSpacing: "0.08em",
                 fontSize: "1rem",
                 padding: "0.5rem",
@@ -135,7 +135,7 @@ export function LandingPage({ onCreateRoom, onJoinRoom, error }: Props) {
               onClick={() => setMode("join")}
               style={{
                 flex: 1,
-                fontFamily: "'Bebas Neue', sans-serif",
+                fontFamily: "'Rubik Dirt', sans-serif",
                 letterSpacing: "0.08em",
                 fontSize: "1rem",
                 padding: "0.5rem",
@@ -155,7 +155,7 @@ export function LandingPage({ onCreateRoom, onJoinRoom, error }: Props) {
             <div style={{ marginBottom: "1.5rem" }}>
               <label
                 style={{
-                  fontFamily: "'Bebas Neue', sans-serif",
+                  fontFamily: "'Rubik Dirt', sans-serif",
                   letterSpacing: "0.1em",
                   color: "#E8E2D9",
                   fontSize: "0.85rem",
@@ -211,7 +211,7 @@ export function LandingPage({ onCreateRoom, onJoinRoom, error }: Props) {
         >
           <p
             style={{
-              fontFamily: "'Bebas Neue', sans-serif",
+              fontFamily: "'Rubik Dirt', sans-serif",
               letterSpacing: "0.1em",
               fontSize: "0.9rem",
               color: "#CC2200",
@@ -233,7 +233,7 @@ export function LandingPage({ onCreateRoom, onJoinRoom, error }: Props) {
             <li>2–5 players collaborate on a design brief</li>
             <li>One player is secretly the imposter saboteur</li>
             <li>After each round, discuss and vote who the imposter is</li>
-            <li>AI scores the design — the imposter tries to stay hidden</li>
+            <li>Designs are scored each round — the imposter tries to stay hidden</li>
           </ul>
         </div>
       </div>
