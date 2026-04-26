@@ -17,7 +17,6 @@ import {
   type Room,
 } from "./gameState.js";
 import { pickPrompts, PHASE_DURATIONS } from "./rounds.js";
-import { scoreRound } from "./scoring.js";
 import { logger } from "../lib/logger.js";
 
 function sanitizeRoom(room: Room, forSocketId: string) {
@@ -86,63 +85,51 @@ function advancePhase(io: Server, room: Room, prompts: string[]) {
     broadcastRoom(io, room);
     room.phaseTimer = setTimeout(() => advancePhase(io, room, prompts), PHASE_DURATIONS.vote);
   } else if (room.phase === "vote") {
-    const snapshot = [...room.canvas];
     const { mostVoted } = tallyVotes(room);
     const caught = mostVoted === room.imposterId;
 
+    const FEEDBACK_LINES = [
+      "Some strong contributions, but the layout feels unresolved.",
+      "Interesting use of elements — composition could be tighter.",
+      "Good variety, though colour choices clash in places.",
+      "Solid structure with a few elements that feel out of place.",
+      "Typography and shapes work together well overall.",
+      "The hierarchy is unclear — someone sabotaged the visual flow.",
+      "Nice balance of types, but a couple of elements feel off-brand.",
+      "Layout has potential; a rogue element dragged the score down.",
+    ];
+
+    const roundResult = {
+      round: room.round,
+      prompt: room.prompt,
+      scores: {},
+      feedback: FEEDBACK_LINES[Math.floor(Math.random() * FEEDBACK_LINES.length)],
+      imposterId: room.imposterId,
+      caught,
+    };
+    room.results.push(roundResult);
     room.phase = "results";
     room.phaseEndTime = Date.now() + PHASE_DURATIONS.results * 3;
+    broadcastRoom(io, room);
 
-    scoreRound(room.prompt, snapshot, room.players).then((result) => {
-      const roundResult = {
-        round: room.round,
-        prompt: room.prompt,
-        scores: result.scores,
-        feedback: result.feedback,
-        imposterId: room.imposterId,
-        caught,
-      };
-      room.results.push(roundResult);
-
-      for (const player of room.players) {
-        const pts = result.scores[player.id] ?? 0;
-        player.score += pts;
-        if (caught && player.id === room.imposterId) {
-          player.score -= 20;
-        }
-        if (caught && player.id !== room.imposterId) {
-          player.score += 15;
-        }
-        if (!caught && player.id === room.imposterId) {
-          player.score += 30;
-        }
-      }
-
-      broadcastRoom(io, room);
-
-      const nextRound = room.round + 1;
-      if (nextRound > room.maxRounds || caught) {
-        room.phaseTimer = setTimeout(() => {
-          room.phase = "ended";
-          broadcastRoom(io, room);
-        }, PHASE_DURATIONS.results * 3);
-      } else {
-        room.phaseTimer = setTimeout(() => {
-          room.round = nextRound;
-          room.prompt = prompts[nextRound - 1] ?? "Design a beautiful UI";
-          resetRound(room);
-          assignImposter(room);
-          room.phase = "design";
-          room.phaseEndTime = Date.now() + PHASE_DURATIONS.design;
-          broadcastRoom(io, room);
-          room.phaseTimer = setTimeout(() => advancePhase(io, room, prompts), PHASE_DURATIONS.design);
-        }, PHASE_DURATIONS.results * 3);
-      }
-    }).catch((err) => {
-      logger.error({ err }, "Scoring failed");
-      room.phase = "ended";
-      broadcastRoom(io, room);
-    });
+    const nextRound = room.round + 1;
+    if (nextRound > room.maxRounds || caught) {
+      room.phaseTimer = setTimeout(() => {
+        room.phase = "ended";
+        broadcastRoom(io, room);
+      }, PHASE_DURATIONS.results * 3);
+    } else {
+      room.phaseTimer = setTimeout(() => {
+        room.round = nextRound;
+        room.prompt = prompts[nextRound - 1] ?? "Design a beautiful UI";
+        resetRound(room);
+        assignImposter(room);
+        room.phase = "design";
+        room.phaseEndTime = Date.now() + PHASE_DURATIONS.design;
+        broadcastRoom(io, room);
+        room.phaseTimer = setTimeout(() => advancePhase(io, room, prompts), PHASE_DURATIONS.design);
+      }, PHASE_DURATIONS.results * 3);
+    }
   }
 }
 

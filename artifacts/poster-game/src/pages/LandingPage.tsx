@@ -43,23 +43,17 @@ export function LandingPage({ onCreateRoom, onJoinRoom, error }: Props) {
 
       <div className="relative z-10 w-full max-w-md px-6">
         <div className="text-center mb-10">
-          <div className="inline-block relative mb-2">
-            <span
-              style={{
-                fontFamily: "'Rubik Dirt', Impact, sans-serif",
-                fontSize: "clamp(4rem, 12vw, 7rem)",
-                letterSpacing: "0.06em",
-                color: "#2C2C2C",
-                lineHeight: 1,
-                display: "block",
-                textShadow: "4px 4px 0 rgba(0,0,0,0.12)",
-              }}
-            >
-              PO
-              <span style={{ color: "#CC2200" }}>S</span>
-              TER
-            </span>
-          </div>
+          <img
+            src="/poster-logo.png"
+            alt="POSTER"
+            style={{
+              width: "clamp(200px, 50vw, 320px)",
+              margin: "0 auto",
+              display: "block",
+              mixBlendMode: "multiply",
+              filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.14))",
+            }}
+          />
           <p
             style={{
               fontFamily: "'DM Sans', sans-serif",
@@ -68,6 +62,7 @@ export function LandingPage({ onCreateRoom, onJoinRoom, error }: Props) {
               fontWeight: 400,
               letterSpacing: "0.08em",
               textTransform: "uppercase",
+              marginTop: "0.5rem",
             }}
           >
             The design imposter game
@@ -233,7 +228,7 @@ export function LandingPage({ onCreateRoom, onJoinRoom, error }: Props) {
             <li>2–5 players collaborate on a design brief</li>
             <li>One player is secretly the imposter saboteur</li>
             <li>After each round, discuss and vote who the imposter is</li>
-            <li>Designs are scored each round — the imposter tries to stay hidden</li>
+            <li>Designs are judged — the imposter tries to stay hidden</li>
           </ul>
         </div>
       </div>

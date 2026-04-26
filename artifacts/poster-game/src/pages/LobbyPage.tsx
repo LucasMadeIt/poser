@@ -24,9 +24,11 @@ export function LobbyPage({ room, myPlayerId, amIHost, onStart }: Props) {
 
       <div className="relative z-10 w-full max-w-lg px-6">
         <div className="text-center mb-8">
-          <span style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "3.5rem", letterSpacing: "0.06em", color: "#2C2C2C", lineHeight: 1 }}>
-            PO<span style={{ color: "#CC2200" }}>S</span>TER
-          </span>
+          <img
+            src="/poster-logo.png"
+            alt="POSTER"
+            style={{ width: "180px", margin: "0 auto", display: "block", mixBlendMode: "multiply", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.1))" }}
+          />
         </div>
 
         <div style={{ background: "#2C2C2C", border: "2px solid #1a1a1a", boxShadow: "6px 6px 0 rgba(0,0,0,0.25)", padding: "2rem" }}>

@@ -232,9 +232,7 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
           borderBottom: "2px solid #1a1a1a",
         }}
       >
-        <span style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "1.6rem", color: "#E8E2D9", letterSpacing: "0.06em", lineHeight: 1 }}>
-          PO<span style={{ color: "#CC2200" }}>S</span>TER
-        </span>
+        <img src="/poster-logo.png" alt="POSTER" style={{ height: "34px", display: "block", filter: "brightness(0) invert(1)" }} />
 
         <div style={{ width: "1px", height: "24px", background: "rgba(232,226,217,0.2)" }} />
 

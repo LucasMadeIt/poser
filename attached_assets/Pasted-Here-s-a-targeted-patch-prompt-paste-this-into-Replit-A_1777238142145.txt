@@ -1,0 +1,145 @@
+Here's a **targeted patch prompt** — paste this into Replit Agent as a follow-up:
+
+---
+
+> Fix the following specific issues in the existing POSTER game. Do not rebuild from scratch — patch only what is listed below.
+
+> ---
+
+> ## 1. CUSTOM FONT — CRITICAL
+
+> The game must use a rough hand-painted brush font that matches the provided alphabet image exactly. Do this in two ways:
+
+> **For the POSTER logo** — the word "POSTER" in the top left uses only 6 letters. Render each letter as an inline SVG path hand-traced to match the brush alphabet image provided. The letters P, O, S, T, E, R should each be their own SVG element assembled side by side. The T must be colored `#CC2200` red, all others `#1a1a1a` near-black. Do not use a font file for the logo — use SVG paths only so it matches pixel-perfectly.
+
+> **For all other headings, labels, round text, phase banners, vote screen headers** — import and use Google Font `"Permanent Marker"` which is the closest available match to this brush alphabet style. Apply it via:
+> ```css
+> @import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap');
+> --font-grunge: 'Permanent Marker', cursive;
+> ```
+> Replace every instance of Bebas Neue on non-timer headings with this font. Timer stays Bebas Neue.
+
+> ---
+
+> ## 2. COMPONENT TRAY — Must look like the mockup image
+
+> The current left panel shows plain text buttons (Heading, Text, Rectangle etc). This is wrong. Fix it to match the original mockup image exactly:
+
+> Every component must render as a **visual chip** — a dark rounded card with a small live HTML preview inside it, not just a label. Each chip has:
+> - `⠿` grab handle icon on the far left edge
+> - A small visual preview in the center (see below for each)
+> - A label beneath the preview in small muted text
+> - `box-shadow: 0 4px 10px rgba(0,0,0,0.5)` so it looks physically lifted
+> - `border: 1.5px solid #444`, `border-radius: 8px`, background `#2a2a2a`
+> - On hover: `transform: translateY(-3px)`, stronger shadow
+> - Draggable via `@dnd-kit`
+
+> **Visual previews for each chip:**
+> - `Title` → large bold text "Title" in white, font-size 18px
+> - `Heading` → bold "Heading" text, font-size 14px
+> - `Body Text` → three thin grey horizontal lines simulating paragraph text
+> - `Caption` → one thin short grey line
+> - `Label` → small rounded pill outline with "Label" inside
+> - `Button` → a small filled rounded rectangle with "Button" text
+> - `Ghost Button` → same but with dashed border, transparent fill
+> - `Icon Button` → small square with a ☆ star symbol inside
+> - `Text Input` → a flat rectangle outline with a blinking cursor line inside, placeholder "Input"
+> - `Password Field` → same but with • • • • dots inside
+> - `Dropdown` → rectangle with "Select ▾" text
+> - `Checkbox` → small square + a line next to it
+> - `Radio Button` → small circle + a line next to it
+> - `Slider` → a flat track with a small circle handle on it
+> - `Nav Bar` → a wide thin rectangle with three small dots/dashes inside
+> - `Tabs` → two or three flat adjacent tab shapes
+> - `Breadcrumb` → three small boxes connected by `›` chevrons
+> - `Content Card` → rectangle outline with three placeholder lines inside
+> - `Image Card` → rectangle with a grey box on top (image placeholder) + two lines below
+> - `Modal` → smaller inset rectangle with an X in top right corner
+> - `Divider` → a single thin horizontal line
+> - `Image Block` → grey rectangle with an `✕` diagonal cross inside
+> - `Video Block` → same with a `▶` play triangle
+> - `Map` → a small grid of faint lines suggesting map tiles
+> - `Calendar` → a tiny grid of squares with a header bar
+> - `Icon` → a small circle with a generic shape inside
+> - `Avatar` → a circle with a silhouette shape inside
+
+> Components are grouped under collapsible section headers with a `▸` toggle arrow. Section headers use `--font-grunge` in muted white `#aaa`.
+
+> ---
+
+> ## 3. SEARCH BAR — Must actually work
+
+> The search bar at the top of the left panel must:
+> - Have a 🔍 magnifying glass icon on the left
+> - Placeholder text: `"Search… e.g. calendar, map"`
+> - On keystroke: filter ALL component chips across ALL sections in real time using case-insensitive string matching against the component name
+> - When a search term matches components in only one section, auto-expand that section and collapse others
+> - If no results: show a centered message `"No components found"` in muted text
+> - Clearing the search restores all sections to their default expanded/collapsed state
+> - Styled: `background: #1a1a1a`, `border: 1.5px solid #444`, `color: #eee`, `border-radius: 6px`, full width minus padding
+
+> ---
+
+> ## 4. ROLE REVEAL SCREEN — Currently missing entirely, must be added
+
+> Immediately after the host clicks Start Game and roles are assigned, each player sees a full-screen dramatic reveal overlay for exactly 4 seconds before it auto-dismisses and the game begins.
+
+> **For CREWMATE players:**
+> - Full screen overlay `position: fixed, z-index: 9999`
+> - Background: dark `#0a0a0a` with a subtle blue tint `rgba(30,50,100,0.95)`
+> - Large grunge font text: `"YOU ARE A"` then on next line massive: `"CREWMATE"` in white
+> - Subtext beneath: `"Work with your team to build the best UI. Find the imposter before 4 rounds are up."`
+> - A friendly blob character (teal `#3ECFCF`) in the center doing a thumbs up pose
+> - Fades out after 4 seconds with a smooth opacity transition
+
+> **For the IMPOSTER player:**
+> - Same full screen overlay
+> - Background: dark `#0a0a0a` with a red tint `rgba(100,10,10,0.95)`
+> - Large grunge font: `"YOU ARE THE"` then massive: `"IMPOSTER"` in deep red `#CC2200`
+> - Subtext: `"Sabotage the UI without getting caught. You have the same tools as everyone — use them against the team."`
+> - A dark black blob `#1a1a1a` with a villain smirk and tiny cape
+> - Red particles or a subtle shake animation on the text
+> - Fades out after 4 seconds
+
+> Both overlays use `--font-grunge: 'Permanent Marker'` for all text. The blob characters are pure CSS — organic rounded `div` shapes, two circle eyes, thin rotated `div` arms.
+
+> ---
+
+> ## 5. TOP BAR — Match the mockup image
+
+> The top bar should look exactly like the reference mockup image (dark bar full width):
+> - **Left:** POSTER SVG logo (broken frame icon + POSTER text with red T)
+> - **Center:** `"Round 2 / 4"` in grunge font + below it the round prompt in smaller text e.g. `"Design a food delivery app home screen"`
+> - **Right:** Role badge pill — `"CREWMATE"` in blue or `"IMPOSTER"` in red (only shows your own role) + next to it the large countdown timer in Bebas Neue red
+> - Separated by a `1px solid #333` bottom border
+
+> ---
+
+> ## 6. PLAYER LIST — Bottom of left panel
+
+> Below the component tray, pinned at the bottom, show connected players as small colored dots with names — exactly like Image 3's bottom left player list:
+> - Each player: colored circle dot + their name in small `DM Sans` text
+> - Green dot = connected, grey = disconnected
+> - Stack vertically, max 5 entries
+
+> ---
+
+> ## 7. POSTER FRAME — Must be ornate, not a plain rectangle
+
+> The current canvas is a plain black rectangle border. Replace it with an ornate decorative frame matching the mockup:
+> - Use an SVG ornate frame shape or a thick CSS border with `border-image` using a repeating decorative pattern
+> - The frame should have decorative corner flourishes — use CSS `::before` and `::after` pseudo-elements on corners with ornamental SVG shapes
+> - Slightly tilted: `transform: rotate(-1deg)`
+> - `"ROUND 2"` text in grunge font scratched into the top of the frame
+> - Two sticky note elements pinned to the inner frame border:
+>   - Torn paper style prompt note with the round's design brief
+>   - Font note showing the locked fonts for this round with 🔒 icons
+
+> ---
+
+> ## 8. CANVAS INSTRUCTIONS TEXT
+
+> Inside the empty canvas before anything is placed, show centered ghost text:
+> - Large: `"[Round prompt here]"` in very light `rgba(0,0,0,0.08)`
+> - Small beneath: `"Drag elements from the left panel onto the canvas"`
+> - This disappears once the first component is placed
