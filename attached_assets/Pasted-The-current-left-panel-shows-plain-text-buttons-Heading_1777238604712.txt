@@ -1,0 +1,48 @@
+The current left panel shows plain text buttons (Heading, Text, Rectangle etc). This is wrong. Fix it to match the original mockup image exactly:
+
+
+Every component must render as a visual chip — a dark rounded card with a small live HTML preview inside it, not just a label. Each chip has:
+
+⠿ grab handle icon on the far left edge
+A small visual preview in the center (see below for each)
+A label beneath the preview in small muted text
+box-shadow: 0 4px 10px rgba(0,0,0,0.5) so it looks physically lifted
+border: 1.5px solid #444, border-radius: 8px, background #2a2a2a
+On hover: transform: translateY(-3px), stronger shadow
+Draggable via @dnd-kit
+
+
+
+Visual previews for each chip:
+
+Title → large bold text "Title" in white, font-size 18px
+Heading → bold "Heading" text, font-size 14px
+Body Text → three thin grey horizontal lines simulating paragraph text
+Caption → one thin short grey line
+Label → small rounded pill outline with "Label" inside
+Button → a small filled rounded rectangle with "Button" text
+Ghost Button → same but with dashed border, transparent fill
+Icon Button → small square with a ☆ star symbol inside
+Text Input → a flat rectangle outline with a blinking cursor line inside, placeholder "Input"
+Password Field → same but with • • • • dots inside
+Dropdown → rectangle with "Select ▾" text
+Checkbox → small square + a line next to it
+Radio Button → small circle + a line next to it
+Slider → a flat track with a small circle handle on it
+Nav Bar → a wide thin rectangle with three small dots/dashes inside
+Tabs → two or three flat adjacent tab shapes
+Breadcrumb → three small boxes connected by › chevrons
+Content Card → rectangle outline with three placeholder lines inside
+Image Card → rectangle with a grey box on top (image placeholder) + two lines below
+Modal → smaller inset rectangle with an X in top right corner
+Divider → a single thin horizontal line
+Image Block → grey rectangle with an ✕ diagonal cross inside
+Video Block → same with a ▶ play triangle
+Map → a small grid of faint lines suggesting map tiles
+Calendar → a tiny grid of squares with a header bar
+Icon → a small circle with a generic shape inside
+Avatar → a circle with a silhouette shape inside
+
+
+
+Components are grouped under collapsible section headers with a ▸ toggle arrow. Section headers use --font-grunge in muted white #aaa.

@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { useGame } from "./hooks/useGame";
 import { LandingPage } from "./pages/LandingPage";
 import { LobbyPage } from "./pages/LobbyPage";
@@ -5,6 +6,7 @@ import { GamePage } from "./pages/GamePage";
 import { ChatPage } from "./pages/ChatPage";
 import { VotePage } from "./pages/VotePage";
 import { ResultsPage } from "./pages/ResultsPage";
+import { RoleReveal } from "./components/RoleReveal";
 
 export default function App() {
   const {
@@ -27,6 +29,21 @@ export default function App() {
     skipPhase,
     playAgain,
   } = useGame();
+
+  const [showReveal, setShowReveal] = useState(false);
+  const prevPhase = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!room) return;
+    const prev = prevPhase.current;
+    const curr = room.phase;
+    if (curr === "design" && prev !== "design" && prev !== null) {
+      setShowReveal(true);
+    }
+    prevPhase.current = curr;
+  }, [room?.phase]);
+
+  const myRole = myPlayer?.isImposter ? "imposter" : "crewmate";
 
   if (!room || !roomId) {
     return (
@@ -52,15 +69,20 @@ export default function App() {
 
   if (room.phase === "design") {
     return (
-      <GamePage
-        room={room}
-        myPlayerId={myPlayerId}
-        amIHost={amIHost}
-        onAdd={addElement}
-        onUpdate={updateElement}
-        onDelete={deleteElement}
-        onSkip={skipPhase}
-      />
+      <>
+        {showReveal && (
+          <RoleReveal role={myRole} onDismiss={() => setShowReveal(false)} />
+        )}
+        <GamePage
+          room={room}
+          myPlayerId={myPlayerId}
+          amIHost={amIHost}
+          onAdd={addElement}
+          onUpdate={updateElement}
+          onDelete={deleteElement}
+          onSkip={skipPhase}
+        />
+      </>
     );
   }
 

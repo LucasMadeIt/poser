@@ -23,7 +23,7 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
       {/* Header */}
       <div style={{ background: "#2C2C2C", padding: "0.6rem 1.25rem", borderBottom: "2px solid #1a1a1a", display: "flex", alignItems: "center", gap: "1rem" }}>
         <img src="/poster-logo.png" alt="POSTER" style={LOGO_STYLE} />
-        <div style={{ fontFamily: "'Rubik Dirt', sans-serif", letterSpacing: "0.12em", fontSize: "1.1rem", color: isEnded ? "#CC2200" : "#E8E2D9" }}>
+        <div style={{ fontFamily: "'Permanent Marker', cursive", letterSpacing: "0.12em", fontSize: "1.1rem", color: isEnded ? "#CC2200" : "#E8E2D9" }}>
           {isEnded ? "GAME OVER" : `ROUND ${room.round} RESULTS`}
         </div>
       </div>
@@ -34,14 +34,14 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
           {/* Imposter reveal */}
           {latestResult && (
             <div style={{ background: "#2C2C2C", border: "2px solid #1a1a1a", boxShadow: "6px 6px 0 rgba(0,0,0,0.2)", padding: "2rem" }}>
-              <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.75rem", letterSpacing: "0.2em", color: "rgba(232,226,217,0.5)", marginBottom: "1rem" }}>
+              <div style={{ fontFamily: "'Permanent Marker', cursive", fontSize: "0.75rem", letterSpacing: "0.2em", color: "rgba(232,226,217,0.5)", marginBottom: "1rem" }}>
                 THE IMPOSTER WAS...
               </div>
               {imposter && (
                 <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.25rem" }}>
                   <div style={{ width: 56, height: 56, borderRadius: "50%", background: imposter.color, boxShadow: `0 0 20px ${imposter.color}88`, flexShrink: 0 }} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "2.5rem", color: "#E8E2D9", lineHeight: 1 }}>
+                    <div style={{ fontFamily: "'Permanent Marker', cursive", fontSize: "2.5rem", color: "#E8E2D9", lineHeight: 1 }}>
                       {imposter.name}
                     </div>
                     {imposter.id === myPlayerId && (
@@ -50,7 +50,7 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <div style={{
-                      fontFamily: "'Rubik Dirt', sans-serif",
+                      fontFamily: "'Permanent Marker', cursive",
                       fontSize: "2rem",
                       color: latestResult.caught ? "#E87DBB" : "#3ECFCF",
                       lineHeight: 1,
@@ -63,7 +63,7 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
 
               {latestResult.feedback && (
                 <div style={{ borderTop: "1px solid rgba(232,226,217,0.12)", paddingTop: "1rem" }}>
-                  <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.7rem", letterSpacing: "0.12em", color: "#CC2200", marginBottom: "0.5rem" }}>
+                  <div style={{ fontFamily: "'Permanent Marker', cursive", fontSize: "0.7rem", letterSpacing: "0.12em", color: "#CC2200", marginBottom: "0.5rem" }}>
                     DESIGN CRITIQUE
                   </div>
                   <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.9rem", color: "rgba(232,226,217,0.8)", lineHeight: 1.55, margin: 0 }}>
@@ -77,7 +77,7 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
           {/* Vote breakdown */}
           {room.votes && Object.keys(room.votes).length > 0 && (
             <div style={{ background: "rgba(44,44,44,0.07)", border: "1px solid rgba(44,44,44,0.14)", padding: "1.25rem" }}>
-              <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.7rem", letterSpacing: "0.12em", color: "rgba(44,44,44,0.5)", marginBottom: "0.75rem" }}>
+              <div style={{ fontFamily: "'Permanent Marker', cursive", fontSize: "0.7rem", letterSpacing: "0.12em", color: "rgba(44,44,44,0.5)", marginBottom: "0.75rem" }}>
                 VOTE BREAKDOWN
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
@@ -107,17 +107,17 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
           {/* Round history */}
           {room.results.length > 1 && (
             <div style={{ background: "rgba(44,44,44,0.05)", border: "1px solid rgba(44,44,44,0.1)", padding: "1rem 1.25rem" }}>
-              <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.7rem", letterSpacing: "0.12em", color: "rgba(44,44,44,0.4)", marginBottom: "0.5rem" }}>
+              <div style={{ fontFamily: "'Permanent Marker', cursive", fontSize: "0.7rem", letterSpacing: "0.12em", color: "rgba(44,44,44,0.4)", marginBottom: "0.5rem" }}>
                 ROUND HISTORY
               </div>
               {room.results.map((r) => {
                 const imp = room.players.find((p) => p.id === r.imposterId);
                 return (
                   <div key={r.round} style={{ display: "flex", alignItems: "center", gap: "0.75rem", paddingBottom: "0.3rem" }}>
-                    <span style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.75rem", color: "rgba(44,44,44,0.4)", width: "24px" }}>R{r.round}</span>
+                    <span style={{ fontFamily: "'Permanent Marker', cursive", fontSize: "0.75rem", color: "rgba(44,44,44,0.4)", width: "24px" }}>R{r.round}</span>
                     <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.8rem", color: "#2C2C2C", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.prompt}</span>
                     <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.75rem", color: "#5C5C5C" }}>{imp?.name}</span>
-                    <span style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.7rem", color: r.caught ? "#E87DBB" : "#3ECFCF" }}>{r.caught ? "CAUGHT" : "FREE"}</span>
+                    <span style={{ fontFamily: "'Permanent Marker', cursive", fontSize: "0.7rem", color: r.caught ? "#E87DBB" : "#3ECFCF" }}>{r.caught ? "CAUGHT" : "FREE"}</span>
                   </div>
                 );
               })}
@@ -127,7 +127,7 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
           {/* Game over / next round */}
           {isEnded ? (
             <div style={{ background: "#2C2C2C", border: "3px solid #CC2200", boxShadow: "6px 6px 0 #CC2200", padding: "1.75rem", textAlign: "center" }}>
-              <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "2.5rem", color: "#E8E2D9", letterSpacing: "0.05em", marginBottom: "0.5rem" }}>
+              <div style={{ fontFamily: "'Permanent Marker', cursive", fontSize: "2.5rem", color: "#E8E2D9", letterSpacing: "0.05em", marginBottom: "0.5rem" }}>
                 GAME OVER
               </div>
               <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.9rem", color: "rgba(232,226,217,0.6)", marginBottom: "1.5rem" }}>
@@ -147,7 +147,7 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
                 <button
                   onClick={onPlayAgain}
                   style={{
-                    fontFamily: "'Rubik Dirt', sans-serif",
+                    fontFamily: "'Permanent Marker', cursive",
                     letterSpacing: "0.1em",
                     fontSize: "1.4rem",
                     color: "#E8E2D9",

@@ -18,17 +18,17 @@ export function VotePage({ room, myPlayerId, voteTally, onVote }: Props) {
       <div style={{ background: "#2C2C2C", display: "flex", alignItems: "center", gap: "1rem", padding: "0.6rem 1.25rem", borderBottom: "2px solid #1a1a1a" }}>
         <img src="/poster-logo.png" alt="POSTER" style={{ height: "34px", display: "block", filter: "brightness(0) invert(1)" }} />
         <div style={{ width: "1px", height: "24px", background: "rgba(232,226,217,0.2)" }} />
-        <div style={{ fontFamily: "'Rubik Dirt', sans-serif", letterSpacing: "0.12em", fontSize: "1.1rem", color: "#CC2200" }}>
+        <div style={{ fontFamily: "'Permanent Marker', cursive", letterSpacing: "0.12em", fontSize: "1.1rem", color: "#CC2200" }}>
           VOTING PHASE
         </div>
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "1rem" }}>
           {isImposter && (
-            <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.75rem", letterSpacing: "0.12em", color: "#CC2200", border: "1px solid rgba(204,34,0,0.4)", padding: "0.2rem 0.6rem" }}>
+            <div style={{ fontFamily: "'Permanent Marker', cursive", fontSize: "0.75rem", letterSpacing: "0.12em", color: "#CC2200", border: "1px solid rgba(204,34,0,0.4)", padding: "0.2rem 0.6rem" }}>
               IMPOSTER — VOTE STRATEGICALLY
             </div>
           )}
           <div>
-            <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.6rem", color: "rgba(232,226,217,0.4)", letterSpacing: "0.1em" }}>TIME</div>
+            <div style={{ fontFamily: "'Permanent Marker', cursive", fontSize: "0.6rem", color: "rgba(232,226,217,0.4)", letterSpacing: "0.1em" }}>TIME</div>
             <Timer endTime={room.phaseEndTime} />
           </div>
         </div>
@@ -37,7 +37,7 @@ export function VotePage({ room, myPlayerId, voteTally, onVote }: Props) {
       {/* Content */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "2.5rem 1.5rem", gap: "2rem" }}>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "2.5rem", letterSpacing: "0.08em", color: "#2C2C2C", lineHeight: 1 }}>
+          <div style={{ fontFamily: "'Permanent Marker', cursive", fontSize: "2.5rem", letterSpacing: "0.08em", color: "#2C2C2C", lineHeight: 1 }}>
             WHO IS THE IMPOSTER?
           </div>
           <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.9rem", color: "#5C5C5C", marginTop: "0.4rem" }}>
@@ -87,13 +87,13 @@ export function VotePage({ room, myPlayerId, voteTally, onVote }: Props) {
                   {isMe && <span style={{ fontSize: "0.7rem", color: "#5C5C5C" }}> (you)</span>}
                 </div>
                 {player.isHost && (
-                  <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.6rem", letterSpacing: "0.1em", color: "#CC2200" }}>HOST</div>
+                  <div style={{ fontFamily: "'Permanent Marker', cursive", fontSize: "0.6rem", letterSpacing: "0.1em", color: "#CC2200" }}>HOST</div>
                 )}
 
                 {/* Vote count */}
                 {myVote && (
                   <div style={{
-                    fontFamily: "'Rubik Dirt', sans-serif",
+                    fontFamily: "'Permanent Marker', cursive",
                     fontSize: "1.4rem",
                     color: votes > 0 ? "#CC2200" : "rgba(232,226,217,0.2)",
                     letterSpacing: "0.05em",
@@ -103,7 +103,7 @@ export function VotePage({ room, myPlayerId, voteTally, onVote }: Props) {
                 )}
 
                 {isVotedByMe && (
-                  <div style={{ fontFamily: "'Rubik Dirt', sans-serif", fontSize: "0.65rem", letterSpacing: "0.12em", color: "#CC2200" }}>
+                  <div style={{ fontFamily: "'Permanent Marker', cursive", fontSize: "0.65rem", letterSpacing: "0.12em", color: "#CC2200" }}>
                     ✓ YOUR VOTE
                   </div>
                 )}

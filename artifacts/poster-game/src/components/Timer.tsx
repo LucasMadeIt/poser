@@ -23,14 +23,13 @@ export function Timer({ endTime, onExpired }: Props) {
   const seconds = Math.ceil(remaining / 1000);
   const minutes = Math.floor(seconds / 60);
   const secs = seconds % 60;
-
   const isUrgent = seconds <= 15;
 
   return (
     <span
       style={{
-        fontFamily: "'Rubik Dirt', sans-serif",
-        fontSize: "2rem",
+        fontFamily: "'Bebas Neue', Impact, sans-serif",
+        fontSize: "2.2rem",
         letterSpacing: "0.05em",
         color: isUrgent ? "#CC2200" : "#E8E2D9",
         transition: "color 0.3s",
