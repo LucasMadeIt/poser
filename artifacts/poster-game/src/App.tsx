@@ -15,6 +15,8 @@ export default function App() {
     myPlayerId,
     error,
     voteTally,
+    remoteCursors,
+    voteResult,
     myPlayer,
     amIHost,
     socket,
@@ -28,6 +30,7 @@ export default function App() {
     castVote,
     skipPhase,
     playAgain,
+    emitCursorMove,
   } = useGame();
 
   const [showReveal, setShowReveal] = useState(false);
@@ -81,6 +84,8 @@ export default function App() {
           onUpdate={updateElement}
           onDelete={deleteElement}
           onSkip={skipPhase}
+          remoteCursors={remoteCursors}
+          emitCursorMove={emitCursorMove}
         />
       </>
     );
@@ -105,6 +110,7 @@ export default function App() {
         myPlayerId={myPlayerId}
         voteTally={voteTally}
         onVote={castVote}
+        voteResult={voteResult}
       />
     );
   }

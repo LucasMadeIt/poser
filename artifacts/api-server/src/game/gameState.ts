@@ -25,6 +25,8 @@ export type CanvasElement = {
   fill: string;
   stroke?: string;
   fontSize?: number;
+  fontWeight?: number;
+  textAlign?: "left" | "center" | "right";
   ownerId: string;
   zIndex: number;
 };
@@ -183,8 +185,10 @@ export function updateCanvasElement(room: Room, elementId: string, updates: Part
   return el;
 }
 
-export function deleteCanvasElement(room: Room, elementId: string, requesterId: string): boolean {
-  const idx = room.canvas.findIndex((e) => e.id === elementId && e.ownerId === requesterId);
+export function deleteCanvasElement(room: Room, elementId: string, requesterId?: string): boolean {
+  const idx = requesterId
+    ? room.canvas.findIndex((e) => e.id === elementId && e.ownerId === requesterId)
+    : room.canvas.findIndex((e) => e.id === elementId);
   if (idx === -1) return false;
   room.canvas.splice(idx, 1);
   return true;

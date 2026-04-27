@@ -21,6 +21,8 @@ export type CanvasElement = {
   fill: string;
   stroke?: string;
   fontSize?: number;
+  fontWeight?: number;
+  textAlign?: "left" | "center" | "right";
   ownerId: string;
   zIndex: number;
 };

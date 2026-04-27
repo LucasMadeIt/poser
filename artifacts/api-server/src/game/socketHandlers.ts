@@ -15,6 +15,7 @@ import {
   castVote,
   tallyVotes,
   type Room,
+  type CanvasElement,
 } from "./gameState.js";
 import { pickPrompts, PHASE_DURATIONS } from "./rounds.js";
 import { logger } from "../lib/logger.js";
@@ -22,6 +23,7 @@ import { logger } from "../lib/logger.js";
 function sanitizeRoom(room: Room, forSocketId: string) {
   const player = room.players.find((p) => p.socketId === forSocketId);
   const isImposter = player?.isImposter ?? false;
+  const showVotes = room.phase === "results" || room.phase === "ended" || room.phase === "vote";
   return {
     id: room.id,
     phase: room.phase,
@@ -43,8 +45,8 @@ function sanitizeRoom(room: Room, forSocketId: string) {
       score: p.score,
     })),
     myRole: isImposter ? "imposter" : "crewmate",
-    votes: room.phase === "results" || room.phase === "ended" ? room.votes : undefined,
-    voteTally: room.phase === "results" || room.phase === "ended" ? computeTally(room) : undefined,
+    votes: showVotes ? room.votes : undefined,
+    voteTally: showVotes ? computeTally(room) : undefined,
   };
 }
 
@@ -59,6 +61,55 @@ function computeTally(room: Room): Record<string, number> {
 function broadcastRoom(io: Server, room: Room) {
   for (const player of room.players) {
     io.to(player.socketId).emit("room:state", sanitizeRoom(room, player.socketId));
+  }
+}
+
+const FEEDBACK_LINES = [
+  "Some strong contributions, but the layout feels unresolved.",
+  "Interesting use of elements — composition could be tighter.",
+  "Good variety, though colour choices clash in places.",
+  "Solid structure with a few elements that feel out of place.",
+  "Typography and shapes work together well overall.",
+  "The hierarchy is unclear — someone sabotaged the visual flow.",
+  "Nice balance of types, but a couple of elements feel off-brand.",
+  "Layout has potential; a rogue element dragged the score down.",
+];
+
+function resolveVotePhase(io: Server, room: Room, prompts: string[]) {
+  const { mostVoted, isTie } = tallyVotes(room);
+  const caught = mostVoted === room.imposterId;
+  const imposter = room.players.find((p) => p.id === room.imposterId);
+
+  const roundResult = {
+    round: room.round,
+    prompt: room.prompt,
+    scores: {},
+    feedback: FEEDBACK_LINES[Math.floor(Math.random() * FEEDBACK_LINES.length)],
+    imposterId: room.imposterId,
+    caught,
+  };
+  room.results.push(roundResult);
+  room.phase = "results";
+  room.phaseEndTime = Date.now() + PHASE_DURATIONS.results * 3;
+  broadcastRoom(io, room);
+
+  const nextRound = room.round + 1;
+  if (nextRound > room.maxRounds || caught) {
+    room.phaseTimer = setTimeout(() => {
+      room.phase = "ended";
+      broadcastRoom(io, room);
+    }, PHASE_DURATIONS.results * 3);
+  } else {
+    room.phaseTimer = setTimeout(() => {
+      room.round = nextRound;
+      room.prompt = prompts[nextRound - 1] ?? "Design a beautiful UI";
+      resetRound(room);
+      assignImposter(room);
+      room.phase = "design";
+      room.phaseEndTime = Date.now() + PHASE_DURATIONS.design;
+      broadcastRoom(io, room);
+      room.phaseTimer = setTimeout(() => advancePhase(io, room, prompts), PHASE_DURATIONS.design);
+    }, PHASE_DURATIONS.results * 3);
   }
 }
 
@@ -81,55 +132,27 @@ function advancePhase(io: Server, room: Room, prompts: string[]) {
     room.phaseTimer = setTimeout(() => advancePhase(io, room, prompts), PHASE_DURATIONS.chat);
   } else if (room.phase === "chat") {
     room.phase = "vote";
+    room.votes = {};
     room.phaseEndTime = Date.now() + PHASE_DURATIONS.vote;
     broadcastRoom(io, room);
     room.phaseTimer = setTimeout(() => advancePhase(io, room, prompts), PHASE_DURATIONS.vote);
   } else if (room.phase === "vote") {
     const { mostVoted } = tallyVotes(room);
     const caught = mostVoted === room.imposterId;
+    const imposter = room.players.find((p) => p.id === room.imposterId);
 
-    const FEEDBACK_LINES = [
-      "Some strong contributions, but the layout feels unresolved.",
-      "Interesting use of elements — composition could be tighter.",
-      "Good variety, though colour choices clash in places.",
-      "Solid structure with a few elements that feel out of place.",
-      "Typography and shapes work together well overall.",
-      "The hierarchy is unclear — someone sabotaged the visual flow.",
-      "Nice balance of types, but a couple of elements feel off-brand.",
-      "Layout has potential; a rogue element dragged the score down.",
-    ];
+    // Emit vote:result so clients can animate the reveal for 4.5s
+    io.to(room.id).emit("vote:result", {
+      eliminatedId: mostVoted,
+      wasImposter: caught,
+      imposterName: imposter?.name ?? "Unknown",
+      isTie: false,
+    });
 
-    const roundResult = {
-      round: room.round,
-      prompt: room.prompt,
-      scores: {},
-      feedback: FEEDBACK_LINES[Math.floor(Math.random() * FEEDBACK_LINES.length)],
-      imposterId: room.imposterId,
-      caught,
-    };
-    room.results.push(roundResult);
-    room.phase = "results";
-    room.phaseEndTime = Date.now() + PHASE_DURATIONS.results * 3;
-    broadcastRoom(io, room);
-
-    const nextRound = room.round + 1;
-    if (nextRound > room.maxRounds || caught) {
-      room.phaseTimer = setTimeout(() => {
-        room.phase = "ended";
-        broadcastRoom(io, room);
-      }, PHASE_DURATIONS.results * 3);
-    } else {
-      room.phaseTimer = setTimeout(() => {
-        room.round = nextRound;
-        room.prompt = prompts[nextRound - 1] ?? "Design a beautiful UI";
-        resetRound(room);
-        assignImposter(room);
-        room.phase = "design";
-        room.phaseEndTime = Date.now() + PHASE_DURATIONS.design;
-        broadcastRoom(io, room);
-        room.phaseTimer = setTimeout(() => advancePhase(io, room, prompts), PHASE_DURATIONS.design);
-      }, PHASE_DURATIONS.results * 3);
-    }
+    // Delay actual phase transition so clients see the reveal animation
+    room.phaseTimer = setTimeout(() => {
+      resolveVotePhase(io, room, prompts);
+    }, 4500);
   }
 }
 
@@ -168,6 +191,14 @@ export function registerSocketHandlers(io: Server) {
       advancePhase(io, room, prompts);
     });
 
+    // Live cursor relay — broadcast to all OTHER players in the room
+    socket.on("cursor:move", ({ x, y }: { x: number; y: number }) => {
+      const room = getRoomBySocket(socket.id);
+      const player = room ? getPlayerBySocket(room, socket.id) : undefined;
+      if (!room || !player || room.phase !== "design") return;
+      socket.to(room.id).emit("cursor:update", { playerId: player.id, x, y });
+    });
+
     socket.on("canvas:add", (element: { type: string; x: number; y: number; width: number; height: number; content?: string; fill: string; stroke?: string; fontSize?: number }) => {
       const room = getRoomBySocket(socket.id);
       const player = room ? getPlayerBySocket(room, socket.id) : undefined;
@@ -197,11 +228,12 @@ export function registerSocketHandlers(io: Server) {
       if (el) io.to(room.id).emit("canvas:updated", el);
     });
 
+    // Any player can delete any element (imposter sabotage mechanic)
     socket.on("canvas:delete", ({ elementId }: { elementId: string }) => {
       const room = getRoomBySocket(socket.id);
       const player = room ? getPlayerBySocket(room, socket.id) : undefined;
       if (!room || !player || room.phase !== "design") return;
-      const ok = deleteCanvasElement(room, elementId, player.id);
+      const ok = deleteCanvasElement(room, elementId);
       if (ok) io.to(room.id).emit("canvas:deleted", { elementId });
     });
 
@@ -217,10 +249,18 @@ export function registerSocketHandlers(io: Server) {
       const room = getRoomBySocket(socket.id);
       const player = room ? getPlayerBySocket(room, socket.id) : undefined;
       if (!room || !player || room.phase !== "vote") return;
+      // Only allow one vote per player
+      if (room.votes[player.id]) return;
       castVote(room, player.id, targetId);
-      io.to(room.id).emit("vote:update", { votes: computeTally(room), totalVoters: room.players.length });
+      const tally = computeTally(room);
+      io.to(room.id).emit("vote:update", { votes: tally, totalVoters: room.players.length });
 
-      const allVoted = room.players.every((p) => room.votes[p.id]);
+      // Broadcast updated room so vote counts show
+      broadcastRoom(io, room);
+
+      // If all active players have voted, resolve early
+      const activePlayers = room.players.filter((p) => !p.eliminated);
+      const allVoted = activePlayers.every((p) => room.votes[p.id]);
       if (allVoted) {
         if (room.phaseTimer) clearTimeout(room.phaseTimer);
         advancePhase(io, room, []);
@@ -271,4 +311,3 @@ export function registerSocketHandlers(io: Server) {
     });
   });
 }
-

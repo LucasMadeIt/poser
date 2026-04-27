@@ -2,6 +2,20 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import type { RoomState, CanvasElement } from "../types/game";
 
+export type RemoteCursor = {
+  playerId: string;
+  x: number;
+  y: number;
+  lastSeen: number;
+};
+
+export type VoteResult = {
+  eliminatedId: string;
+  wasImposter: boolean;
+  imposterName: string;
+  isTie: boolean;
+};
+
 let sharedSocket: Socket | null = null;
 
 function getSocket(): Socket {
@@ -17,6 +31,8 @@ export function useGame() {
   const [roomId, setRoomId] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [voteTally, setVoteTally] = useState<Record<string, number>>({});
+  const [remoteCursors, setRemoteCursors] = useState<Record<string, RemoteCursor>>({});
+  const [voteResult, setVoteResult] = useState<VoteResult | null>(null);
   const socketRef = useRef<Socket>(getSocket());
 
   useEffect(() => {
@@ -25,6 +41,8 @@ export function useGame() {
     socket.on("room:state", (state: RoomState) => {
       setRoom(state);
       if (state.voteTally) setVoteTally(state.voteTally);
+      // Clear voteResult when phase changes away from vote
+      if (state.phase !== "vote") setVoteResult(null);
     });
 
     socket.on("room:joined", ({ roomId: rid, playerId }: { roomId: string; playerId: string }) => {
@@ -65,8 +83,20 @@ export function useGame() {
       );
     });
 
-    socket.on("vote:update", ({ votes }: { votes: Record<string, number>; totalVoters: number }) => {
+    socket.on("vote:update", ({ votes }: { votes: Record<string, number> }) => {
       setVoteTally(votes);
+    });
+
+    socket.on("vote:result", (result: VoteResult) => {
+      setVoteResult(result);
+    });
+
+    // Remote player cursors
+    socket.on("cursor:update", ({ playerId, x, y }: { playerId: string; x: number; y: number }) => {
+      setRemoteCursors((prev) => ({
+        ...prev,
+        [playerId]: { playerId, x, y, lastSeen: Date.now() },
+      }));
     });
 
     socket.on("connect", () => {
@@ -84,6 +114,8 @@ export function useGame() {
       socket.off("canvas:deleted");
       socket.off("chat:message");
       socket.off("vote:update");
+      socket.off("vote:result");
+      socket.off("cursor:update");
       socket.off("connect");
     };
   }, [roomId]);
@@ -128,6 +160,10 @@ export function useGame() {
     socketRef.current.emit("game:playAgain");
   }, []);
 
+  const emitCursorMove = useCallback((x: number, y: number) => {
+    socketRef.current.emit("cursor:move", { x, y });
+  }, []);
+
   const myPlayer = room?.players.find((p) => p.id === myPlayerId);
   const amIHost = myPlayer?.isHost ?? false;
 
@@ -137,6 +173,8 @@ export function useGame() {
     myPlayerId,
     error,
     voteTally,
+    remoteCursors,
+    voteResult,
     myPlayer,
     amIHost,
     socket: socketRef.current,
@@ -150,5 +188,6 @@ export function useGame() {
     castVote,
     skipPhase,
     playAgain,
+    emitCursorMove,
   };
 }

@@ -1,0 +1,92 @@
+Fix the following specific issues in the existing POSTER game. Do not rebuild from scratch — only patch what is listed. Reference the current screenshot provided.
+
+1. REMOVE BLUE BORDERS FROM ALL COMPONENTS
+Currently every placed component on the canvas has a permanent blue dashed border. This is wrong. Remove all persistent borders from placed components entirely. A border should ONLY appear on the single component that is actively selected by clicking it — and only for that player's own selection. The selection indicator should be a clean 2px solid #3ECFCF border with 4 small square corner handles. All other placed components should have zero visible border at rest.
+
+2. LIVE PLAYER CURSORS — Currently completely missing
+Every connected player's mouse position must be visible to all other players on the canvas in real time.
+Implementation:
+On mousemove anywhere in the canvas area, throttle to 30fps and emit cursor:move { x, y, playerId } as normalized 0–1 values relative to the canvas bounds
+Server broadcasts this to all OTHER players in the room (not back to sender)
+Each remote player's cursor renders as an absolutely positioned element on the canvas overlay layer (position: absolute, pointer-events: none, z-index: 999)
+Cursor element contains: a small arrow cursor SVG in the player's color + a small pill label above it showing the player's name
+Player colors: ["#3ECFCF", "#E87DBB", "#F5A623", "#9B59B6", "#F1C40F"] assigned in join order
+Cursors smoothly interpolate position using CSS transition: left 0.05s, top 0.05s
+If a player's cursor hasn't moved for 3 seconds hide it with opacity: 0
+
+3. TEXT EDITING — Double click to edit
+Every typography component (Title, Heading, Subheading, Body Text, Caption, Label) must support inline text editing:
+Double click a placed typography component → it enters edit mode
+The component's text becomes a contenteditable div with an outline showing it is active
+Player can type freely to change the text
+Click outside or press Escape → confirm edit, exit edit mode, emit component:textEdit { id, text } to server
+Server broadcasts the text change to all players in the room so everyone sees the updated text live
+While in text edit mode, drag/move is disabled for that component
+
+4. SELECTION TOOLBAR — Appears when a component is selected
+When a player clicks any placed component a floating toolbar appears just above it with these controls:
+For ALL components:
+🗑️ Delete button — removes component, emits component:delete { id }, broadcasts to room
+⬆️ Bring Forward button — increases zIndex by 1
+⬇️ Send Backward button — decreases zIndex by 1
+✕ Deselect button — clears selection
+
+
+Color picker — small color swatch that opens a 12-color palette: white, black, greys, and a few accent colors
+
+
+For typography components ONLY, add these extra controls:
+Font size selector — dropdown: 12, 14, 16, 18, 24, 32, 48, 64px
+Text alignment — three icon buttons: align left ≡, center ≡, right ≡
+Bold toggle — B button
+The toolbar is a small dark #1a1a1a pill with border-radius: 20px, padding: 6px 12px, positioned top: -44px relative to the selected component. It should never overflow outside the canvas bounds — if the component is near the top edge, show the toolbar below instead.
+
+5. KEYBOARD SHORTCUTS
+Delete or Backspace key → delete currently selected component, emit component:delete
+Escape → deselect current component
+Ctrl+Z → undo last action (maintain a local undo stack of last 10 canvas actions per player)
+Ctrl+D → duplicate selected component, place it 10px offset from original
+Arrow keys → nudge selected component by 1px, hold Shift for 10px nudge
+
+
+7. FIX VOTING SYSTEM — Currently broken
+The vote phase must work end to end. Here is the complete correct implementation:
+Server side:
+When phase changes to "vote", server initializes room.votes = {}
+On vote:cast { targetId } from a player: record room.votes[playerId] = targetId, broadcast vote:update { votes: tallyVotes(room) } to all players in room so live counts update
+Player can only vote once — if they emit vote:cast again ignore it
+When all active players have voted OR 30s timer expires: server calls resolveVotes(roomId) which finds the player with most votes, emits vote:result { eliminatedId, wasImposter, imposterName } to room
+Client side (VoteScreen.jsx):
+Full screen overlay position: fixed, z-index: 1000 during vote phase
+Background rgba(10,10,10,0.88)
+Header: "VOTE FOR THE IMPOSTER" in grunge font
+30 second countdown displayed large in red
+All active non-eliminated players shown as large clickable blobs with their names
+Clicking a blob: highlights it with red glow border, disables all other blobs, emits vote:cast { targetId }, shows "✓ Voted" label on selected blob
+Live vote count badge on each blob updates as vote:update events arrive
+Skip option: "Skip Vote" button counts as abstain
+On vote:result received: animate reveal — blobs shake, voted-out player flips, show result text:
+If innocent: "[Name] was NOT the imposter 😬" in yellow
+If imposter caught: "[Name] WAS the imposter! Designers win! 🎉" in green
+If 4 rounds done + imposter alive: "[Name] survived. Imposter wins! 😈" in red
+Results show for 4 seconds then auto-advance to next phase
+
+8. FIX BUTTON COMPONENT CHIP COLOR
+The Button chip in the left tray is currently bright red. Change it to match all other chips — dark #2a2a2a background, wireframe style, grey border. The button preview inside the chip should show a simple outlined rectangle with "Button" text in white. No red anywhere in the component tray.
+
+9. ORNATE POSTER FRAME
+The current canvas has a plain flat black rectangle border. Replace it with a decorative ornate frame:
+Use a thick 12px solid #111 border as the base
+Add CSS box-shadow: inset 0 0 0 4px #333, inset 0 0 0 8px #111, inset 0 0 0 12px #444 for layered inner depth
+Add decorative SVG corner flourishes — place an ornamental SVG element at each of the 4 corners using absolutely positioned elements
+Corner flourish SVG: a simple fleur-de-lis or scroll shape in #222, about 40×40px
+Keep the transform: rotate(-1deg) tilt
+"ROUND 1" text scratched above the frame stays, make it larger and use grunge font
+
+10. COMPONENT DRAG FROM TRAY TO CANVAS — Verify and fix
+Confirm that when a component chip is dragged from the left tray and dropped on the canvas it:
+Appears at the exact drop coordinates on the canvas
+Is immediately moveable by any player
+Is broadcast to all players in the room via component:drop socket event
+Shows with zero persistent border (fix per issue 1 above)
+The dragged chip in the tray stays in the tray — it is not consumed on drag, it can be dragged again to place another copy
