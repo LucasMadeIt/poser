@@ -4,7 +4,6 @@ import { LandingPage } from "./pages/LandingPage";
 import { LobbyPage } from "./pages/LobbyPage";
 import { GamePage } from "./pages/GamePage";
 import { ChatPage } from "./pages/ChatPage";
-import { VotePage } from "./pages/VotePage";
 import { ResultsPage } from "./pages/ResultsPage";
 import { RoleReveal } from "./components/RoleReveal";
 
@@ -17,6 +16,7 @@ export default function App() {
     voteTally,
     remoteCursors,
     voteResult,
+    typingPlayers,
     myPlayer,
     amIHost,
     socket,
@@ -31,6 +31,7 @@ export default function App() {
     skipPhase,
     playAgain,
     emitCursorMove,
+    emitTyping,
   } = useGame();
 
   const [showReveal, setShowReveal] = useState(false);
@@ -91,7 +92,7 @@ export default function App() {
     );
   }
 
-  if (room.phase === "chat") {
+  if (room.phase === "chat" || room.phase === "vote") {
     return (
       <ChatPage
         room={room}
@@ -99,18 +100,11 @@ export default function App() {
         amIHost={amIHost}
         onSend={sendChat}
         onSkip={skipPhase}
-      />
-    );
-  }
-
-  if (room.phase === "vote") {
-    return (
-      <VotePage
-        room={room}
-        myPlayerId={myPlayerId}
         voteTally={voteTally}
         onVote={castVote}
         voteResult={voteResult}
+        typingPlayers={typingPlayers}
+        emitTyping={emitTyping}
       />
     );
   }

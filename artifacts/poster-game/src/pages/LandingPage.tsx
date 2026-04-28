@@ -80,7 +80,7 @@ export function LandingPage({ onCreateRoom, onJoinRoom, error }: Props) {
           <div style={{ marginBottom: "1.5rem" }}>
             <label
               style={{
-                fontFamily: "'Permanent Marker', cursive",
+                fontFamily: "'Bebas Neue', sans-serif",
                 letterSpacing: "0.1em",
                 color: "#E8E2D9",
                 fontSize: "0.85rem",
@@ -113,7 +113,7 @@ export function LandingPage({ onCreateRoom, onJoinRoom, error }: Props) {
               onClick={() => setMode("create")}
               style={{
                 flex: 1,
-                fontFamily: "'Permanent Marker', cursive",
+                fontFamily: "'Bebas Neue', sans-serif",
                 letterSpacing: "0.08em",
                 fontSize: "1rem",
                 padding: "0.5rem",
@@ -130,7 +130,7 @@ export function LandingPage({ onCreateRoom, onJoinRoom, error }: Props) {
               onClick={() => setMode("join")}
               style={{
                 flex: 1,
-                fontFamily: "'Permanent Marker', cursive",
+                fontFamily: "'Bebas Neue', sans-serif",
                 letterSpacing: "0.08em",
                 fontSize: "1rem",
                 padding: "0.5rem",
@@ -150,7 +150,7 @@ export function LandingPage({ onCreateRoom, onJoinRoom, error }: Props) {
             <div style={{ marginBottom: "1.5rem" }}>
               <label
                 style={{
-                  fontFamily: "'Permanent Marker', cursive",
+                  fontFamily: "'Bebas Neue', sans-serif",
                   letterSpacing: "0.1em",
                   color: "#E8E2D9",
                   fontSize: "0.85rem",
@@ -206,7 +206,7 @@ export function LandingPage({ onCreateRoom, onJoinRoom, error }: Props) {
         >
           <p
             style={{
-              fontFamily: "'Permanent Marker', cursive",
+              fontFamily: "'Bebas Neue', sans-serif",
               letterSpacing: "0.1em",
               fontSize: "0.9rem",
               color: "#CC2200",

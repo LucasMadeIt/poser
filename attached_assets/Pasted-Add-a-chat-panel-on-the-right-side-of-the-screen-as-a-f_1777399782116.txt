@@ -1,0 +1,61 @@
+Add a chat panel on the right side of the screen as a fixed sidebar. It must have two sections:
+Top — Player List:
+Shows all connected players as a vertical list
+Each player has a colored circle avatar matching their exact cursor color (["#3ECFCF", "#E87DBB", "#F5A623", "#9B59B6", "#F1C40F"] in join order)
+Player name next to the circle
+(you) label on your own entry
+Green dot = connected, grey = disconnected
+Eliminated players get a strikethrough name and faded avatar
+Bottom — Chat messages:
+Scrollable message list, newest at bottom
+Each message bubble has the sender's colored avatar circle on the left matching their cursor color exactly
+Their name above the bubble in their player color
+Own messages align right with your color, others align left
+Typing indicator — animated ... bubble appears when another player is typing, disappears after 2 seconds of no input
+Input field at very bottom: dark background, placeholder "Type a message…", send button ➤
+On send: emit chat:message { text, playerId } to server, server broadcasts to room with sender color and name
+On keydown in input: emit chat:typing { playerId }, auto-clear after 2 seconds
+During VOTE phase: input is disabled and dimmed, read only
+During CHAT/DISCUSSION phase: panel glows with a subtle box-shadow: 0 0 12px rgba(255,255,255,0.1) highlight border to draw attention
+
+12. KEEP SAME PROMPT FOR ENTIRE GAME
+Currently the design prompt changes every round. Change this so the prompt stays identical for the entire game session — it only changes when a completely new game is created. The same brief, same fonts, and same round config persist across all 4 rounds or until the game ends. Only generate a new prompt when game:create is called. Do not rotate ROUNDS array between rounds — lock the config at game start and keep it frozen until game over.
+
+13. REVERT FONT — Remove Permanent Marker
+Remove the Permanent Marker Google Font entirely. Revert all grunge headings, section labels, round text, vote screen headers, phase banners, and the POSTER logo back to the original fonts that were in place before Permanent Marker was added. Use Bebas Neue for all large display text, timers, and headers. Use DM Sans for all body text, labels, and UI elements. Remove the --font-grunge CSS variable and replace every reference to it with 'Bebas Neue', sans-serif.
+
+
+Add voting section below submitted design
+Looking at the current discussion phase screenshot, the left side shows the submitted design canvas but has empty wasted space below it. Fix this by adding a full voting section directly below the submitted design on the left panel. Do not use a separate full-screen overlay for voting — it should all live in this same layout.
+Left panel structure during DISCUSSION + VOTE phase:
+[Submitted Design Canvas — top half]
+[Voting Section — bottom half]
+Voting Section (below the canvas):
+Section header: "VOTE — WHO IS THE IMPOSTER?" in Bebas Neue uppercase, red #CC2200
+Subtitle: "Click a player to cast your vote" in small DM Sans muted text
+All active non-eliminated players displayed as clickable voting cards in a horizontal row
+Each voting card contains:
+Large colored circle avatar matching their exact cursor color
+Player name beneath the circle in DM Sans
+Live vote count badge on top right of circle — small dark pill showing how many votes they have e.g. "2" — updates in real time as others vote
+On hover: card lifts slightly transform: translateY(-3px), subtle glow in player color
+Clicking a card:
+Highlights it with a thick border in that player's color
+Shows a "✓" checkmark overlay on the avatar
+Disables all other cards — greyed out, pointer-events: none
+Emits vote:cast { targetId } to server immediately
+Shows "Vote cast!" confirmation text beneath the row
+A "Skip" text button sits below the row right-aligned — counts as abstain
+During DISCUSSION phase (before vote phase starts): cards are visible but greyed out with a lock icon and tooltip "Voting opens when discussion ends"
+During VOTE phase: cards become fully active and clickable
+Voting section only shows during DISCUSSION and VOTE phases — hidden during DESIGN phase
+Remove the separate full-screen vote overlay entirely — VoteScreen.jsx should no longer render as a position:fixed full-screen takeover. All voting now happens inline in the left panel below the canvas.
+Vote results reveal stays in the left panel too:
+After votes tallied, the voting cards animate — winning card shakes and flips
+Result text appears below: "[Name] was NOT the imposter 😬" or "[Name] WAS the imposter! 🎉" in large Bebas Neue
+After 4 seconds auto-advance to next round
+Also fix the discussion phase chat on the right:
+Message bubbles currently have no visible avatar or color association — add the sender's colored dot on the left of each message matching their player/cursor color
+Own messages should align right with your color, others left
+The chat background should be dark #1a1a1a panel not the bare cream background currently shown
+"DISCUSS — WHO IS THE IMPOSTER?" header should be in Bebas Neue, larger, with red accent

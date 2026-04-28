@@ -102,7 +102,7 @@ function resolveVotePhase(io: Server, room: Room, prompts: string[]) {
   } else {
     room.phaseTimer = setTimeout(() => {
       room.round = nextRound;
-      room.prompt = prompts[nextRound - 1] ?? "Design a beautiful UI";
+      // Prompt stays frozen — same brief for the entire game
       resetRound(room);
       assignImposter(room);
       room.phase = "design";
@@ -235,6 +235,13 @@ export function registerSocketHandlers(io: Server) {
       if (!room || !player || room.phase !== "design") return;
       const ok = deleteCanvasElement(room, elementId);
       if (ok) io.to(room.id).emit("canvas:deleted", { elementId });
+    });
+
+    socket.on("chat:typing", () => {
+      const room = getRoomBySocket(socket.id);
+      const player = room ? getPlayerBySocket(room, socket.id) : undefined;
+      if (!room || !player || room.phase !== "chat") return;
+      socket.to(room.id).emit("chat:typing", { playerId: player.id });
     });
 
     socket.on("chat:send", ({ text }: { text: string }) => {

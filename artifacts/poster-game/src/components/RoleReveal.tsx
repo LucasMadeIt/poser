@@ -109,13 +109,13 @@ export function RoleReveal({ role, onDismiss }: Props) {
       )}
 
       <div style={{ textAlign: "center", padding: "0 2rem", maxWidth: 600 }}>
-        <div style={{ fontFamily: "'Permanent Marker', cursive", fontSize: "1.4rem", color: isImposter ? "rgba(255,255,255,0.6)" : "rgba(200,220,255,0.7)", letterSpacing: "0.15em", marginBottom: "0.5rem" }}>
+        <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.4rem", color: isImposter ? "rgba(255,255,255,0.6)" : "rgba(200,220,255,0.7)", letterSpacing: "0.15em", marginBottom: "0.5rem" }}>
           {isImposter ? "YOU ARE THE" : "YOU ARE A"}
         </div>
 
         <div
           style={{
-            fontFamily: "'Permanent Marker', cursive",
+            fontFamily: "'Bebas Neue', sans-serif",
             fontSize: "clamp(4rem, 10vw, 7rem)",
             color: isImposter ? "#CC2200" : "#ffffff",
             lineHeight: 1,

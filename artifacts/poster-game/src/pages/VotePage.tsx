@@ -10,7 +10,7 @@ type Props = {
   voteResult: VoteResult | null;
 };
 
-const GRUNGE = "'Permanent Marker', cursive";
+const GRUNGE = "'Bebas Neue', sans-serif";
 
 export function VotePage({ room, myPlayerId, voteTally, onVote, voteResult }: Props) {
   const myVote = room.votes?.[myPlayerId];

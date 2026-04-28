@@ -16,9 +16,10 @@ export const DESIGN_PROMPTS = [
   "Design a checkout page for a luxury skincare brand",
 ];
 
-export function pickPrompts(count: number): string[] {
+export function pickPrompts(_count: number): string[] {
+  // One prompt per game — locked at start and kept for all rounds
   const shuffled = [...DESIGN_PROMPTS].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, count);
+  return shuffled.slice(0, 1);
 }
 
 export const PHASE_DURATIONS = {

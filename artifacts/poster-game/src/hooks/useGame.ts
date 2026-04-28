@@ -33,6 +33,7 @@ export function useGame() {
   const [voteTally, setVoteTally] = useState<Record<string, number>>({});
   const [remoteCursors, setRemoteCursors] = useState<Record<string, RemoteCursor>>({});
   const [voteResult, setVoteResult] = useState<VoteResult | null>(null);
+  const [typingPlayers, setTypingPlayers] = useState<Record<string, number>>({});
   const socketRef = useRef<Socket>(getSocket());
 
   useEffect(() => {
@@ -91,6 +92,10 @@ export function useGame() {
       setVoteResult(result);
     });
 
+    socket.on("chat:typing", ({ playerId }: { playerId: string }) => {
+      setTypingPlayers((prev) => ({ ...prev, [playerId]: Date.now() }));
+    });
+
     // Remote player cursors
     socket.on("cursor:update", ({ playerId, x, y }: { playerId: string; x: number; y: number }) => {
       setRemoteCursors((prev) => ({
@@ -116,6 +121,7 @@ export function useGame() {
       socket.off("vote:update");
       socket.off("vote:result");
       socket.off("cursor:update");
+      socket.off("chat:typing");
       socket.off("connect");
     };
   }, [roomId]);
@@ -164,6 +170,10 @@ export function useGame() {
     socketRef.current.emit("cursor:move", { x, y });
   }, []);
 
+  const emitTyping = useCallback(() => {
+    socketRef.current.emit("chat:typing");
+  }, []);
+
   const myPlayer = room?.players.find((p) => p.id === myPlayerId);
   const amIHost = myPlayer?.isHost ?? false;
 
@@ -175,6 +185,7 @@ export function useGame() {
     voteTally,
     remoteCursors,
     voteResult,
+    typingPlayers,
     myPlayer,
     amIHost,
     socket: socketRef.current,
@@ -189,5 +200,6 @@ export function useGame() {
     skipPhase,
     playAgain,
     emitCursorMove,
+    emitTyping,
   };
 }

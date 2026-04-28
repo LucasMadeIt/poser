@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Permanent+Marker&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -59,8 +59,8 @@
   --radius: 0.25rem;
 
   --app-font-sans: 'DM Sans', system-ui, sans-serif;
-  --app-font-display: 'Permanent Marker', cursive;
-  --font-grunge: 'Permanent Marker', cursive;
+  --app-font-display: 'Bebas Neue', sans-serif;
+  --font-grunge: 'Bebas Neue', sans-serif;
   --font-timer: 'Bebas Neue', Impact, sans-serif;
 }
 
@@ -279,4 +279,9 @@
     background: rgba(44, 44, 44, 0.3);
     border-radius: 2px;
   }
+}
+
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-5px); opacity: 1; }
 }
