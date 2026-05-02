@@ -72,8 +72,8 @@
 
   body {
     font-family: var(--app-font-sans);
-    background-color: var(--cream);
-    color: var(--charcoal);
+    background-color: #111009;
+    color: var(--cream);
     min-height: 100vh;
     overflow-x: hidden;
   }
