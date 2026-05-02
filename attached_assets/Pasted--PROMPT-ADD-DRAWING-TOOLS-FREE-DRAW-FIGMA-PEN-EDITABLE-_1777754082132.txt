@@ -1,0 +1,134 @@
+✏️ PROMPT: ADD DRAWING TOOLS (FREE DRAW + FIGMA PEN + EDITABLE SHAPES)
+
+Enhance the canvas by adding advanced drawing capabilities while keeping the existing multiplayer + real-time system intact.
+
+The goal is to make the canvas feel closer to a lightweight Figma vector editor, while still fitting the game.
+
+🧠 OVERVIEW
+
+Add 3 new tool systems:
+
+Free Draw Tool (Pencil)
+Figma-style Pen Tool (Vector paths with curves)
+Editable Shape System (triangle + vertex editing)
+
+All tools must:
+
+Work in real-time multiplayer
+Sync via socket events
+Be selectable/editable after creation
+Match existing selection/transform system
+✏️ 1. FREE DRAW TOOL (PENCIL)
+Behavior:
+User clicks and drags to draw freely
+Generates a smooth path following cursor
+Implementation:
+Use array of points: { x, y }[]
+Smooth using:
+quadratic curves OR
+simple path smoothing (optional)
+Properties:
+strokeColor
+strokeWidth (2–8px)
+opacity
+UX:
+Cursor becomes pencil icon
+Live preview while drawing
+On mouse up → finalize path as object
+Socket:
+draw:free:start
+draw:free:update
+draw:free:end
+🖊️ 2. FIGMA-STYLE PEN TOOL (VECTOR PATH)
+Behavior:
+Click to create anchor points
+Click again = straight line
+Click + drag = bezier curve handles
+Double click or Enter = finish path
+Data structure:
+{
+  id,
+  type: "path",
+  points: [
+    { x, y, handleIn?, handleOut? }
+  ]
+}
+Editing:
+Click path → show anchor points
+Drag points to move
+Drag handles to adjust curves
+Add point (click on path)
+Delete point (backspace)
+UX:
+Show anchor nodes (small circles)
+Show bezier handles (lines)
+Highlight selected point
+Socket:
+path:create
+path:update
+path:editPoint
+path:delete
+🔺 3. EDITABLE SHAPES (VERTEX-BASED)
+Add new shapes:
+Triangle
+Polygon (optional stretch goal)
+Triangle Behavior:
+Default = equilateral triangle
+Stored as 3 vertices:
+{
+  id,
+  type: "triangle",
+  vertices: [{x,y}, {x,y}, {x,y}]
+}
+Editing:
+Select shape → show vertex handles
+Drag each vertex independently
+Shape updates live
+UX:
+Vertices = draggable dots
+Edges redraw in real time
+Maintain fill + stroke
+🧰 TOOLBAR UPDATES
+
+Add new tools to toolbar:
+
+✏️ Pencil (free draw)
+🖊️ Pen (vector)
+🔺 Triangle
+⬡ Polygon (optional)
+
+Tool selection state must be global per user.
+
+🧲 SELECTION SYSTEM INTEGRATION
+
+All new objects must support:
+
+Move (drag)
+Resize (bounding box)
+Rotate
+Multi-select
+Delete
+Layering (zIndex)
+⚡ PERFORMANCE
+Throttle draw updates (30fps max)
+Optimize path rendering using canvas or SVG
+Avoid excessive re-renders
+🎮 GAMEPLAY CONSIDERATIONS
+
+These tools should:
+
+Allow creative expression
+Enable subtle sabotage (messy lines, weird curves, distorted shapes)
+NOT overcomplicate UI
+🚫 CONSTRAINTS
+No external heavy drawing libraries
+Keep implementation lightweight
+Maintain existing architecture (React + Socket.io)
+✅ FINAL RESULT
+
+Users can now:
+
+Sketch freely
+Draw precise vector shapes
+Edit shapes at vertex level
+Create messy or clean designs

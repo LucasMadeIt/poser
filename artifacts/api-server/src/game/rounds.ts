@@ -10,7 +10,7 @@ export const DESIGN_PROMPTS = [
   "Design an event invite for an art gallery opening",
   "Create a pitch deck slide for a tech startup",
   "Design a splash screen for a fitness tracking app",
-  "Create a promo banner for a limited-edition sneaker drop",
+
   "Design a profile page for a creative portfolio site",
   "Create an error page (404) that's actually beautiful",
   "Design a checkout page for a luxury skincare brand",

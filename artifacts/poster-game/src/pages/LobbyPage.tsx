@@ -92,7 +92,7 @@ export function LobbyPage({ room, myPlayerId, amIHost, onStart }: Props) {
                 </button>
               ) : (
                 <div style={{ textAlign:"center", fontFamily:DM, fontSize:"0.85rem", color:"#8A7868", padding:"0.75rem", border:`1.5px dashed #E8E2D8`, background:"#FAFAF5" }}>
-                  Need at least 2 players to start
+                  Need at least 3 players to start
                 </div>
               )
             ) : (

@@ -8,6 +8,7 @@ import {
   removePlayerBySocket,
   assignImposter,
   resetRound,
+  resetRoundKeepCanvas,
   addCanvasElement,
   updateCanvasElement,
   deleteCanvasElement,
@@ -105,7 +106,12 @@ function resolveVotePhase(io: Server, room: Room, prompts: string[]) {
     room.phaseTimer = setTimeout(() => {
       room.round = nextRound;
       // Prompt stays frozen — same brief for the entire game
-      resetRound(room);
+      // If imposter escaped, keep the canvas so work carries over; otherwise wipe it
+      if (caught) {
+        resetRound(room);
+      } else {
+        resetRoundKeepCanvas(room);
+      }
       assignImposter(room);
       room.phase = "design";
       room.phaseEndTime = Date.now() + PHASE_DURATIONS.design;
@@ -188,8 +194,8 @@ export function registerSocketHandlers(io: Server) {
       const room = getRoomBySocket(socket.id);
       const player = room ? getPlayerBySocket(room, socket.id) : undefined;
       if (!room || !player?.isHost) return;
-      if (room.players.length < 2) {
-        socket.emit("room:error", { message: "Need at least 2 players to start." });
+      if (room.players.length < 3) {
+        socket.emit("room:error", { message: "Need at least 3 players to start." });
         return;
       }
       const prompts = pickPrompts(room.maxRounds);

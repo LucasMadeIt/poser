@@ -1,7 +1,7 @@
 import { nanoid } from "nanoid";
 
-export type PlayerColor = "#3ECFCF" | "#E87DBB" | "#F5A623" | "#9B59B6" | "#F1C40F";
-const COLORS: PlayerColor[] = ["#3ECFCF", "#E87DBB", "#F5A623", "#9B59B6", "#F1C40F"];
+export type PlayerColor = "#3ECFCF" | "#E87DBB" | "#F5A623" | "#9B59B6" | "#F1C40F" | "#3498DB";
+const COLORS: PlayerColor[] = ["#3ECFCF", "#E87DBB", "#F5A623", "#9B59B6", "#F1C40F", "#3498DB"];
 
 export type Player = {
   id: string;
@@ -113,7 +113,7 @@ export function joinRoom(roomId: string, socketId: string, name: string): { room
   const room = rooms.get(roomId);
   if (!room) return null;
   if (room.phase !== "lobby") return null;
-  if (room.players.length >= 5) return null;
+  if (room.players.length >= 6) return null;
 
   const usedColors = new Set(room.players.map((p) => p.color));
   const availableColor = COLORS.find((c) => !usedColors.has(c)) ?? COLORS[0];
@@ -174,6 +174,13 @@ export function assignImposter(room: Room): void {
 
 export function resetRound(room: Room): void {
   room.canvas = [];
+  room.messages = [];
+  room.votes = {};
+  room.doneVotes = [];
+}
+
+/** Like resetRound but keeps the canvas — used when the imposter escaped */
+export function resetRoundKeepCanvas(room: Room): void {
   room.messages = [];
   room.votes = {};
   room.doneVotes = [];

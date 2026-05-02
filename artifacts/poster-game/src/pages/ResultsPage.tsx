@@ -1,5 +1,51 @@
 import { PosterWallBg, TapeH, TapeCorner } from "../components/PosterWallBg";
-import type { RoomState } from "../types/game";
+import type { RoomState, CanvasElement } from "../types/game";
+
+function saveDesignAsSvg(elements: CanvasElement[], prompt: string) {
+  const W = 900, H = 560;
+  const sorted = [...elements].sort((a, b) => a.zIndex - b.zIndex);
+
+  const esc = (s: string) =>
+    (s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  const shapes = sorted.map((el) => {
+    const op  = el.opacity ?? 1;
+    const sk  = el.stroke ? `stroke="${el.stroke}" stroke-width="2"` : 'stroke="none"';
+    const r   = el.cornerRadius ?? 0;
+
+    if (el.type === "circle") {
+      const cx = el.x + el.width / 2, cy = el.y + el.height / 2;
+      return `<ellipse cx="${cx}" cy="${cy}" rx="${el.width/2}" ry="${el.height/2}" fill="${el.fill}" ${sk} opacity="${op}"/>`;
+    }
+    if (el.type === "divider") {
+      return `<line x1="${el.x}" y1="${el.y+el.height/2}" x2="${el.x+el.width}" y2="${el.y+el.height/2}" stroke="${el.fill}" stroke-width="${Math.max(el.height,2)}" opacity="${op}"/>`;
+    }
+    const isTextEl = ["text","heading","label","button","badge","tag"].includes(el.type);
+    if (isTextEl) {
+      const fs  = el.fontSize ?? (el.type === "heading" ? 28 : 14);
+      const fw  = el.fontWeight ?? (el.type === "heading" ? 700 : 400);
+      const hasBg = ["button","label","badge","tag"].includes(el.type);
+      const bg  = hasBg ? `<rect x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}" fill="${el.fill}" rx="${r}" opacity="${op}" ${sk}/>` : "";
+      const tc  = hasBg ? "#ffffff" : el.fill;
+      return `${bg}<text x="${el.x+el.width/2}" y="${el.y+el.height/2+fs*0.36}" text-anchor="middle" font-size="${fs}" font-weight="${fw}" fill="${tc}" opacity="${op}" font-family="DM Sans,sans-serif">${esc(el.content ?? "")}</text>`;
+    }
+    return `<rect x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}" fill="${el.fill}" rx="${r}" ${sk} opacity="${op}"/>`;
+  }).join("\n  ");
+
+  const svg = [
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`,
+    `  <rect width="${W}" height="${H}" fill="#F5EEE2"/>`,
+    `  ${shapes}`,
+    `  <text x="10" y="${H-8}" font-family="sans-serif" font-size="11" fill="#8A7868" opacity="0.7">${esc(prompt)} — made with POSTER</text>`,
+    `</svg>`,
+  ].join("\n");
+
+  const blob = new Blob([svg], { type: "image/svg+xml" });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement("a"), { href: url, download: "poster-design.svg" });
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 const BEBAS   = "'Bebas Neue', sans-serif";
 const DM      = "'DM Sans', sans-serif";
@@ -141,16 +187,27 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
                     </div>
                   ))}
                 </div>
-                {amIHost ? (
-                  <button onClick={onPlayAgain}
-                    style={{ fontFamily:BEBAS, letterSpacing:"0.12em", fontSize:"1.6rem", color:"#FFFFFF", background:ORANGE, border:`3px solid #8A3008`, boxShadow:`5px 5px 0 ${NAVY}`, padding:"0.5rem 3rem", cursor:"pointer", transition:"transform 0.1s, box-shadow 0.1s" }}
-                    onMouseEnter={(e)=>{e.currentTarget.style.transform="translate(-2px,-2px)";e.currentTarget.style.boxShadow=`7px 7px 0 ${NAVY}`;}}
-                    onMouseLeave={(e)=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow=`5px 5px 0 ${NAVY}`;}}>
-                    PLAY AGAIN
-                  </button>
-                ) : (
-                  <div style={{ fontFamily:DM, fontSize:"0.8rem", color:"#C8B888" }}>Waiting for host to start a new game…</div>
-                )}
+                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:"0.9rem" }}>
+                  {room.canvas.length > 0 && (
+                    <button
+                      onClick={() => saveDesignAsSvg(room.canvas, room.prompt)}
+                      style={{ fontFamily:BEBAS, letterSpacing:"0.12em", fontSize:"1.3rem", color:NAVY, background:"#FFFFFF", border:`3px solid ${NAVY}`, boxShadow:`4px 4px 0 ${TEAL}`, padding:"0.45rem 2.2rem", cursor:"pointer", transition:"transform 0.1s, box-shadow 0.1s" }}
+                      onMouseEnter={(e)=>{e.currentTarget.style.transform="translate(-2px,-2px)";e.currentTarget.style.boxShadow=`6px 6px 0 ${TEAL}`;}}
+                      onMouseLeave={(e)=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow=`4px 4px 0 ${TEAL}`;}}>
+                      ↓ SAVE DESIGN
+                    </button>
+                  )}
+                  {amIHost ? (
+                    <button onClick={onPlayAgain}
+                      style={{ fontFamily:BEBAS, letterSpacing:"0.12em", fontSize:"1.6rem", color:"#FFFFFF", background:ORANGE, border:`3px solid #8A3008`, boxShadow:`5px 5px 0 ${NAVY}`, padding:"0.5rem 3rem", cursor:"pointer", transition:"transform 0.1s, box-shadow 0.1s" }}
+                      onMouseEnter={(e)=>{e.currentTarget.style.transform="translate(-2px,-2px)";e.currentTarget.style.boxShadow=`7px 7px 0 ${NAVY}`;}}
+                      onMouseLeave={(e)=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow=`5px 5px 0 ${NAVY}`;}}>
+                      PLAY AGAIN
+                    </button>
+                  ) : (
+                    <div style={{ fontFamily:DM, fontSize:"0.8rem", color:"#C8B888" }}>Waiting for host to start a new game…</div>
+                  )}
+                </div>
               </div>
             </div>
           ) : (
