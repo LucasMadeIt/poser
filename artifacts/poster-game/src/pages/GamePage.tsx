@@ -29,6 +29,26 @@ const FONT_SIZES = [10,12,14,16,18,24,32,48,64];
 const MIN_W = 20;
 const MIN_H = 10;
 
+// ─── Prompt → canvas mode ─────────────────────────────────────────────────────
+function detectCanvasMode(prompt: string): "mobile" | "web" | "default" {
+  const p = prompt.toLowerCase();
+  const mobileHits = [
+    "mobile","phone","ios","android","iphone","onboarding","splash screen",
+    "splash","smartphone","app screen","instagram","story","twitter","snap",
+  ].filter((k) => p.includes(k)).length;
+  const webHits = [
+    "website","landing page","dashboard","desktop","saas","homepage","blog",
+    "checkout","portfolio","newsletter","hero section","pitch deck","banner",
+    "error page","404","profile page","web page","web app","e-commerce",
+  ].filter((k) => p.includes(k)).length;
+  // "app" alone → lean mobile; "page" alone → lean web
+  const mobileScore = mobileHits + (p.includes("app") && !p.includes("web app") ? 0.5 : 0);
+  const webScore   = webHits   + (p.includes("page") && webHits === 0 ? 0.5 : 0);
+  if (mobileScore > webScore) return "mobile";
+  if (webScore > mobileScore) return "web";
+  return "default";
+}
+
 type ChipDef = {
   label: string;
   type: CanvasElement["type"];
@@ -438,6 +458,8 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
     addChipAt({ label:"", type, defaults, preview:()=>null }, e.clientX-rect.left, e.clientY-rect.top);
   }
 
+  const canvasMode = detectCanvasMode(room.prompt);
+
   const lowerSearch = search.toLowerCase().trim();
   const filteredSections = SECTIONS.map((s) => ({
     ...s,
@@ -597,7 +619,7 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
 
             {/* Canvas */}
             <div ref={canvasRef} data-canvas="true"
-              style={{ position:"relative", width:CANVAS_W, height:CANVAS_H, background:"#F8F4EE", flexShrink:0, zIndex:1, overflow:"hidden", outline:dragOver?"3px dashed #3ECFCF":"none" }}
+              style={{ position:"relative", width:CANVAS_W, height:CANVAS_H, background: canvasMode==="mobile"?"#FFFFFF": canvasMode==="web"?"#FFFFFF":"#F8F4EE", flexShrink:0, zIndex:1, overflow:"hidden", outline:dragOver?"3px dashed #3ECFCF":"none", borderRadius: canvasMode==="mobile"?24:0 }}
               onMouseMove={handleCanvasMouseMove}
               onMouseUp={handleCanvasMouseUp}
               onMouseLeave={handleCanvasMouseUp}
@@ -606,8 +628,47 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
               onDragLeave={() => setDragOver(false)}
               onDrop={handleCanvasDrop}
             >
+              {/* ── Mobile chrome overlay ── */}
+              {canvasMode === "mobile" && (
+                <>
+                  {/* Status bar */}
+                  <div style={{ position:"absolute", top:0, left:0, right:0, height:30, background:"#ffffff", borderBottom:"1px solid rgba(0,0,0,0.05)", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 20px", zIndex:50, pointerEvents:"none" }}>
+                    <span style={{ fontFamily:DM, fontWeight:700, fontSize:12, color:"#1a1a1a" }}>9:41</span>
+                    <div style={{ display:"flex", gap:5, alignItems:"center" }}>
+                      <svg width="17" height="12" viewBox="0 0 17 12" fill="#1a1a1a"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0.5" width="3" height="11.5" rx="1"/><rect x="13.5" y="0" width="3.5" height="12" rx="1"/></svg>
+                      <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="#1a1a1a" strokeWidth="1.5"><path d="M8 2.5 C10.5 2.5 12.7 3.5 14.2 5.2" /><path d="M8 2.5 C5.5 2.5 3.3 3.5 1.8 5.2" /><path d="M8 5.5 C9.7 5.5 11.2 6.2 12.3 7.3" /><path d="M8 5.5 C6.3 5.5 4.8 6.2 3.7 7.3" /><circle cx="8" cy="10" r="1.2" fill="#1a1a1a" stroke="none"/></svg>
+                      <svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" stroke="#1a1a1a" strokeOpacity="0.35"/><rect x="2" y="2" width="18" height="9" rx="2" fill="#1a1a1a"/><path d="M24 4.5V8.5A2 2 0 000 8.5V4.5A2 2 0 0024 4.5" fill="#1a1a1a" fillOpacity="0.4"/></svg>
+                    </div>
+                  </div>
+                  {/* Home indicator */}
+                  <div style={{ position:"absolute", bottom:10, left:"50%", transform:"translateX(-50%)", width:130, height:5, background:"rgba(0,0,0,0.18)", borderRadius:100, zIndex:50, pointerEvents:"none" }} />
+                </>
+              )}
+
+              {/* ── Web chrome overlay ── */}
+              {canvasMode === "web" && (
+                <div style={{ position:"absolute", top:0, left:0, right:0, height:40, background:"#f0f0f0", borderBottom:"1px solid #ddd", display:"flex", alignItems:"center", gap:10, padding:"0 14px", zIndex:50, pointerEvents:"none" }}>
+                  <div style={{ display:"flex", gap:5, flexShrink:0 }}>
+                    {["#ff5f57","#febc2e","#28c840"].map((c) => <div key={c} style={{ width:11, height:11, borderRadius:"50%", background:c }} />)}
+                  </div>
+                  <div style={{ display:"flex", gap:4, flexShrink:0 }}>
+                    <div style={{ width:20, height:20, borderRadius:4, display:"flex", alignItems:"center", justifyContent:"center" }}><svg width="8" height="12" viewBox="0 0 8 12"><path d="M7 1L2 6l5 5" stroke="#999" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg></div>
+                    <div style={{ width:20, height:20, borderRadius:4, display:"flex", alignItems:"center", justifyContent:"center" }}><svg width="8" height="12" viewBox="0 0 8 12"><path d="M1 1l5 5-5 5" stroke="#ccc" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg></div>
+                  </div>
+                  <div style={{ flex:1, height:24, background:"#ffffff", borderRadius:100, border:"1px solid #ddd", display:"flex", alignItems:"center", padding:"0 12px", gap:6, maxWidth:480 }}>
+                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="4.5" cy="4.5" r="3.5" stroke="#bbb" strokeWidth="1.2"/><line x1="7.2" y1="7.2" x2="10" y2="10" stroke="#bbb" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                    <span style={{ fontFamily:DM, fontSize:11, color:"#bbb", overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>https://yourapp.com</span>
+                  </div>
+                  <div style={{ display:"flex", gap:3, flexShrink:0 }}>
+                    {[0,1,2].map((i) => <div key={i} style={{ width:16, height:16, borderRadius:3, background:"#ddd" }} />)}
+                  </div>
+                </div>
+              )}
+
               {room.canvas.length === 0 && (
                 <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", pointerEvents:"none" }}>
+                  {canvasMode === "mobile" && <div style={{ fontFamily:DM, fontSize:"0.72rem", color:"rgba(0,0,0,0.1)", marginBottom:8, letterSpacing:"0.08em" }}>MOBILE SCREEN · 375×812</div>}
+                  {canvasMode === "web"    && <div style={{ fontFamily:DM, fontSize:"0.72rem", color:"rgba(0,0,0,0.1)", marginBottom:8, letterSpacing:"0.08em" }}>WEB BROWSER · 1440×900</div>}
                   <div style={{ fontFamily:DM, fontWeight:700, fontSize:"1.5rem", color:"rgba(0,0,0,0.06)", textAlign:"center", padding:"0 3rem", lineHeight:1.3 }}>{room.prompt}</div>
                   <div style={{ fontFamily:DM, fontSize:"0.8rem", color:"rgba(0,0,0,0.1)", marginTop:"0.75rem" }}>Drag from panel · F = Frame · R = Rect · T = Text</div>
                 </div>

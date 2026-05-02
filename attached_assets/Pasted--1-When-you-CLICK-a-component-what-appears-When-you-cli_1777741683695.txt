@@ -1,0 +1,187 @@
+🧠 1. When you CLICK a component (what appears)
+
+When you click any element (button, card, text, etc.), the right sidebar becomes your control panel.
+
+You get 4 main sections:
+
+1. Position & Size
+X / Y → where it sits on the canvas
+W / H → width and height
+Rotation → rotate element
+
+👉 This is absolute positioning (pixel-level control)
+
+2. Auto Layout (if enabled)
+
+This is the most important system.
+
+You’ll see:
+
+Direction → horizontal or vertical
+Spacing between items
+Padding (inside the container)
+Alignment (left, center, right)
+
+👉 This turns your component into a flexbox-like container
+
+3. Appearance
+Fill (color)
+Stroke (border)
+Effects (shadow, blur)
+Opacity
+4. Layer / Structure
+Name of the layer
+Parent container
+Nesting hierarchy
+📦 2. If it’s a COMPONENT (important difference)
+
+When you click a component instance (not the original):
+
+You can:
+
+Change text
+Change colors
+Swap icons/images
+Resize (sometimes)
+
+You CANNOT (by default):
+
+Change structure (like removing elements inside)
+
+👉 Unless you:
+
+“Detach instance” (breaks link)
+🔁 3. What you can DO after selecting something
+Move it
+Drag freely
+Arrow keys = small move
+Shift + arrow = big move
+Resize it
+Drag corners
+Hold Shift = keep proportions
+Hold Alt = resize from center
+Duplicate it
+Cmd/Ctrl + D
+Alt + drag
+Align it
+
+Top bar gives:
+
+Align left/right/center
+Distribute spacing evenly
+📐 4. Layout Control (THIS is the real skill)
+
+There are 2 systems controlling layout:
+
+A. Absolute Positioning (basic)
+
+You manually place things:
+
+[ Button ]      [ Card ]
+
+Problems:
+
+Breaks on resizing
+Not scalable
+B. Auto Layout (what real designers use)
+
+Now elements behave like a stack:
+
+[ Button ]
+[ Button ]
+[ Button ]
+
+You control:
+
+Direction
+Vertical → stack top to bottom
+Horizontal → side by side
+Spacing
+Set exact gap (e.g. 16px)
+Padding
+Space INSIDE container
+Alignment
+Left aligned
+Centered
+Right aligned
+🔥 5. Hug / Fill / Fixed (CRUCIAL)
+
+Every element has resizing behavior:
+
+Hug Contents
+Size = based on content
+👉 Button grows with text
+Fixed Width
+Stays exact size
+Fill Container
+Expands to take available space
+Example:
+[ Label ][        Input field fills        ]
+Label = hug
+Input = fill
+🧩 6. Nesting (how real UIs are built)
+
+Everything is inside something:
+
+Frame
+ └ Card
+     └ Auto Layout
+         ├ Title
+         ├ Text
+         └ Button
+
+👉 When you move the parent → everything moves
+👉 When you resize parent → children respond
+
+🔗 7. Constraints (for responsive design)
+
+If NOT using auto layout:
+
+You can pin elements:
+
+Left
+Right
+Top
+Bottom
+Center
+Scale
+
+Example:
+
+Button stays bottom-right when screen grows
+🎯 8. Interaction (what happens when you click in prototype)
+
+Switch to Prototype tab:
+
+You can define:
+
+On click → go to another screen
+Open modal
+Scroll to section
+
+Animations:
+
+Instant
+Dissolve
+Smart animate
+🧪 9. Real example (button inside card)
+
+You click the button:
+
+You can:
+
+Change text → “Submit”
+Change color
+Adjust padding (via auto layout)
+Set width:
+Hug → small button
+Fill → full-width button
+⚡ 10. What actually matters (80/20)
+
+If you only master these, you’ll move faster than most:
+
+Auto Layout
+Hug / Fill / Fixed
+Padding + spacing
+Components (reuse)
+Alignment
