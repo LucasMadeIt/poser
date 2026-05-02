@@ -66,7 +66,7 @@ const TUTORIAL_STEPS = [
 ];
 
 const GAME_STEPS = [
-  { num: "01", text: "2–5 players collaborate on a shared design canvas around a prompt" },
+  { num: "01", text: "3–6 players collaborate on a shared design canvas around a prompt" },
   { num: "02", text: "One player is secretly the imposter — they're given a private Sabotage Style and Hidden Objective to subtly ruin the design" },
   { num: "03", text: "Challenge Mode (host opt-in): each round one random player gets a secret design constraint — colorblind filter, no undo, or font lock" },
   { num: "04", text: "After each round, use voice chat to discuss who seemed suspicious, then vote to eliminate someone" },

@@ -58,7 +58,7 @@ export function LobbyPage({ room, myPlayerId, amIHost, onStart, onToggleChalleng
             <TapeCorner color={ORANGE} corner="tr" />
 
             <div style={{ fontFamily:BEBAS, fontSize:"0.7rem", letterSpacing:"0.2em", color:NAVY, marginBottom:"0.85rem" }}>
-              Players ({room.players.length}/5)
+              Players ({room.players.length}/6)
             </div>
 
             <div style={{ display:"flex", flexDirection:"column", gap:"0.45rem", marginBottom:"1.2rem" }}>
@@ -77,7 +77,7 @@ export function LobbyPage({ room, myPlayerId, amIHost, onStart, onToggleChalleng
                   </div>
                 );
               })}
-              {Array.from({ length: 5-room.players.length }).map((_,i) => (
+              {Array.from({ length: 6-room.players.length }).map((_,i) => (
                 <div key={`empty-${i}`} style={{ display:"flex", alignItems:"center", gap:"0.75rem", padding:"0.55rem 0.8rem", background:"#FAFAF5", border:"1.5px dashed #E8E2D8", opacity:0.45 }}>
                   <div style={{ width:11, height:11, borderRadius:"50%", background:"#E8E2D8" }} />
                   <span style={{ fontFamily:DM, color:"#8A7868", fontSize:"0.82rem" }}>Waiting for player…</span>
