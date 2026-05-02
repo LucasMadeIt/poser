@@ -69,6 +69,7 @@ export type Room = {
   canvas: CanvasElement[];
   messages: ChatMessage[];
   votes: Record<string, string>;
+  doneVotes: string[];
   results: RoundResult[];
   phaseEndTime: number;
   imposterId: string;
@@ -99,6 +100,7 @@ export function createRoom(hostSocketId: string, hostName: string): Room {
     canvas: [],
     messages: [],
     votes: {},
+    doneVotes: [],
     results: [],
     phaseEndTime: 0,
     imposterId: "",
@@ -174,6 +176,7 @@ export function resetRound(room: Room): void {
   room.canvas = [];
   room.messages = [];
   room.votes = {};
+  room.doneVotes = [];
 }
 
 export function addCanvasElement(room: Room, element: Omit<CanvasElement, "id" | "zIndex">): CanvasElement {
@@ -221,14 +224,17 @@ export function castVote(room: Room, voterId: string, targetId: string): void {
   room.votes[voterId] = targetId;
 }
 
-export function tallyVotes(room: Room): { mostVoted: string; isTie: boolean } {
+export function tallyVotes(room: Room): { mostVoted: string; isTie: boolean; hasMajority: boolean } {
+  const activePlayers = room.players.filter((p) => !p.eliminated);
+  const activeCount = activePlayers.length;
   const tally: Record<string, number> = {};
   for (const targetId of Object.values(room.votes)) {
-    tally[targetId] = (tally[targetId] ?? 0) + 1;
+    if (targetId) tally[targetId] = (tally[targetId] ?? 0) + 1;
   }
   const max = Math.max(...Object.values(tally), 0);
   const leaders = Object.entries(tally).filter(([, v]) => v === max).map(([k]) => k);
-  return { mostVoted: leaders[0] ?? "", isTie: leaders.length > 1 };
+  const hasMajority = leaders.length === 1 && max > activeCount / 2;
+  return { mostVoted: leaders[0] ?? "", isTie: leaders.length > 1, hasMajority };
 }
 
 export function deleteRoom(roomId: string): void {

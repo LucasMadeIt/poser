@@ -148,9 +148,8 @@ export function RoleReveal({ role, onDismiss, myPlayerId, myPlayerColor }: Props
     return () => { clearTimeout(fallTimer); clearTimeout(revealTimer); clearTimeout(fadeTimer); clearTimeout(dismissTimer); };
   }, [onDismiss]);
 
-  const bg = isImposter
-    ? "radial-gradient(ellipse at center, #2A0E00 0%, #150500 60%, #0A0200 100%)"
-    : "radial-gradient(ellipse at center, #EDE5CC 0%, #D8CEAE 50%, #C4B898 100%)";
+  // Neutral cream wall — same for both roles so you can't tell before the poster falls
+  const bg = "radial-gradient(ellipse at center, #EDE5CC 0%, #D8CEAE 50%, #C4B898 100%)";
 
   return (
     <div style={{
@@ -162,15 +161,11 @@ export function RoleReveal({ role, onDismiss, myPlayerId, myPlayerColor }: Props
 
       {/* Wall texture / background patches */}
       <div style={{ position:"absolute", inset:0, pointerEvents:"none" }}>
-        {isImposter ? (<>
-          <div style={{ position:"absolute", top:"-20%", left:"-10%", width:"55%", height:"60%", background:ORANGE, opacity:0.12, transform:"rotate(-5deg)" }} />
-          <div style={{ position:"absolute", bottom:"-15%", right:"-10%", width:"50%", height:"55%", background:"#5A1A00", opacity:0.28, transform:"rotate(4deg)" }} />
-          <div style={{ position:"absolute", top:"35%", right:"20%", width:"20%", height:"30%", background:"#8B1A10", opacity:0.18, transform:"rotate(-8deg)" }} />
-        </>) : (<>
-          <div style={{ position:"absolute", top:"-20%", left:"-12%", width:"50%", height:"58%", background:NAVY, opacity:0.14, transform:"rotate(-5deg)" }} />
-          <div style={{ position:"absolute", bottom:"-15%", right:"-8%", width:"48%", height:"55%", background:TEAL, opacity:0.12, transform:"rotate(4deg)" }} />
-          <div style={{ position:"absolute", top:"32%", right:"18%", width:"22%", height:"32%", background:MUSTARD, opacity:0.18, transform:"rotate(-6deg)" }} />
-        </>)}
+        <>
+          <div style={{ position:"absolute", top:"-20%", left:"-12%", width:"50%", height:"58%", background:NAVY, opacity:0.12, transform:"rotate(-5deg)" }} />
+          <div style={{ position:"absolute", bottom:"-15%", right:"-8%", width:"48%", height:"55%", background:TEAL, opacity:0.10, transform:"rotate(4deg)" }} />
+          <div style={{ position:"absolute", top:"32%", right:"18%", width:"22%", height:"32%", background:MUSTARD, opacity:0.15, transform:"rotate(-6deg)" }} />
+        </>
 
         {/* Wall tape strips (always visible) */}
         <div style={{ position:"absolute", top:"8%", left:"6%", width:120, height:18, background:`repeating-linear-gradient(90deg,${ORANGE}99,${ORANGE}BB 10px,${ORANGE}99 14px)`, transform:"rotate(-32deg)", opacity:0.5 }} />

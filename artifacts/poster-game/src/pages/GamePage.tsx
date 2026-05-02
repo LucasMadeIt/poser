@@ -13,7 +13,8 @@ type Props = {
   onAdd: (el: Omit<CanvasElement, "id" | "zIndex" | "ownerId">) => void;
   onUpdate: (id: string, updates: Partial<CanvasElement>) => void;
   onDelete: (id: string) => void;
-  onSkip: () => void;
+  onDone: () => void;
+  doneVotes: string[];
   remoteCursors: Record<string, RemoteCursor>;
   emitCursorMove: (x: number, y: number) => void;
   socket: Socket;
@@ -242,7 +243,7 @@ function PropertiesSidebar({
   const typeName = el.type.charAt(0).toUpperCase() + el.type.slice(1);
 
   return (
-    <div style={{ width:SIDEBAR_W, flexShrink:0, background:"#FAFAF5", borderLeft:`3px solid #E8E2D8`, display:"flex", flexDirection:"column", overflow:"hidden", boxShadow:"-4px 0 14px rgba(0,0,0,0.06)" }}>
+    <div style={{ flex:1, background:"#FAFAF5", display:"flex", flexDirection:"column", overflow:"hidden" }}>
 
       {/* Header */}
       <div style={{ padding:"0.75rem 0.9rem 0.6rem", background:"#FFFFFF", borderBottom:`2px solid #F0E8D8`, display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0 }}>
@@ -401,7 +402,7 @@ function MicButton({ isRecording, permissionDenied, speakingCount, onStart, onSt
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete, onSkip, remoteCursors, emitCursorMove, socket, roomId }: Props) {
+export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete, onDone, doneVotes, remoteCursors, emitCursorMove, socket, roomId }: Props) {
   const myPlayer   = room.players.find((p)=>p.id===myPlayerId);
   const isImposter = myPlayer?.isImposter ?? false;
 
@@ -640,14 +641,17 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
             <div style={{ fontFamily:DM, fontSize:"0.52rem", color:"#B8A880", letterSpacing:"0.14em", marginBottom:1 }}>TIME</div>
             <Timer endTime={room.phaseEndTime} />
           </div>
-          {amIHost && (
-            <button onClick={onSkip}
-              style={{ fontFamily:BEBAS, fontSize:"0.8rem", color:"#EDE5CC", background:NAVY, border:`2px solid #0A2040`, padding:"0.3rem 0.85rem", cursor:"pointer", letterSpacing:"0.06em", boxShadow:"2px 2px 0 rgba(0,0,0,0.3)" }}
-              onMouseEnter={(e)=>(e.currentTarget.style.background="#2A4A70")}
-              onMouseLeave={(e)=>(e.currentTarget.style.background=NAVY)}>
-              Skip →
-            </button>
-          )}
+          {(()=>{
+            const activePlayers = room.players.filter(p=>!p.eliminated);
+            const myDone = doneVotes.includes(myPlayerId);
+            const needed = Math.ceil(activePlayers.length / 2);
+            return (
+              <button onClick={myDone ? undefined : onDone}
+                style={{ fontFamily:BEBAS, fontSize:"0.8rem", color:myDone?"#FFFFFF":"#EDE5CC", background:myDone?TEAL:NAVY, border:`2px solid ${myDone?"#1A6060":"#0A2040"}`, padding:"0.3rem 0.85rem", cursor:myDone?"default":"pointer", letterSpacing:"0.06em", boxShadow:"2px 2px 0 rgba(0,0,0,0.3)", opacity:myDone?0.85:1 }}>
+                {myDone ? `✓ DONE ${doneVotes.length}/${needed}` : `DONE ${doneVotes.length}/${needed}`}
+              </button>
+            );
+          })()}
         </div>
       </div>
 
@@ -753,12 +757,6 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
             <div style={{ position:"absolute", top:-44, left:"50%", transform:"translateX(-50%)", fontFamily:BEBAS, fontSize:"1.7rem", color:"rgba(28,58,96,0.12)", letterSpacing:"0.35em", whiteSpace:"nowrap", pointerEvents:"none" }}>ROUND {room.round}</div>
             <div style={{ position:"absolute", inset:-8, border:`8px solid ${NAVY}`, boxShadow:`4px 6px 0 ${ORANGE}, 8px 12px 0 rgba(0,0,0,0.22)`, pointerEvents:"none", zIndex:0 }} />
 
-            {/* Sticky brief note */}
-            <div style={{ position:"absolute", top:14, right:-152, width:136, background:"#F5EE7A", padding:"8px 10px 12px", transform:"rotate(3deg)", boxShadow:"3px 5px 12px rgba(0,0,0,0.25)", zIndex:5, pointerEvents:"none" }}>
-              <div style={{ fontFamily:BEBAS, fontSize:"0.55rem", color:"#8a7700", letterSpacing:"0.1em", marginBottom:4 }}>BRIEF</div>
-              <div style={{ fontFamily:DM, fontSize:"0.63rem", color:"#3a3000", lineHeight:1.4, wordBreak:"break-word" }}>{room.prompt}</div>
-            </div>
-
             {/* Canvas */}
             <div ref={canvasRef} data-canvas="true"
               style={{ position:"relative", width:CANVAS_W, height:CANVAS_H, background:canvasMode==="mobile"?"#FFFFFF":canvasMode==="web"?"#FFFFFF":"#F8F4EE", flexShrink:0, zIndex:1, overflow:"hidden", outline:dragOver?`4px dashed ${TEAL}`:"none", borderRadius:canvasMode==="mobile"?24:0 }}
@@ -834,17 +832,64 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
           </div>
         </div>
 
-        {/* RIGHT SIDEBAR — properties panel, appears when element is selected */}
-        {selectedEl && selectedLT && (
-          <PropertiesSidebar
-            el={selectedEl}
-            lt={selectedLT}
-            isText={isTextEl}
-            onUpdate={onUpdate}
-            onDelete={onDelete}
-            onClose={()=>setSelectedId(null)}
-          />
-        )}
+        {/* RIGHT PANEL — always present, switches between brief and properties */}
+        <div style={{ width:SIDEBAR_W, flexShrink:0, background:"#FAFAF5", borderLeft:`3px solid #E8E2D8`, display:"flex", flexDirection:"column", overflow:"hidden", boxShadow:"-4px 0 14px rgba(0,0,0,0.06)" }}>
+          {selectedEl && selectedLT ? (
+            <PropertiesSidebar
+              el={selectedEl}
+              lt={selectedLT}
+              isText={isTextEl}
+              onUpdate={onUpdate}
+              onDelete={onDelete}
+              onClose={()=>setSelectedId(null)}
+            />
+          ) : (
+            <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
+              <div style={{ padding:"0.75rem 0.9rem 0.6rem", background:"#FFFFFF", borderBottom:`2px solid #F0E8D8`, flexShrink:0 }}>
+                <div style={{ fontFamily:BEBAS, fontSize:"0.55rem", letterSpacing:"0.2em", color:"#C8B888", lineHeight:1 }}>ROUND {room.round} / {room.maxRounds}</div>
+                <div style={{ fontFamily:BEBAS, fontSize:"0.95rem", color:NAVY, letterSpacing:"0.06em", lineHeight:1.3, marginTop:1 }}>DESIGN BRIEF</div>
+              </div>
+              <div style={{ flex:1, overflowY:"auto", padding:"0.8rem 0.9rem", display:"flex", flexDirection:"column", gap:"0.8rem" }}>
+                <div style={{ background:"#FFFFFF", border:`2px solid #E8E2D8`, borderRadius:6, padding:"0.7rem 0.75rem", boxShadow:"2px 3px 0 rgba(0,0,0,0.05)" }}>
+                  <div style={{ fontFamily:BEBAS, fontSize:"0.52rem", letterSpacing:"0.18em", color:MUSTARD, marginBottom:5 }}>PROMPT</div>
+                  <div style={{ fontFamily:DM, fontSize:"0.78rem", color:"#1A1208", lineHeight:1.5, fontWeight:500 }}>{room.prompt}</div>
+                </div>
+                <div>
+                  <div style={{ fontFamily:BEBAS, fontSize:"0.52rem", letterSpacing:"0.18em", color:ORANGE, marginBottom:6 }}>PLAYERS</div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                    {room.players.map(p=>(
+                      <div key={p.id} style={{ display:"flex", alignItems:"center", gap:7, opacity:p.eliminated?0.3:1 }}>
+                        <div style={{ position:"relative", flexShrink:0 }}>
+                          <PlayerAvatar playerId={p.id} color={p.color} size={26} showBorder={p.id===myPlayerId} />
+                          {speakingPlayers.has(p.id) && <div style={{ position:"absolute", bottom:-1, right:-1, width:6, height:6, borderRadius:"50%", background:TEAL, border:"1.5px solid #fff" }} />}
+                        </div>
+                        <span style={{ fontFamily:DM, fontSize:"0.7rem", color:p.id===myPlayerId?NAVY:"#555", fontWeight:p.id===myPlayerId?700:400, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flex:1 }}>
+                          {p.id===myPlayerId?"you":p.name}
+                        </span>
+                        {doneVotes.includes(p.id) && <span style={{ fontSize:10, color:TEAL }}>✓</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ padding:"0.5rem 0.6rem", background:isImposter?`${ORANGE}14`:`${TEAL}10`, border:`2px solid ${isImposter?ORANGE:TEAL}`, borderRadius:4, textAlign:"center" }}>
+                  <div style={{ fontFamily:BEBAS, fontSize:"0.52rem", letterSpacing:"0.18em", color:isImposter?ORANGE:TEAL }}>YOUR ROLE</div>
+                  <div style={{ fontFamily:BEBAS, fontSize:"1.05rem", color:isImposter?ORANGE:TEAL, letterSpacing:"0.08em" }}>{isImposter?"IMPOSTER":"CREWMATE"}</div>
+                </div>
+                <div>
+                  <div style={{ fontFamily:BEBAS, fontSize:"0.52rem", letterSpacing:"0.18em", color:"#C8B888", marginBottom:6 }}>SHORTCUTS</div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+                    {[["R","Rectangle"],["T","Text block"],["Del","Delete"],["Ctrl+D","Duplicate"],["↑↓←→","Nudge"]].map(([k,v])=>(
+                      <div key={k} style={{ display:"flex", alignItems:"center", gap:5 }}>
+                        <span style={{ fontFamily:"monospace", fontSize:"0.6rem", background:"#F0E8D8", border:"1px solid #DDD5C4", borderRadius:3, padding:"1px 5px", color:"#555", flexShrink:0 }}>{k}</span>
+                        <span style={{ fontFamily:DM, fontSize:"0.63rem", color:"#8A7868" }}>{v}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Layer reorder context menu */}

@@ -29,6 +29,7 @@ export default function App() {
     sendChat,
     castVote,
     skipPhase,
+    voteDone,
     playAgain,
     emitCursorMove,
     emitTyping,
@@ -84,7 +85,8 @@ export default function App() {
           onAdd={addElement}
           onUpdate={updateElement}
           onDelete={deleteElement}
-          onSkip={skipPhase}
+          onDone={voteDone}
+          doneVotes={room.doneVotes ?? []}
           remoteCursors={remoteCursors}
           emitCursorMove={emitCursorMove}
           socket={socket}

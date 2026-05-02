@@ -47,6 +47,7 @@ function sanitizeRoom(room: Room, forSocketId: string) {
     myRole: isImposter ? "imposter" : "crewmate",
     votes: showVotes ? room.votes : undefined,
     voteTally: showVotes ? computeTally(room) : undefined,
+    doneVotes: room.doneVotes,
   };
 }
 
@@ -76,8 +77,9 @@ const FEEDBACK_LINES = [
 ];
 
 function resolveVotePhase(io: Server, room: Room, prompts: string[]) {
-  const { mostVoted, isTie } = tallyVotes(room);
-  const caught = mostVoted === room.imposterId;
+  const { mostVoted, hasMajority } = tallyVotes(room);
+  // Imposter only caught if a strict majority voted for the same person who is the imposter
+  const caught = hasMajority && mostVoted === room.imposterId;
   const imposter = room.players.find((p) => p.id === room.imposterId);
 
   const roundResult = {
@@ -127,26 +129,29 @@ function advancePhase(io: Server, room: Room, prompts: string[]) {
     room.phaseTimer = setTimeout(() => advancePhase(io, room, prompts), PHASE_DURATIONS.design);
   } else if (room.phase === "design") {
     room.phase = "chat";
+    room.doneVotes = [];
     room.phaseEndTime = Date.now() + PHASE_DURATIONS.chat;
     broadcastRoom(io, room);
     room.phaseTimer = setTimeout(() => advancePhase(io, room, prompts), PHASE_DURATIONS.chat);
   } else if (room.phase === "chat") {
     room.phase = "vote";
     room.votes = {};
+    room.doneVotes = [];
     room.phaseEndTime = Date.now() + PHASE_DURATIONS.vote;
     broadcastRoom(io, room);
     room.phaseTimer = setTimeout(() => advancePhase(io, room, prompts), PHASE_DURATIONS.vote);
   } else if (room.phase === "vote") {
-    const { mostVoted } = tallyVotes(room);
-    const caught = mostVoted === room.imposterId;
+    const { mostVoted, hasMajority } = tallyVotes(room);
+    // Majority must agree on the same person — otherwise imposter escapes
+    const caught = hasMajority && mostVoted === room.imposterId;
     const imposter = room.players.find((p) => p.id === room.imposterId);
 
     // Emit vote:result so clients can animate the reveal for 4.5s
     io.to(room.id).emit("vote:result", {
-      eliminatedId: mostVoted,
+      eliminatedId: hasMajority ? mostVoted : "",
       wasImposter: caught,
       imposterName: imposter?.name ?? "Unknown",
-      isTie: false,
+      isTie: !hasMajority,
     });
 
     // Delay actual phase transition so clients see the reveal animation
@@ -274,6 +279,25 @@ export function registerSocketHandlers(io: Server) {
       }
     });
 
+    // Any player votes "done" — phase advances when majority agree
+    socket.on("phase:done", () => {
+      const room = getRoomBySocket(socket.id);
+      const player = room ? getPlayerBySocket(room, socket.id) : undefined;
+      if (!room || !player || !["design", "chat"].includes(room.phase)) return;
+      if (!room.doneVotes.includes(player.id)) {
+        room.doneVotes.push(player.id);
+      }
+      const activePlayers = room.players.filter((p) => !p.eliminated);
+      broadcastRoom(io, room);
+      // Majority (> half) must agree
+      if (room.doneVotes.length > activePlayers.length / 2) {
+        if (room.phaseTimer) clearTimeout(room.phaseTimer);
+        const prompts = room.results.map((r) => r.prompt).concat(room.prompt ? [room.prompt] : []);
+        advancePhase(io, room, prompts);
+      }
+    });
+
+    // Host emergency skip (kept for edge cases)
     socket.on("phase:skip", () => {
       const room = getRoomBySocket(socket.id);
       const player = room ? getPlayerBySocket(room, socket.id) : undefined;

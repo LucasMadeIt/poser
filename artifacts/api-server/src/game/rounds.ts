@@ -23,7 +23,7 @@ export function pickPrompts(_count: number): string[] {
 }
 
 export const PHASE_DURATIONS = {
-  design: 120_000,
+  design: 300_000,
   chat: 90_000,
   vote: 45_000,
   results: 8_000,

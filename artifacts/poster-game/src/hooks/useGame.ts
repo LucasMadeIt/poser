@@ -162,6 +162,10 @@ export function useGame() {
     socketRef.current.emit("phase:skip");
   }, []);
 
+  const voteDone = useCallback(() => {
+    socketRef.current.emit("phase:done");
+  }, []);
+
   const playAgain = useCallback(() => {
     socketRef.current.emit("game:playAgain");
   }, []);
@@ -198,6 +202,7 @@ export function useGame() {
     sendChat,
     castVote,
     skipPhase,
+    voteDone,
     playAgain,
     emitCursorMove,
     emitTyping,

@@ -73,4 +73,5 @@ export type RoomState = {
   myRole: "imposter" | "crewmate";
   votes?: Record<string, string>;
   voteTally?: Record<string, number>;
+  doneVotes?: string[];
 };
