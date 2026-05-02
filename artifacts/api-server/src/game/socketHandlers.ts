@@ -210,7 +210,13 @@ export function registerSocketHandlers(io: Server) {
       socket.to(room.id).emit("cursor:update", { playerId: player.id, x, y });
     });
 
-    socket.on("canvas:add", (element: { type: string; x: number; y: number; width: number; height: number; content?: string; fill: string; stroke?: string; fontSize?: number }) => {
+    socket.on("canvas:add", (element: {
+      type: string; x: number; y: number; width: number; height: number;
+      content?: string; fill: string; stroke?: string; fontSize?: number;
+      points?: { x: number; y: number }[];
+      strokeWidth?: number;
+      vertices?: { x: number; y: number }[];
+    }) => {
       const room = getRoomBySocket(socket.id);
       const player = room ? getPlayerBySocket(room, socket.id) : undefined;
       if (!room || !player || room.phase !== "design") return;
@@ -226,6 +232,9 @@ export function registerSocketHandlers(io: Server) {
         fill: element.fill,
         stroke: element.stroke,
         fontSize: element.fontSize,
+        points: element.points,
+        strokeWidth: element.strokeWidth,
+        vertices: element.vertices,
         ownerId: player.id,
       });
       io.to(room.id).emit("canvas:added", el);

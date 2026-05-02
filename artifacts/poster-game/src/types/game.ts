@@ -19,7 +19,8 @@ export type CanvasElement = {
     | "listitem" | "card" | "badge" | "tag"
     | "progress" | "alert" | "toast" | "modal" | "fab"
     | "framemobile" | "frameweb"
-    | "image" | "video";
+    | "image" | "video"
+    | "freedraw" | "triangle";
   x: number;
   y: number;
   width: number;
@@ -34,6 +35,12 @@ export type CanvasElement = {
   opacity?: number;
   imageUrl?: string;
   videoUrl?: string;
+  /** Freedraw: path points in absolute canvas coordinates */
+  points?: { x: number; y: number }[];
+  /** Freedraw: stroke width in px */
+  strokeWidth?: number;
+  /** Triangle: 3 vertex positions in absolute canvas coordinates */
+  vertices?: { x: number; y: number }[];
   ownerId: string;
   zIndex: number;
 };

@@ -22,7 +22,9 @@ export type CanvasElement = {
     | "navbar" | "tabbar" | "sidebar" | "breadcrumb"
     | "listitem" | "card" | "badge" | "tag"
     | "progress" | "alert" | "toast" | "modal" | "fab"
-    | "framemobile" | "frameweb";
+    | "framemobile" | "frameweb"
+    | "image" | "video"
+    | "freedraw" | "triangle";
   x: number;
   y: number;
   width: number;
@@ -35,6 +37,11 @@ export type CanvasElement = {
   textAlign?: "left" | "center" | "right";
   cornerRadius?: number;
   opacity?: number;
+  imageUrl?: string;
+  videoUrl?: string;
+  points?: { x: number; y: number }[];
+  strokeWidth?: number;
+  vertices?: { x: number; y: number }[];
   ownerId: string;
   zIndex: number;
 };

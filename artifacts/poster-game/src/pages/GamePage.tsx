@@ -129,6 +129,20 @@ const SECTIONS: SectionDef[] = [
   },
 ];
 
+// ─── Smooth path builder (quadratic bezier) ──────────────────────────────────
+function smoothPath(pts: { x: number; y: number }[]): string {
+  if (pts.length === 0) return "";
+  if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
+  let d = `M ${pts[0].x} ${pts[0].y}`;
+  for (let i = 1; i < pts.length - 1; i++) {
+    const mx = (pts[i].x + pts[i + 1].x) / 2;
+    const my = (pts[i].y + pts[i + 1].y) / 2;
+    d += ` Q ${pts[i].x} ${pts[i].y} ${mx} ${my}`;
+  }
+  d += ` L ${pts[pts.length - 1].x} ${pts[pts.length - 1].y}`;
+  return d;
+}
+
 // ─── Canvas element renderers ────────────────────────────────────────────────
 function renderCanvasContent(el: CanvasElement): React.ReactNode {
   const r = el.cornerRadius ?? 0;
@@ -185,6 +199,31 @@ function renderCanvasContent(el: CanvasElement): React.ReactNode {
       return <div style={{ width:"100%", height:"100%", border:"6px solid #2a2a2a", borderRadius:32, background:"#1a1a1a", position:"relative", boxSizing:"border-box" }}><div style={{ position:"absolute", top:0, left:"50%", transform:"translateX(-50%)", width:"38%", height:22, background:"#1a1a1a", borderRadius:"0 0 12px 12px", zIndex:2 }} /><div style={{ position:"absolute", inset:0, borderRadius:26, overflow:"hidden" }}><div style={{ position:"absolute", inset:0, background:c||"#F8F4EE", display:"flex", alignItems:"center", justifyContent:"center" }}><span style={{ fontFamily:DM, fontSize:11, color:"#ccc" }}>Screen</span></div></div><div style={{ position:"absolute", bottom:10, left:"50%", transform:"translateX(-50%)", width:"32%", height:4, background:"#3a3a3a", borderRadius:4 }} /></div>;
     case "frameweb":
       return <div style={{ width:"100%", height:"100%", border:"1.5px solid #ccc", borderRadius:r||8, overflow:"hidden", background:"#fff", display:"flex", flexDirection:"column", boxSizing:"border-box" }}><div style={{ height:32, background:"#f0f0f0", borderBottom:"1px solid #ddd", display:"flex", alignItems:"center", gap:8, padding:"0 10px", flexShrink:0 }}><div style={{ display:"flex", gap:4 }}>{["#f56","#fa3","#2c2"].map(cc=><div key={cc} style={{ width:9, height:9, borderRadius:"50%", background:cc }} />)}</div><div style={{ flex:1, height:18, background:"#fff", borderRadius:100, border:"1px solid #ddd", display:"flex", alignItems:"center", padding:"0 8px" }}><span style={{ fontFamily:DM, fontSize:10, color:"#bbb" }}>https://yourapp.com</span></div></div><div style={{ flex:1, background:c||"#F8F4EE", padding:"16px 20px", display:"flex", flexDirection:"column", gap:10 }}>{[70,50,35].map((w,i)=><div key={i} style={{ height:i===0?20:8, background:"rgba(0,0,0,0.08)", borderRadius:4, width:`${w}%` }} />)}</div></div>;
+    case "freedraw": {
+      const pts = el.points ?? [];
+      if (pts.length < 2) return null;
+      const minX = pts.reduce((m, p) => Math.min(m, p.x), Infinity);
+      const minY = pts.reduce((m, p) => Math.min(m, p.y), Infinity);
+      const rel  = pts.map(p => ({ x: p.x - minX, y: p.y - minY }));
+      return (
+        <svg style={{ position:"absolute", inset:0, overflow:"visible", pointerEvents:"none" }} width={el.width} height={el.height}>
+          <path d={smoothPath(rel)} stroke={el.fill} strokeWidth={el.strokeWidth ?? 3}
+            fill="none" strokeLinecap="round" strokeLinejoin="round" opacity={el.opacity ?? 1}/>
+        </svg>
+      );
+    }
+    case "triangle": {
+      const verts = el.vertices ?? [];
+      if (verts.length < 3) return null;
+      const minX = verts.reduce((m, v) => Math.min(m, v.x), Infinity);
+      const minY = verts.reduce((m, v) => Math.min(m, v.y), Infinity);
+      const pts  = verts.map(v => `${v.x - minX},${v.y - minY}`).join(" ");
+      return (
+        <svg style={{ position:"absolute", inset:0, overflow:"visible" }} width={el.width} height={el.height}>
+          <polygon points={pts} fill={el.fill} stroke={el.stroke ?? "none"} strokeWidth="2" opacity={el.opacity ?? 1}/>
+        </svg>
+      );
+    }
     case "rect":    return null;
     case "circle":  return null;
     case "divider": return null;
@@ -212,6 +251,8 @@ function getOuterStyle(el: CanvasElement): React.CSSProperties {
     case "button":  { const ghost=el.fill==="transparent"; return { ...base, background:el.fill, border:el.stroke?`2px solid ${el.stroke}`:"none", display:"flex", alignItems:"center", justifyContent:"center", borderRadius:el.cornerRadius??6, color:ghost?(el.stroke??"#222"):"#fff" }; }
     case "image":   return { ...base, background:el.fill, borderRadius:el.cornerRadius??4 };
     case "video":   return { ...base, borderRadius:el.cornerRadius??4, overflow:"hidden" };
+    case "freedraw":  return { ...base, background:"transparent", overflow:"visible" };
+    case "triangle":  return { ...base, background:"transparent", overflow:"visible" };
     default:        return base;
   }
 }
@@ -412,6 +453,8 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
   const resizingRef    = useRef<{ elId:string; handle:0|1|2|3; startX:number; startY:number; origX:number; origY:number; origW:number; origH:number }|null>(null);
   const lastCursorEmit = useRef(0);
   const undoStackRef   = useRef<Array<{ type:"move"; id:string; oldX:number; oldY:number; oldW:number; oldH:number }>>([]);
+  const pencilRef      = useRef<{ points:{ x:number; y:number }[]; lastEmit:number; color:string; width:number }|null>(null);
+  const vertexDragRef  = useRef<{ elId:string; vertIdx:number; startMX:number; startMY:number; origVerts:{ x:number; y:number }[] }|null>(null);
 
   const [localTransforms, setLocalTransforms] = useState<Record<string,LocalTransform>>({});
   const [selectedId,      setSelectedId]      = useState<string|null>(null);
@@ -422,9 +465,13 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
     SECTIONS.forEach((s)=>{ init[s.id]=!s.defaultOpen; });
     return init;
   });
-  const [hoveredChip, setHoveredChip] = useState<string|null>(null);
-  const [dragOver,    setDragOver]    = useState(false);
-  const [layerMenu,   setLayerMenu]   = useState<{ elId:string; x:number; y:number }|null>(null);
+  const [hoveredChip,  setHoveredChip]  = useState<string|null>(null);
+  const [dragOver,     setDragOver]     = useState(false);
+  const [layerMenu,    setLayerMenu]    = useState<{ elId:string; x:number; y:number }|null>(null);
+  const [activeTool,   setActiveTool]   = useState<"select"|"pencil"|"triangle">("select");
+  const [pencilColor,  setPencilColor]  = useState("#1a1a1a");
+  const [pencilWidth,  setPencilWidth]  = useState(3);
+  const [livePoints,   setLivePoints]   = useState<{ x:number; y:number }[]|null>(null);
 
   const { isRecording, speakingPlayers, startRecording, stopRecording, permissionDenied } = useVoiceChat(socket, roomId);
 
@@ -442,13 +489,16 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
       const tag=(e.target as HTMLElement).tagName;
       if (tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT") return;
       if ((e.key==="Delete"||e.key==="Backspace")&&selectedId) { e.preventDefault(); onDelete(selectedId); setSelectedId(null); }
-      if (e.key==="Escape") setSelectedId(null);
+      if (e.key==="Escape") { setSelectedId(null); setActiveTool("select"); }
       if ((e.ctrlKey||e.metaKey)&&e.key==="z") { e.preventDefault(); const a=undoStackRef.current.pop(); if(a?.type==="move") onUpdate(a.id,{x:a.oldX,y:a.oldY,width:a.oldW,height:a.oldH}); }
       if ((e.ctrlKey||e.metaKey)&&e.key==="d"&&selectedId) { e.preventDefault(); const el=room.canvas.find(c=>c.id===selectedId); if(el) onAdd({type:el.type,x:el.x+16,y:el.y+16,width:el.width,height:el.height,content:el.content,fill:el.fill,stroke:el.stroke,fontSize:el.fontSize,cornerRadius:el.cornerRadius,opacity:el.opacity,imageUrl:el.imageUrl}); }
       if (selectedId&&["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(e.key)) { e.preventDefault(); const el=room.canvas.find(c=>c.id===selectedId); if(el){const n=e.shiftKey?10:1;const dx=e.key==="ArrowLeft"?-n:e.key==="ArrowRight"?n:0;const dy=e.key==="ArrowUp"?-n:e.key==="ArrowDown"?n:0;onUpdate(el.id,{x:Math.max(0,Math.min(CANVAS_W-el.width,el.x+dx)),y:Math.max(0,Math.min(CANVAS_H-el.height,el.y+dy))});} }
       if (!e.ctrlKey&&!e.metaKey&&!e.altKey) {
         if (e.key==="r"||e.key==="R") { e.preventDefault(); quickAdd("rect",200,120); }
         if (e.key==="t"||e.key==="T") { e.preventDefault(); quickAdd("text",200,48,"Text"); }
+        if (e.key==="p"||e.key==="P") { e.preventDefault(); setActiveTool("pencil"); }
+        if (e.key==="g"||e.key==="G") { e.preventDefault(); setActiveTool("triangle"); }
+        if (e.key==="v"||e.key==="V") { e.preventDefault(); setActiveTool("select"); }
       }
     };
     window.addEventListener("keydown", handler);
@@ -485,6 +535,27 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
   const handleCanvasMouseMove = useCallback((e: React.MouseEvent)=>{
     const now=Date.now();
     if (canvasRef.current&&now-lastCursorEmit.current>33) { lastCursorEmit.current=now; const rect=canvasRef.current.getBoundingClientRect(); emitCursorMove((e.clientX-rect.left)/rect.width,(e.clientY-rect.top)/rect.height); }
+
+    // Pencil: capture points
+    if (pencilRef.current&&canvasRef.current) {
+      const rect=canvasRef.current.getBoundingClientRect();
+      const x=e.clientX-rect.left, y=e.clientY-rect.top;
+      pencilRef.current.points.push({x,y});
+      if (now-pencilRef.current.lastEmit>33) { pencilRef.current.lastEmit=now; setLivePoints([...pencilRef.current.points]); }
+      return;
+    }
+
+    // Vertex drag: update a single triangle vertex
+    if (vertexDragRef.current) {
+      const{elId,vertIdx,startMX,startMY,origVerts}=vertexDragRef.current;
+      const dx=e.clientX-startMX, dy=e.clientY-startMY;
+      const newVerts=origVerts.map((v,i)=>i===vertIdx?{x:v.x+dx,y:v.y+dy}:{...v});
+      const minX=Math.min(...newVerts.map(v=>v.x)), minY=Math.min(...newVerts.map(v=>v.y));
+      const maxX=Math.max(...newVerts.map(v=>v.x)), maxY=Math.max(...newVerts.map(v=>v.y));
+      onUpdate(elId,{vertices:newVerts,x:Math.round(minX),y:Math.round(minY),width:Math.round(maxX-minX)||2,height:Math.round(maxY-minY)||2});
+      return;
+    }
+
     if (draggingRef.current&&!resizingRef.current) {
       const{elId,startX,startY,origX,origY}=draggingRef.current;
       const el=room.canvas.find(c=>c.id===elId);
@@ -502,15 +573,35 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
       nw=Math.max(MIN_W,nw);nh=Math.max(MIN_H,nh);nx=Math.max(0,Math.min(CANVAS_W-MIN_W,nx));ny=Math.max(0,Math.min(CANVAS_H-MIN_H,ny));
       setLocalTransforms(p=>({...p,[elId]:{x:nx,y:ny,w:nw,h:nh}}));
     }
-  }, [room.canvas, emitCursorMove]);
+  }, [room.canvas, emitCursorMove, onUpdate]);
 
   const handleCanvasMouseUp = useCallback(()=>{
+    // Finalize pencil stroke
+    if (pencilRef.current) {
+      const {points:pts, color, width:sw}=pencilRef.current;
+      if (pts.length>=3) {
+        const minX=Math.min(...pts.map(p=>p.x)), minY=Math.min(...pts.map(p=>p.y));
+        const maxX=Math.max(...pts.map(p=>p.x)), maxY=Math.max(...pts.map(p=>p.y));
+        onAdd({ type:"freedraw", x:Math.round(minX), y:Math.round(minY), width:Math.round(maxX-minX)||2, height:Math.round(maxY-minY)||2, fill:color, strokeWidth:sw, points:pts.map(p=>({x:Math.round(p.x),y:Math.round(p.y)})) });
+      }
+      pencilRef.current=null;
+      setLivePoints(null);
+      return;
+    }
+
+    // Commit vertex drag (already sent live)
+    if (vertexDragRef.current) { vertexDragRef.current=null; return; }
+
     if (draggingRef.current&&!resizingRef.current) {
       const{elId,origX,origY}=draggingRef.current;
       const lt=localTransforms[elId];
       if(lt&&(Math.abs(lt.x-origX)>2||Math.abs(lt.y-origY)>2)){
         const el=room.canvas.find(c=>c.id===elId);
-        onUpdate(elId,{x:Math.round(lt.x),y:Math.round(lt.y)});
+        const dx=Math.round(lt.x)-origX, dy=Math.round(lt.y)-origY;
+        const updates: Record<string,unknown>={ x:Math.round(lt.x), y:Math.round(lt.y) };
+        if (el?.type==="freedraw"&&el.points) updates.points=el.points.map(p=>({x:p.x+dx,y:p.y+dy}));
+        if (el?.type==="triangle"&&el.vertices) updates.vertices=el.vertices.map(v=>({x:v.x+dx,y:v.y+dy}));
+        onUpdate(elId, updates as Partial<CanvasElement>);
         if(undoStackRef.current.length>=10) undoStackRef.current.shift();
         undoStackRef.current.push({type:"move",id:elId,oldX:origX,oldY:origY,oldW:el?.width??0,oldH:el?.height??0});
       }
@@ -522,9 +613,18 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
       if(lt){onUpdate(elId,{x:Math.round(lt.x),y:Math.round(lt.y),width:Math.round(lt.w),height:Math.round(lt.h)});if(undoStackRef.current.length>=10) undoStackRef.current.shift();undoStackRef.current.push({type:"move",id:elId,oldX:origX,oldY:origY,oldW:origW,oldH:origH});}
       resizingRef.current=null;
     }
-  }, [localTransforms, onUpdate, room.canvas]);
+  }, [localTransforms, onUpdate, onAdd, room.canvas]);
 
+  function handleCanvasMouseDown(e: React.MouseEvent) {
+    if (activeTool==="pencil"&&canvasRef.current) {
+      const rect=canvasRef.current.getBoundingClientRect();
+      const x=e.clientX-rect.left, y=e.clientY-rect.top;
+      pencilRef.current={points:[{x,y}],lastEmit:0,color:pencilColor,width:pencilWidth};
+      setLivePoints([{x,y}]);
+    }
+  }
   function handleElementMouseDown(e: React.MouseEvent, el: CanvasElement) {
+    if(activeTool!=="select") return; // let draw tools handle canvas events
     if(editingId||resizingRef.current) return;
     e.stopPropagation();
     setSelectedId(el.id);
@@ -553,6 +653,19 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
     setEditingId(null);
   }
   function handleCanvasClick(e: React.MouseEvent) {
+    // Triangle placement
+    if(activeTool==="triangle"&&canvasRef.current) {
+      const rect=canvasRef.current.getBoundingClientRect();
+      const cx=e.clientX-rect.left, cy=e.clientY-rect.top;
+      const size=110, h=size*Math.sqrt(3)/2;
+      const v0={x:Math.round(cx),y:Math.round(cy-h*2/3)};
+      const v1={x:Math.round(cx-size/2),y:Math.round(cy+h/3)};
+      const v2={x:Math.round(cx+size/2),y:Math.round(cy+h/3)};
+      const minX=Math.min(v0.x,v1.x,v2.x), minY=Math.min(v0.y,v1.y,v2.y);
+      const maxX=Math.max(v0.x,v1.x,v2.x), maxY=Math.max(v0.y,v1.y,v2.y);
+      onAdd({type:"triangle",x:Math.max(0,minX),y:Math.max(0,minY),width:maxX-minX,height:maxY-minY,fill:ORANGE,vertices:[v0,v1,v2]});
+      return;
+    }
     if(e.target===canvasRef.current||(e.target as HTMLElement).dataset.canvas==="true") {
       setSelectedId(null); setEditingId(null);
     }
@@ -660,6 +773,35 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
 
         {/* LEFT PANEL */}
         <div style={{ width:PANEL_W, background:"#FAFAF5", borderRight:`3px solid #E8E2D8`, display:"flex", flexDirection:"column", flexShrink:0, boxShadow:"2px 0 8px rgba(0,0,0,0.06)" }}>
+
+          {/* ── DRAW TOOLS ── */}
+          <div style={{ padding:"0.45rem 0.5rem 0.35rem", borderBottom:`1.5px solid #F0E8D8`, background:"#FFFFFF", flexShrink:0 }}>
+            <div style={{ fontFamily:BEBAS, fontSize:"0.52rem", letterSpacing:"0.18em", color:"#C8B888", marginBottom:4 }}>TOOLS</div>
+            <div style={{ display:"flex", gap:4 }}>
+              {([["select","↖","V"],["pencil","✏","P"],["triangle","▲","G"]] as [string,string,string][]).map(([tool,icon,key])=>(
+                <button key={tool} onClick={()=>setActiveTool(tool as typeof activeTool)} title={`${tool.charAt(0).toUpperCase()+tool.slice(1)} (${key})`}
+                  style={{ flex:1, height:28, display:"flex", alignItems:"center", justifyContent:"center", gap:3, background:activeTool===tool?NAVY:"#FAFAF5", color:activeTool===tool?"#FFF":"#555", border:`1.5px solid ${activeTool===tool?NAVY:"#E8E2D8"}`, borderRadius:5, fontFamily:DM, fontSize:"0.7rem", fontWeight:600, cursor:"pointer" }}>
+                  <span style={{ fontSize:11 }}>{icon}</span>
+                </button>
+              ))}
+            </div>
+            {activeTool==="pencil"&&(
+              <div style={{ marginTop:6, display:"flex", alignItems:"center", gap:5 }}>
+                {["#1a1a1a",ORANGE,TEAL,NAVY,"#E87DBB","#1A5A30","#FFFFFF"].map(c=>(
+                  <button key={c} onClick={()=>setPencilColor(c)}
+                    style={{ width:18, height:18, borderRadius:"50%", background:c, border:pencilColor===c?`2.5px solid ${TEAL}`:`1.5px solid ${c==="#FFFFFF"?"#CCC":"transparent"}`, cursor:"pointer", flexShrink:0 }} />
+                ))}
+                <div style={{ width:1, height:14, background:"#E8E2D8" }} />
+                {[2,4,8].map(w=>(
+                  <button key={w} onClick={()=>setPencilWidth(w)}
+                    style={{ width:24, height:18, display:"flex", alignItems:"center", justifyContent:"center", background:pencilWidth===w?"#FFF0E8":"transparent", border:`1.5px solid ${pencilWidth===w?ORANGE:"#E8E2D8"}`, borderRadius:3, cursor:"pointer" }}>
+                    <div style={{ width:14, height:w, background:pencilColor, borderRadius:1 }} />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div style={{ padding:"0.65rem 0.65rem 0.4rem", borderBottom:"1.5px solid #F0E8D8" }}>
             <div style={{ position:"relative" }}>
               <span style={{ position:"absolute", left:8, top:"50%", transform:"translateY(-50%)", fontSize:12, color:"#C8B888", pointerEvents:"none" }}>🔍</span>
@@ -746,7 +888,7 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
               ))}
             </div>
             <div style={{ fontFamily:DM, fontSize:"0.55rem", color:"#C8B888", marginTop:"0.45rem", lineHeight:1.55 }}>
-              R=Rect · T=Text · Ctrl+D dupe
+              V=Select · P=Pencil · G=Triangle
             </div>
           </div>
         </div>
@@ -759,7 +901,8 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
 
             {/* Canvas */}
             <div ref={canvasRef} data-canvas="true"
-              style={{ position:"relative", width:CANVAS_W, height:CANVAS_H, background:canvasMode==="mobile"?"#FFFFFF":canvasMode==="web"?"#FFFFFF":"#F8F4EE", flexShrink:0, zIndex:1, overflow:"hidden", outline:dragOver?`4px dashed ${TEAL}`:"none", borderRadius:canvasMode==="mobile"?24:0 }}
+              style={{ position:"relative", width:CANVAS_W, height:CANVAS_H, background:canvasMode==="mobile"?"#FFFFFF":canvasMode==="web"?"#FFFFFF":"#F8F4EE", flexShrink:0, zIndex:1, overflow:"hidden", outline:dragOver?`4px dashed ${TEAL}`:"none", borderRadius:canvasMode==="mobile"?24:0, cursor:activeTool==="pencil"?"crosshair":activeTool==="triangle"?"crosshair":"default" }}
+              onMouseDown={handleCanvasMouseDown}
               onMouseMove={handleCanvasMouseMove} onMouseUp={handleCanvasMouseUp} onMouseLeave={handleCanvasMouseUp}
               onClick={handleCanvasClick}
               onDragOver={(e)=>{e.preventDefault();setDragOver(true);}}
@@ -797,24 +940,40 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
                 const isEditing=editingId===el.id;
                 const outerStyle=getOuterStyle(dEl);
                 if(isEditing) return <div key={el.id} contentEditable suppressContentEditableWarning style={{...outerStyle,border:`2px solid ${TEAL}`,outline:"none",cursor:"text",userSelect:"text"}} onBlur={(e)=>commitEdit(el,e.currentTarget)} onKeyDown={(e)=>{e.stopPropagation();if(e.key==="Escape"){e.preventDefault();commitEdit(el,e.currentTarget);}}}>{el.content}</div>;
-                return <div key={el.id} style={outerStyle} onMouseDown={(e)=>handleElementMouseDown(e,el)} onDoubleClick={(e)=>handleElementDoubleClick(e,el)}>{renderCanvasContent(dEl)}</div>;
+                const elCursor = activeTool!=="select" ? (activeTool==="pencil"?"crosshair":"crosshair") : outerStyle.cursor;
+                return <div key={el.id} style={{...outerStyle,cursor:elCursor}} onMouseDown={(e)=>handleElementMouseDown(e,el)} onDoubleClick={(e)=>handleElementDoubleClick(e,el)}>{renderCanvasContent(dEl)}</div>;
               })}
 
-              {/* Selection outline + resize handles only (no floating toolbar) */}
+              {/* Selection outline + handles */}
               {selectedEl&&selectedLT&&!editingId&&(()=>{
                 const H=9,ex=selectedLT.x,ey=selectedLT.y,ew=selectedLT.w,eh=selectedLT.h;
+                const isDrawEl=selectedEl.type==="freedraw"||selectedEl.type==="triangle";
                 const CURSORS=["nwse-resize","nesw-resize","nesw-resize","nwse-resize"] as const;
                 const handles:[number,number,0|1|2|3][]=[[ex-H/2,ey-H/2,0],[ex+ew-H/2,ey-H/2,1],[ex-H/2,ey+eh-H/2,2],[ex+ew-H/2,ey+eh-H/2,3]];
                 return (<>
-                  <div style={{ position:"absolute", left:ex-2, top:ey-2, width:ew+4, height:eh+4, border:`2px solid ${TEAL}`, pointerEvents:"none", zIndex:900 }} />
+                  <div style={{ position:"absolute", left:ex-2, top:ey-2, width:ew+4, height:eh+4, border:`2px dashed ${TEAL}`, pointerEvents:"none", zIndex:900 }} />
                   <div style={{ position:"absolute", left:ex, top:ey+eh+6, fontFamily:DM, fontSize:9, color:TEAL, background:"rgba(255,255,255,0.88)", border:`1px solid ${TEAL}`, padding:"1px 5px", borderRadius:4, pointerEvents:"none", zIndex:901, whiteSpace:"nowrap" }}>
                     {Math.round(selectedLT.w)} × {Math.round(selectedLT.h)}
                   </div>
-                  {handles.map(([hx,hy,idx])=>(
+                  {/* Resize handles only for non-draw elements */}
+                  {!isDrawEl&&handles.map(([hx,hy,idx])=>(
                     <div key={idx} style={{ position:"absolute", left:hx, top:hy, width:H, height:H, background:"#fff", border:`2px solid ${TEAL}`, zIndex:902, cursor:CURSORS[idx], pointerEvents:"all" }} onMouseDown={(e)=>handleCornerMouseDown(e,selectedEl,idx)} />
+                  ))}
+                  {/* Vertex handles for triangle */}
+                  {selectedEl.type==="triangle"&&selectedEl.vertices&&selectedEl.vertices.map((v,idx)=>(
+                    <div key={`vert-${idx}`}
+                      style={{ position:"absolute", left:v.x-7, top:v.y-7, width:14, height:14, borderRadius:"50%", background:"#fff", border:`2.5px solid ${ORANGE}`, zIndex:903, cursor:"move", pointerEvents:"all", boxShadow:"0 1px 4px rgba(0,0,0,0.22)" }}
+                      onMouseDown={(e)=>{ e.stopPropagation(); e.preventDefault(); draggingRef.current=null; resizingRef.current=null; vertexDragRef.current={elId:selectedEl.id,vertIdx:idx,startMX:e.clientX,startMY:e.clientY,origVerts:[...selectedEl.vertices!]}; }} />
                   ))}
                 </>);
               })()}
+
+              {/* Pencil live preview */}
+              {livePoints&&livePoints.length>1&&(
+                <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", pointerEvents:"none", zIndex:1000, overflow:"visible" }}>
+                  <path d={smoothPath(livePoints)} stroke={pencilColor} strokeWidth={pencilWidth} fill="none" strokeLinecap="round" strokeLinejoin="round" opacity={0.85}/>
+                </svg>
+              )}
 
               {/* Remote cursors */}
               {Object.values(remoteCursors).map(cursor=>{
