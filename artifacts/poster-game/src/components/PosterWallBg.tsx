@@ -1,28 +1,47 @@
+// Two SVG-noise data URIs — fine grain + coarse grain
+const FINE   = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E")`;
+const COARSE = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.32' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)'/%3E%3C/svg%3E")`;
+
+type BlockP = { bg: string; opacity?: number } & React.CSSProperties;
+
+function NoisyBlock({ bg, opacity = 0.88, ...pos }: BlockP) {
+  return (
+    <div style={{ position:"absolute", overflow:"hidden", opacity, ...pos }}>
+      {/* solid colour */}
+      <div style={{ position:"absolute", inset:0, background:bg }} />
+      {/* fine grain overlay — adds grit to the colour */}
+      <div style={{ position:"absolute", inset:0, backgroundImage:FINE,   backgroundSize:"170px", opacity:0.28, mixBlendMode:"overlay"   as React.CSSProperties["mixBlendMode"] }} />
+      {/* coarse grain — worn/aged depth */}
+      <div style={{ position:"absolute", inset:0, backgroundImage:COARSE, backgroundSize:"330px", opacity:0.18, mixBlendMode:"multiply"  as React.CSSProperties["mixBlendMode"] }} />
+    </div>
+  );
+}
+
 export function PosterWallBg() {
   return (
-    <div style={{ position:"fixed", inset:0, zIndex:0, background:"#F5EEE2", overflow:"hidden", pointerEvents:"none" }}>
+    <div style={{ position:"fixed", inset:0, zIndex:0, background:"#F0E8D8", overflow:"hidden", pointerEvents:"none" }}>
 
-      {/* ── Big vivid poster colour blocks (street art chaos) ── */}
-      <div style={{ position:"absolute", top:"-12%", left:"-8%",  width:"52%", height:"65%", background:"#1C3A60", opacity:0.92, transform:"rotate(-4deg)" }} />
-      <div style={{ position:"absolute", top:"-6%",  left:"8%",   width:"36%", height:"44%", background:"#D4561A", opacity:0.88, transform:"rotate(2.5deg)" }} />
-      <div style={{ position:"absolute", top:"-8%",  right:"-8%", width:"48%", height:"58%", background:"#2A8080", opacity:0.85, transform:"rotate(3.8deg)" }} />
-      <div style={{ position:"absolute", top:"20%",  right:"5%",  width:"30%", height:"40%", background:"#C8A028", opacity:0.80, transform:"rotate(-5deg)" }} />
-      <div style={{ position:"absolute", top:"32%",  left:"-6%",  width:"38%", height:"50%", background:"#8B1A10", opacity:0.88, transform:"rotate(5deg)" }} />
-      <div style={{ position:"absolute", top:"46%",  left:"26%",  width:"42%", height:"46%", background:"#1C3A60", opacity:0.72, transform:"rotate(-2.5deg)" }} />
-      <div style={{ position:"absolute", bottom:"-12%", left:"4%",  width:"60%", height:"52%", background:"#D4561A", opacity:0.78, transform:"rotate(-2deg)" }} />
-      <div style={{ position:"absolute", bottom:"-8%", right:"-6%", width:"46%", height:"56%", background:"#1A5A30", opacity:0.82, transform:"rotate(3.5deg)" }} />
-      <div style={{ position:"absolute", top:"58%",  right:"12%",  width:"32%", height:"38%", background:"#F0E8D0", opacity:0.65, transform:"rotate(-3deg)" }} />
-      <div style={{ position:"absolute", top:"22%",  left:"48%",  width:"22%", height:"30%", background:"#C8A028", opacity:0.70, transform:"rotate(6deg)" }} />
-      <div style={{ position:"absolute", bottom:"22%", left:"-3%", width:"28%", height:"34%", background:"#2A8080", opacity:0.75, transform:"rotate(-6deg)" }} />
-      {/* extra bright accent patches */}
-      <div style={{ position:"absolute", top:"14%",  left:"30%",  width:"18%", height:"24%", background:"#E8302A", opacity:0.55, transform:"rotate(-3deg)" }} />
-      <div style={{ position:"absolute", bottom:"8%",  left:"38%", width:"16%", height:"20%", background:"#F5C842", opacity:0.60, transform:"rotate(4deg)" }} />
-      <div style={{ position:"absolute", top:"70%",  left:"14%",  width:"22%", height:"18%", background:"#2A4AAA", opacity:0.50, transform:"rotate(-2deg)" }} />
-      <div style={{ position:"absolute", top:"4%",   right:"30%", width:"14%", height:"20%", background:"#F0E8D0", opacity:0.82, transform:"rotate(2deg)" }} />
-      <div style={{ position:"absolute", bottom:"35%", right:"5%", width:"18%", height:"16%", background:"#8B1A10", opacity:0.55, transform:"rotate(-4deg)" }} />
+      {/* ── Big vivid textured colour blocks ── */}
+      <NoisyBlock bg="#1C3A60" opacity={0.92} top="-12%" left="-8%"  width="52%" height="65%" transform="rotate(-4deg)" />
+      <NoisyBlock bg="#D4561A" opacity={0.88} top="-6%"  left="8%"   width="36%" height="44%" transform="rotate(2.5deg)" />
+      <NoisyBlock bg="#2A8080" opacity={0.85} top="-8%"  right="-8%" width="48%" height="58%" transform="rotate(3.8deg)" />
+      <NoisyBlock bg="#C8A028" opacity={0.80} top="20%"  right="5%"  width="30%" height="40%" transform="rotate(-5deg)" />
+      <NoisyBlock bg="#8B1A10" opacity={0.88} top="32%"  left="-6%"  width="38%" height="50%" transform="rotate(5deg)" />
+      <NoisyBlock bg="#1C3A60" opacity={0.72} top="46%"  left="26%"  width="42%" height="46%" transform="rotate(-2.5deg)" />
+      <NoisyBlock bg="#D4561A" opacity={0.78} bottom="-12%" left="4%"  width="60%" height="52%" transform="rotate(-2deg)" />
+      <NoisyBlock bg="#1A5A30" opacity={0.82} bottom="-8%"  right="-6%" width="46%" height="56%" transform="rotate(3.5deg)" />
+      <NoisyBlock bg="#F0E8D0" opacity={0.65} top="58%"  right="12%" width="32%" height="38%" transform="rotate(-3deg)" />
+      <NoisyBlock bg="#C8A028" opacity={0.70} top="22%"  left="48%"  width="22%" height="30%" transform="rotate(6deg)" />
+      <NoisyBlock bg="#2A8080" opacity={0.75} bottom="22%" left="-3%" width="28%" height="34%" transform="rotate(-6deg)" />
+      {/* accent patches */}
+      <NoisyBlock bg="#E8302A" opacity={0.55} top="14%"  left="30%"  width="18%" height="24%" transform="rotate(-3deg)" />
+      <NoisyBlock bg="#F5C842" opacity={0.60} bottom="8%"  left="38%" width="16%" height="20%" transform="rotate(4deg)" />
+      <NoisyBlock bg="#2A4AAA" opacity={0.50} top="70%"  left="14%"  width="22%" height="18%" transform="rotate(-2deg)" />
+      <NoisyBlock bg="#F0E8D0" opacity={0.82} top="4%"   right="30%" width="14%" height="20%" transform="rotate(2deg)" />
+      <NoisyBlock bg="#8B1A10" opacity={0.55} bottom="35%" right="5%" width="18%" height="16%" transform="rotate(-4deg)" />
 
-      {/* ── Ripped white/cream paper overlay scraps ── */}
-      <div style={{ position:"absolute", top:"6%",  right:"26%", width:"22%", height:"26%", background:"#FAFAF5", opacity:0.82, transform:"rotate(3.5deg)", boxShadow:"3px 6px 18px rgba(0,0,0,0.25)" }} />
+      {/* ── Ripped white/cream paper scraps ── */}
+      <div style={{ position:"absolute", top:"6%",  right:"26%", width:"22%", height:"26%", background:"#FAFAF5", opacity:0.82, transform:"rotate(3.5deg)",  boxShadow:"3px 6px 18px rgba(0,0,0,0.25)" }} />
       <div style={{ position:"absolute", bottom:"16%", left:"26%", width:"26%", height:"20%", background:"#F5F0E8", opacity:0.78, transform:"rotate(-2.5deg)", boxShadow:"3px 6px 18px rgba(0,0,0,0.25)" }} />
       <div style={{ position:"absolute", top:"48%",  left:"6%",   width:"16%", height:"24%", background:"#FFFDF5", opacity:0.70, transform:"rotate(4deg)" }} />
 
@@ -101,17 +120,35 @@ export function PosterWallBg() {
         <text x="42"   y="362" fontFamily="sans-serif" fontSize="20" fill="#D4561A" transform="rotate(5 42 362)" opacity="0.30">WHO DID THIS?</text>
         <text x="808"  y="155" fontFamily="sans-serif" fontSize="15" fill="#FAFAF5" transform="rotate(-3 808 155)" opacity="0.15">SABOTEUR</text>
         <text x="1220" y="345" fontFamily="sans-serif" fontSize="13" fill="#F5F0E8" transform="rotate(8 1220 345)" opacity="0.12">IMPOSTER</text>
-        {/* dripping paint */}
         <path d="M280 0 Q282 35 278 60 Q275 85 280 110" stroke="#D4561A" strokeWidth="6" fill="none" strokeLinecap="round" opacity="0.4"/>
         <path d="M620 0 Q623 28 619 50 Q616 72 621 90" stroke="#C8A028" strokeWidth="5" fill="none" strokeLinecap="round" opacity="0.35"/>
         <path d="M1100 0 Q1103 40 1098 68 Q1094 96 1100 118" stroke="#2A8080" strokeWidth="6" fill="none" strokeLinecap="round" opacity="0.35"/>
       </svg>
 
-      {/* ── Very light grain overlay ── */}
+      {/* ── Global grain layers — heavy, like printed paper ── */}
+      {/* Fine screen-space grain */}
       <div style={{
         position:"absolute", inset:0,
-        backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        backgroundSize:"160px", opacity:0.04, mixBlendMode:"multiply",
+        backgroundImage: FINE,
+        backgroundSize:"170px",
+        opacity:0.13,
+        mixBlendMode:"overlay" as React.CSSProperties["mixBlendMode"],
+      }} />
+      {/* Coarse worn-paper grain */}
+      <div style={{
+        position:"absolute", inset:0,
+        backgroundImage: COARSE,
+        backgroundSize:"340px",
+        opacity:0.09,
+        mixBlendMode:"multiply" as React.CSSProperties["mixBlendMode"],
+      }} />
+      {/* Subtle screen layer — lifts texture off dark areas */}
+      <div style={{
+        position:"absolute", inset:0,
+        backgroundImage: FINE,
+        backgroundSize:"220px",
+        opacity:0.06,
+        mixBlendMode:"screen" as React.CSSProperties["mixBlendMode"],
       }} />
     </div>
   );
