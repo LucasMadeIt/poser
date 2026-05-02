@@ -78,14 +78,11 @@ const SECTIONS: SectionDef[] = [
     ],
   },
   {
-    id:"shape", label:"Shapes & Text", color:ORANGE, defaultOpen:true,
+    id:"shape", label:"Text Components", color:ORANGE, defaultOpen:true,
     chips:[
       { label:"Heading",   type:"heading", defaults:{ width:300, height:56, content:"Heading",        fill:"#1a1a1a", fontSize:36 }, preview:()=><span style={{ fontFamily:DM, fontWeight:800, fontSize:16, color:"#1a1a1a" }}>Heading</span> },
       { label:"Body Text", type:"text",    defaults:{ width:240, height:72, content:"Body text here.", fill:"#555",    fontSize:14 }, preview:()=><div style={{ display:"flex", flexDirection:"column", gap:3, width:"100%", padding:"0 4px" }}>{[100,82,65].map((w,i)=><div key={i} style={{ height:2.5, background:"#ccc", borderRadius:2, width:`${w}%` }} />)}</div> },
       { label:"Caption",   type:"text",    defaults:{ width:180, height:24, content:"Small caption",  fill:"#888",    fontSize:11 }, preview:()=><div style={{ height:2, background:"#ccc", borderRadius:1, width:"55%", margin:"0 auto" }} /> },
-      { label:"Rectangle", type:"rect",    defaults:{ width:200, height:100, fill:"#e8e8e8", stroke:"#ccc" }, preview:()=><div style={{ width:"70%", height:24, background:"#e0e0e0", border:"1.5px solid #ccc", borderRadius:3 }} /> },
-      { label:"Oval",      type:"circle",  defaults:{ width:80,  height:80,  fill:"#e0e0e0" }, preview:()=><div style={{ width:28, height:28, borderRadius:"50%", background:"#e0e0e0", border:"1.5px solid #ccc" }} /> },
-      { label:"Divider",   type:"divider", defaults:{ width:400, height:2,   fill:"#ddd" }, preview:()=><div style={{ width:"100%", height:2, background:"#ccc", borderRadius:1 }} /> },
     ],
   },
   {
@@ -113,7 +110,8 @@ const SECTIONS: SectionDef[] = [
     chips:[
       { label:"Card",       type:"card",     defaults:{ width:240, height:210, fill:"#ffffff", cornerRadius:12 }, preview:()=><div style={{ width:"100%", border:"1.5px solid #e8e8e8", borderRadius:6, overflow:"hidden" }}><div style={{ height:18, background:"#e8e8e8", width:"100%" }} /><div style={{ padding:"4px 6px", display:"flex", flexDirection:"column", gap:2 }}>{[80,60].map((w,i)=><div key={i} style={{ height:2.5, background:i===0?"#bbb":"#ddd", borderRadius:2, width:`${w}%` }} />)}</div></div> },
       { label:"List Item",  type:"listitem", defaults:{ width:340, height:64, content:"List Item", fill:"#ffffff" }, preview:()=><div style={{ width:"100%", height:22, border:"1px solid #e8e8e8", borderRadius:3, display:"flex", alignItems:"center", gap:5, padding:"0 5px" }}><div style={{ width:14, height:14, borderRadius:"50%", background:"#e0e0e0", flexShrink:0 }} /><div style={{ flex:1, height:2.5, background:"#e0e0e0", borderRadius:2 }} /></div> },
-      { label:"Avatar",     type:"circle",   defaults:{ width:52, height:52, fill:"#9B59B6" }, preview:()=><div style={{ width:28, height:28, borderRadius:"50%", background:"linear-gradient(135deg,#9B59B6,#E87DBB)", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", position:"relative" }}><svg viewBox="0 0 28 28" style={{ position:"absolute", inset:0, width:"100%", height:"100%" }}><circle cx="14" cy="11" r="5.5" fill="rgba(255,255,255,0.85)"/><ellipse cx="14" cy="26" rx="9.5" ry="7" fill="rgba(255,255,255,0.85)"/></svg></div> },
+      { label:"Avatar",     type:"avatar",   defaults:{ width:52, height:52, fill:"#9B59B6" }, preview:()=><div style={{ width:28, height:28, borderRadius:"50%", background:"linear-gradient(135deg,#9B59B6,#E87DBB)", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", position:"relative" }}><svg viewBox="0 0 28 28" style={{ position:"absolute", inset:0, width:"100%", height:"100%" }}><circle cx="14" cy="11" r="5.5" fill="rgba(255,255,255,0.85)"/><ellipse cx="14" cy="26" rx="9.5" ry="7" fill="rgba(255,255,255,0.85)"/></svg></div> },
+      { label:"Icon",       type:"icon",     defaults:{ width:64, height:64, fill:"transparent", content:"⭐", fontSize:40 }, preview:()=><div style={{ display:"flex", alignItems:"center", justifyContent:"center", width:"100%", height:32 }}><span style={{ fontSize:20 }}>⭐</span></div> },
       { label:"Chart",      type:"chart",    defaults:{ width:300, height:200, fill:TEAL, content:JSON.stringify({chartType:"bar",labels:["Jan","Feb","Mar","Apr","May","Jun"],values:[40,65,45,80,55,70]}) }, preview:()=><div style={{ width:"100%", height:32, background:"#f8f8f8", borderRadius:3, display:"flex", alignItems:"flex-end", justifyContent:"center", gap:2, padding:"4px 6px" }}>{[40,65,45,80,55,70].map((v,i)=><div key={i} style={{ flex:1, height:`${(v/80)*100}%`, background:i===3?TEAL:`${TEAL}66`, borderRadius:"2px 2px 0 0" }} />)}</div> },
     ],
   },
@@ -310,6 +308,23 @@ function renderCanvasContent(el: CanvasElement): React.ReactNode {
         })}
       </svg>;
     }
+    case "avatar": {
+      const bg = el.fill || "#9B59B6";
+      return (
+        <div style={{ width:"100%", height:"100%", borderRadius:"50%", background:`linear-gradient(145deg, ${bg}, ${bg}bb)`, display:"flex", alignItems:"flex-end", justifyContent:"center", overflow:"hidden", position:"relative" }}>
+          <svg viewBox="0 0 100 100" style={{ width:"78%", marginBottom:"-4%" }}>
+            <circle cx="50" cy="33" r="22" fill="rgba(255,255,255,0.9)" />
+            <ellipse cx="50" cy="100" rx="40" ry="30" fill="rgba(255,255,255,0.9)" />
+          </svg>
+        </div>
+      );
+    }
+    case "icon":
+      return (
+        <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <span style={{ fontSize:el.fontSize ?? Math.round(Math.min(el.width, el.height) * 0.62), lineHeight:1, userSelect:"none" }}>{el.content || "⭐"}</span>
+        </div>
+      );
     case "rect":    return null;
     case "circle":  return null;
     case "divider": return null;
@@ -328,6 +343,8 @@ function getOuterStyle(el: CanvasElement): React.CSSProperties {
     opacity:el.opacity??1, overflow:"hidden",
   };
   switch (el.type) {
+    case "avatar":  return { ...base, borderRadius:"50%", overflow:"hidden" };
+    case "icon":    return { ...base, background:"transparent", overflow:"visible" };
     case "rect":    return { ...base, background:el.fill, border:el.stroke?`2px solid ${el.stroke}`:"none", borderRadius:el.cornerRadius??0 };
     case "circle":  return { ...base, background:el.fill, borderRadius:"50%", border:el.stroke?`2px solid ${el.stroke}`:"none" };
     case "divider": return { ...base, height:Math.max(el.height,2), background:el.fill, borderRadius:el.cornerRadius??100 };
@@ -371,8 +388,9 @@ function PropertiesSidebar({
   const isSidebar  = el.type === "sidebar";
   const isTabbar   = el.type === "tabbar";
   const isChart    = el.type === "chart";
+  const isIcon     = el.type === "icon";
   const isIconElement = isNavbar || isSidebar || isTabbar;
-  const showFillColor = !["text","heading"].includes(el.type) && !isChart;
+  const showFillColor = !["text","heading"].includes(el.type) && !isChart && !isIcon;
 
   let navCfg: {logo?:boolean;logoText?:string;links?:{label:string}[]} = {logo:true,logoText:"Brand",links:[{label:"Home"},{label:"About"},{label:"Work"}]};
   if (isNavbar && el.content) { try { navCfg = JSON.parse(el.content); } catch {} }
@@ -550,12 +568,18 @@ function PropertiesSidebar({
                 <input value={chartCfg.title??""} onChange={e=>updateChart({title:e.target.value})} style={inputStyle} placeholder="Chart title…" />
               </div>
               <div>
-                <div style={{ fontFamily:DM,fontSize:"0.6rem",color:"#C8B888",marginBottom:2 }}>Labels (comma separated)</div>
-                <input value={(chartCfg.labels??[]).join(",")} onChange={e=>updateChart({labels:e.target.value.split(",").map(s=>s.trim())})} style={inputStyle} placeholder="Jan,Feb,Mar…" />
+                <div style={{ fontFamily:DM,fontSize:"0.6rem",color:"#C8B888",marginBottom:2,display:"flex",justifyContent:"space-between" }}>
+                  <span>Labels (comma separated)</span>
+                  <span style={{ color:(chartCfg.labels??[]).length>6?"#C03020":TEAL,fontWeight:600 }}>{(chartCfg.labels??[]).length} / 6</span>
+                </div>
+                <input value={(chartCfg.labels??[]).join(",")} onChange={e=>{const l=e.target.value.split(",").map(s=>s.trim()).slice(0,6);updateChart({labels:l});}} style={inputStyle} placeholder="Jan,Feb,Mar…" />
               </div>
               <div>
-                <div style={{ fontFamily:DM,fontSize:"0.6rem",color:"#C8B888",marginBottom:2 }}>Values (comma separated)</div>
-                <input value={(chartCfg.values??[]).join(",")} onChange={e=>{const v=e.target.value.split(",").map(s=>Number(s.trim())||0);updateChart({values:v});}} style={inputStyle} placeholder="40,65,45…" />
+                <div style={{ fontFamily:DM,fontSize:"0.6rem",color:"#C8B888",marginBottom:2,display:"flex",justifyContent:"space-between" }}>
+                  <span>Values (comma separated)</span>
+                  <span style={{ color:(chartCfg.values??[]).length>6?"#C03020":TEAL,fontWeight:600 }}>{(chartCfg.values??[]).length} / 6</span>
+                </div>
+                <input value={(chartCfg.values??[]).join(",")} onChange={e=>{const v=e.target.value.split(",").map(s=>Number(s.trim())||0).slice(0,6);updateChart({values:v});}} style={inputStyle} placeholder="40,65,45…" />
               </div>
               <div>
                 <div style={{ fontFamily:DM,fontSize:"0.6rem",color:"#C8B888",marginBottom:2 }}>Chart color</div>
@@ -566,6 +590,29 @@ function PropertiesSidebar({
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Icon emoji editor ── */}
+        {isIcon && (
+          <div>
+            <span style={labelStyle}>ICON</span>
+            <div style={{ textAlign:"center", fontSize:Math.min(el.fontSize??40,60), padding:"8px 0 2px", lineHeight:1 }}>{el.content||"⭐"}</div>
+            <div style={{ fontFamily:DM, fontSize:"0.6rem", color:"#C8B888", margin:"4px 0 3px" }}>Select emoji</div>
+            <div style={emojiPickerStyle}>
+              {EMOJIS.map(e=>(
+                <button key={e} onClick={()=>onUpdate(el.id,{content:e})}
+                  style={{ border:"none", background:el.content===e?"#FFF0E8":"none", cursor:"pointer", fontSize:15, borderRadius:4, padding:3, outline:el.content===e?`2px solid ${ORANGE}`:"none" }}>
+                  {e}
+                </button>
+              ))}
+            </div>
+            <div style={{ marginTop:6 }}>
+              <div style={{ fontFamily:DM, fontSize:"0.6rem", color:"#C8B888", marginBottom:2 }}>Size (px)</div>
+              <input type="number" value={el.fontSize ?? Math.round(Math.min(el.width,el.height)*0.62)} min={16} max={200}
+                onChange={e=>onUpdate(el.id,{fontSize:Number(e.target.value)})}
+                style={inputStyle} />
             </div>
           </div>
         )}
@@ -1054,14 +1101,18 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
       onboarding:[{emoji:"👋",label:"Welcome"},{emoji:"🎯",label:"Goal"},{emoji:"✅",label:"Step done"},{emoji:"➡️",label:"Next"},{emoji:"🔑",label:"Setup"},{emoji:"📱",label:"Device"},{emoji:"🎉",label:"Success"},{emoji:"⭐",label:"Favourite"},{emoji:"🔔",label:"Notify"},{emoji:"🌟",label:"Star"},{emoji:"📸",label:"Photo"},{emoji:"🤝",label:"Connect"}],
       landing:   [{emoji:"🚀",label:"Launch"},{emoji:"⭐",label:"Feature"},{emoji:"💬",label:"Testimonial"},{emoji:"💰",label:"Pricing"},{emoji:"✅",label:"Check"},{emoji:"📧",label:"Email"},{emoji:"🎯",label:"CTA"},{emoji:"🏆",label:"Award"},{emoji:"🔗",label:"Link"},{emoji:"📱",label:"Mobile"},{emoji:"🌍",label:"Global"},{emoji:"🎁",label:"Offer"}],
       settings:  [{emoji:"⚙️",label:"Settings"},{emoji:"🔔",label:"Notify"},{emoji:"🔒",label:"Privacy"},{emoji:"🌙",label:"Dark mode"},{emoji:"🌍",label:"Language"},{emoji:"💳",label:"Billing"},{emoji:"👤",label:"Account"},{emoji:"🔗",label:"Connect"},{emoji:"📱",label:"Device"},{emoji:"🔑",label:"Password"},{emoji:"🎨",label:"Theme"},{emoji:"❓",label:"Help"}],
+      finance:   [{emoji:"💰",label:"Money"},{emoji:"💳",label:"Card"},{emoji:"📊",label:"Chart"},{emoji:"📈",label:"Trending"},{emoji:"💵",label:"Cash"},{emoji:"🏦",label:"Bank"},{emoji:"💎",label:"Value"},{emoji:"📉",label:"Decline"},{emoji:"💸",label:"Transfer"},{emoji:"🪙",label:"Coin"},{emoji:"🔐",label:"Secure"},{emoji:"🧾",label:"Receipt"}],
+      food:      [{emoji:"🍕",label:"Pizza"},{emoji:"🍔",label:"Burger"},{emoji:"🍜",label:"Noodles"},{emoji:"🛵",label:"Delivery"},{emoji:"📦",label:"Order"},{emoji:"🍱",label:"Bento"},{emoji:"🥗",label:"Salad"},{emoji:"🍣",label:"Sushi"},{emoji:"⭐",label:"Rating"},{emoji:"🔍",label:"Search"},{emoji:"🏠",label:"Home"},{emoji:"❤️",label:"Favorite"}],
     };
     const keywords = Object.keys(sets);
     const matched = keywords.filter(k=>p.includes(k));
     if (matched.length === 0) {
+      if (p.includes("finance")||p.includes("budget")||p.includes("money")||p.includes("payment")||p.includes("bank")) return sets.finance;
+      if (p.includes("food")||p.includes("delivery")||p.includes("restaurant")||p.includes("meal")) return sets.food;
       if (p.includes("shop")||p.includes("store")||p.includes("product")) return sets.ecommerce;
       if (p.includes("sign in")||p.includes("sign up")||p.includes("auth")) return sets.login;
       if (p.includes("home")||p.includes("portfolio")||p.includes("hero")) return sets.landing;
-      return [];
+      return sets.dashboard;
     }
     const combined = matched.flatMap(k=>sets[k]);
     // dedupe by emoji
@@ -1255,15 +1306,15 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
           <div style={{ flex:1, overflowY:"auto", padding:"0 0.4rem 0.4rem" }}>
 
             {/* Context-aware icons section */}
-            {!lowerSearch && contextIcons.length > 0 && (
+            {!lowerSearch && (
               <div style={{ marginBottom:"0.15rem" }}>
                 <div style={{ fontFamily:BEBAS, fontSize:"0.62rem", letterSpacing:"0.16em", color:MUSTARD, padding:"0.5rem 0.3rem 0.25rem", marginTop:4, display:"flex", alignItems:"center", gap:"0.35rem" }}>
-                  <span style={{ fontSize:9, color:"#C8B888" }}>▸</span>ICONS
+                  <span style={{ fontSize:9, color:"#C8B888" }}>▸</span>ICONS &amp; EMOJIS
                 </div>
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:4, paddingBottom:4 }}>
                   {contextIcons.map(ic=>(
                     <div key={ic.emoji}
-                      onClick={()=>onAdd({ type:"text", x:Math.floor(Math.random()*(CANVAS_W-60))+10, y:Math.floor(Math.random()*(CANVAS_H-60))+10, width:60, height:60, fill:"#1a1a1a", content:ic.emoji, fontSize:36 })}
+                      onClick={()=>onAdd({ type:"icon" as const, x:Math.floor(Math.random()*(CANVAS_W-64))+10, y:Math.floor(Math.random()*(CANVAS_H-64))+10, width:64, height:64, fill:"transparent", content:ic.emoji, fontSize:40 })}
                       title={ic.label}
                       style={{ background:"#FFFFFF", border:"1.5px solid #EAE4DC", borderRadius:6, cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"5px 2px 3px", gap:2, transition:"all 0.12s" }}
                       onMouseEnter={(e)=>{e.currentTarget.style.borderColor=MUSTARD;e.currentTarget.style.background="#FFFBF0";e.currentTarget.style.transform="translateY(-2px)";}}

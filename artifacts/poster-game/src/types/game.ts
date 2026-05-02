@@ -20,7 +20,8 @@ export type CanvasElement = {
     | "progress" | "alert" | "toast" | "modal" | "fab"
     | "framemobile" | "frameweb"
     | "image" | "video"
-    | "freedraw" | "triangle" | "chart";
+    | "freedraw" | "triangle" | "chart"
+    | "icon" | "avatar";
   x: number;
   y: number;
   width: number;

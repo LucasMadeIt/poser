@@ -27,7 +27,7 @@ pnpm workspace monorepo using TypeScript.
 
 ## Key Files
 
-- `artifacts/poster-game/src/pages/GamePage.tsx` — main game canvas page (~1080 lines)
+- `artifacts/poster-game/src/pages/GamePage.tsx` — main game canvas page (~1540 lines)
 - `artifacts/poster-game/src/types/game.ts` — shared frontend types (CanvasElement etc)
 - `artifacts/api-server/src/game/gameState.ts` — server-side game state + types
 - `artifacts/api-server/src/game/socketHandlers.ts` — all socket event handlers

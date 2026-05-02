@@ -187,6 +187,23 @@ function renderCanvasContent(el: CanvasElement): React.ReactNode {
         })}
       </svg>;
     }
+    case "avatar": {
+      const bg = el.fill || "#9B59B6";
+      return (
+        <div style={{ width:"100%", height:"100%", borderRadius:"50%", background:`linear-gradient(145deg, ${bg}, ${bg}bb)`, display:"flex", alignItems:"flex-end", justifyContent:"center", overflow:"hidden" }}>
+          <svg viewBox="0 0 100 100" style={{ width:"78%", marginBottom:"-4%" }}>
+            <circle cx="50" cy="33" r="22" fill="rgba(255,255,255,0.9)" />
+            <ellipse cx="50" cy="100" rx="40" ry="30" fill="rgba(255,255,255,0.9)" />
+          </svg>
+        </div>
+      );
+    }
+    case "icon":
+      return (
+        <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <span style={{ fontSize:el.fontSize ?? Math.round(Math.min(el.width, el.height) * 0.62), lineHeight:1, userSelect:"none" }}>{el.content || "⭐"}</span>
+        </div>
+      );
     case "rect":    return null;
     case "circle":  return null;
     case "divider": return null;
@@ -215,6 +232,8 @@ function getElementStyle(el: CanvasElement): React.CSSProperties {
     case "image":    return { ...base, background:el.fill, borderRadius:el.cornerRadius??4 };
     case "video":    return { ...base, borderRadius:el.cornerRadius??4, overflow:"hidden" };
     case "chart":    return { ...base, background:"#f8f8f8", borderRadius:el.cornerRadius??8 };
+    case "avatar":   return { ...base, borderRadius:"50%", overflow:"hidden" };
+    case "icon":     return { ...base, background:"transparent", overflow:"visible" };
     case "freedraw": return { ...base, background:"transparent", overflow:"visible" };
     case "triangle": return { ...base, background:"transparent", overflow:"visible" };
     default:         return base;

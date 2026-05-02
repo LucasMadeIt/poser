@@ -7,9 +7,10 @@ const DM      = "'DM Sans', sans-serif";
 const ORANGE  = "#D4561A";
 const NAVY    = "#1C3A60";
 const TEAL    = "#2A8080";
+const MUSTARD = "#C8A028";
 
-const CANVAS_NATIVE_W = 900;
-const CANVAS_DISPLAY_W = 820;
+const CANVAS_NATIVE_W  = 900;
+const CANVAS_DISPLAY_W = 620;
 const SCALE = CANVAS_DISPLAY_W / CANVAS_NATIVE_W;
 const CANVAS_DISPLAY_H = Math.round(560 * SCALE);
 
@@ -20,319 +21,361 @@ type Props = {
   onClose: () => void;
 };
 
-export function ReplayModal({ events, prompt, defaultSpeed = 2, onClose }: Props) {
-  const [playing, setPlaying]           = useState(false);
-  const [speed,   setSpeed]             = useState(defaultSpeed);
-  const [quick,   setQuick]             = useState(false);
-  const [eventIndex, setEventIndex]     = useState(-1);
-  const [canvasMap, setCanvasMap]       = useState<Map<string, CanvasElement>>(new Map());
-  const [currentEv, setCurrentEv]       = useState<ReplayEvent | null>(null);
-  const [highlightId, setHighlightId]   = useState<string | null>(null);
-  const [showTag, setShowTag]           = useState(false);
-  const [showLog, setShowLog]           = useState(false);
-  const timerRef     = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const hlTimerRef   = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const tagTimerRef  = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const logRef       = useRef<HTMLDivElement>(null);
+type GroupedEvent = {
+  idx: number;
+  label: string;
+  subLabel: string;
+  type: "add" | "update" | "delete";
+  elementId: string;
+  playerId: string;
+  playerName: string;
+  playerColor: string;
+  startTimestamp: number;
+  endTimestamp: number;
+  lastRawIdx: number;
+};
 
-  useEffect(() => {
-    setTimeout(() => setPlaying(true), 300);
-    return () => {
-      clearTimeout(timerRef.current);
-      clearTimeout(hlTimerRef.current);
-      clearTimeout(tagTimerRef.current);
-    };
-  }, []);
+function groupEvents(events: ReplayEvent[]): GroupedEvent[] {
+  const groups: GroupedEvent[] = [];
 
-  useEffect(() => {
-    if (showLog && logRef.current && eventIndex >= 0) {
-      const item = logRef.current.children[eventIndex] as HTMLElement | undefined;
-      if (item) item.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    }
-  }, [eventIndex, showLog]);
+  const isPositional = (ev: ReplayEvent) =>
+    ev.type === "update" && ev.updates &&
+    ("x" in ev.updates || "y" in ev.updates || "width" in ev.updates || "height" in ev.updates || "vertices" in ev.updates);
 
-  const applyEvent = useCallback((idx: number) => {
-    if (idx < 0 || idx >= events.length) return;
-    const ev = events[idx];
-    setCanvasMap(prev => {
-      const next = new Map(prev);
-      if (ev.type === "add" && ev.element) {
-        next.set(ev.elementId, { ...ev.element });
-      } else if (ev.type === "update" && ev.updates) {
-        const ex = next.get(ev.elementId);
-        if (ex) next.set(ev.elementId, { ...ex, ...ev.updates });
-      } else if (ev.type === "delete") {
-        next.delete(ev.elementId);
+  const elLabel = (ev: ReplayEvent) => {
+    const t = ev.element?.type ?? (ev.updates ? Object.keys(ev.updates).filter(k=>!["x","y","width","height","vertices","zIndex"].includes(k))[0] : undefined);
+    return t ? t.charAt(0).toUpperCase() + t.slice(1) : "Element";
+  };
+
+  for (let i = 0; i < events.length; i++) {
+    const ev = events[i];
+    const pos = isPositional(ev);
+
+    if (pos) {
+      const last = groups[groups.length - 1];
+      if (last && last.type === "update" && last.elementId === ev.elementId &&
+          last.playerId === ev.playerId && ev.timestamp - last.endTimestamp < 1500) {
+        last.endTimestamp = ev.timestamp;
+        last.lastRawIdx = i;
+        continue;
       }
-      return next;
+    }
+
+    const type = ev.type;
+    const label = type === "add"    ? `Added ${elLabel(ev)}` :
+                  type === "delete" ? `Removed element` :
+                  pos               ? `Moved ${elLabel(ev)}` :
+                                      `Edited ${elLabel(ev)}`;
+    const tOff = Math.round((ev.timestamp - (events[0]?.timestamp ?? ev.timestamp)) / 1000);
+    groups.push({
+      idx: groups.length,
+      label,
+      subLabel: `by ${ev.playerName} · ${tOff}s`,
+      type,
+      elementId: ev.elementId,
+      playerId: ev.playerId,
+      playerName: ev.playerName,
+      playerColor: ev.playerColor,
+      startTimestamp: ev.timestamp,
+      endTimestamp: ev.timestamp,
+      lastRawIdx: i,
     });
-    setCurrentEv(ev);
-    if (ev.type !== "delete") {
-      setHighlightId(ev.elementId);
-      setShowTag(true);
-      clearTimeout(hlTimerRef.current);
-      clearTimeout(tagTimerRef.current);
-      hlTimerRef.current  = setTimeout(() => setHighlightId(null), 700);
-      tagTimerRef.current = setTimeout(() => setShowTag(false), 1600);
-    } else {
-      setHighlightId(null);
-      setShowTag(true);
-      clearTimeout(tagTimerRef.current);
-      tagTimerRef.current = setTimeout(() => setShowTag(false), 1200);
-    }
-  }, [events]);
-
-  useEffect(() => {
-    if (!playing || events.length === 0) return;
-    const nextIdx = eventIndex + 1;
-    if (nextIdx >= events.length) { setPlaying(false); return; }
-
-    let delay: number;
-    if (eventIndex < 0) {
-      delay = 0;
-    } else {
-      const gap = events[nextIdx].timestamp - events[eventIndex].timestamp;
-      delay = gap / speed;
-      if (quick && delay > 1200 / speed) delay = 280;
-      delay = Math.max(40, Math.min(delay, quick ? 700 : 2500));
-    }
-
-    timerRef.current = setTimeout(() => {
-      applyEvent(nextIdx);
-      setEventIndex(nextIdx);
-    }, delay);
-
-    return () => clearTimeout(timerRef.current);
-  }, [playing, eventIndex, speed, quick, events, applyEvent]);
-
-  function restart() {
-    clearTimeout(timerRef.current);
-    clearTimeout(hlTimerRef.current);
-    clearTimeout(tagTimerRef.current);
-    setEventIndex(-1);
-    setCanvasMap(new Map());
-    setCurrentEv(null);
-    setHighlightId(null);
-    setShowTag(false);
-    setTimeout(() => setPlaying(true), 100);
   }
 
-  const elements     = Array.from(canvasMap.values()).sort((a, b) => a.zIndex - b.zIndex);
-  const progress     = events.length > 0 ? Math.max(0, (eventIndex + 1) / events.length) : 0;
-  const isFinished   = eventIndex >= events.length - 1 && events.length > 0;
-  const highlightEl  = highlightId ? canvasMap.get(highlightId) : null;
+  return groups;
+}
 
-  const actionWord = currentEv?.type === "add" ? "added" : currentEv?.type === "update" ? "edited" : "deleted";
+function computeState(events: ReplayEvent[], upTo: number): Map<string, CanvasElement> {
+  const map = new Map<string, CanvasElement>();
+  for (let i = 0; i <= upTo; i++) {
+    const ev = events[i];
+    if (ev.type === "add" && ev.element) map.set(ev.elementId, { ...ev.element });
+    else if (ev.type === "update" && ev.updates) {
+      const ex = map.get(ev.elementId);
+      if (ex) map.set(ev.elementId, { ...ex, ...ev.updates });
+    } else if (ev.type === "delete") map.delete(ev.elementId);
+  }
+  return map;
+}
+
+export function ReplayModal({ events, prompt, onClose }: Props) {
+  const groups = groupEvents(events);
+  const [selIdx, setSelIdx]       = useState<number>(-1);
+  const [flashId, setFlashId]     = useState<string | null>(null);
+  const [playing, setPlaying]     = useState(false);
+  const [speed, setSpeed]         = useState(1);
+  const listRef   = useRef<HTMLDivElement>(null);
+  const playTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => () => {
+    clearTimeout(playTimer.current);
+    clearTimeout(flashTimer.current);
+  }, []);
+
+  const selectGroup = useCallback((idx: number) => {
+    setSelIdx(idx);
+    if (idx >= 0 && idx < groups.length) {
+      const g = groups[idx];
+      clearTimeout(flashTimer.current);
+      setFlashId(g.elementId);
+      flashTimer.current = setTimeout(() => setFlashId(null), 900);
+      const el = listRef.current?.children[idx] as HTMLElement | undefined;
+      if (el) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }, [groups]);
+
+  useEffect(() => {
+    if (!playing) return;
+    if (selIdx >= groups.length - 1) { setPlaying(false); return; }
+    const delay = Math.max(300, 900 / speed);
+    playTimer.current = setTimeout(() => selectGroup(selIdx + 1), delay);
+    return () => clearTimeout(playTimer.current);
+  }, [playing, selIdx, speed, groups.length, selectGroup]);
+
+  const canvasMap  = selIdx >= 0 ? computeState(events, groups[selIdx].lastRawIdx) : new Map<string, CanvasElement>();
+  const elements   = Array.from(canvasMap.values()).sort((a, b) => a.zIndex - b.zIndex);
+  const selectedG  = selIdx >= 0 ? groups[selIdx] : null;
+  const flashEl    = flashId ? canvasMap.get(flashId) : null;
+
+  const actionColor = (type: GroupedEvent["type"]) =>
+    type === "add" ? TEAL : type === "delete" ? "#C03020" : MUSTARD;
+
+  const typeIcon = (type: GroupedEvent["type"]) =>
+    type === "add" ? "+" : type === "delete" ? "✕" : "✎";
 
   return (
     <div
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       style={{
         position: "fixed", inset: 0, zIndex: 2000,
-        background: "rgba(6,4,2,0.90)",
-        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+        background: "rgba(6,4,2,0.88)",
+        display: "flex", alignItems: "center", justifyContent: "center",
         backdropFilter: "blur(6px)",
         animation: "fadeIn 0.18s ease",
       }}
     >
       <style>{`
-        @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
-        @keyframes tagPop { 0%{opacity:0;transform:translateY(6px)} 15%{opacity:1;transform:translateY(0)} 80%{opacity:1} 100%{opacity:0} }
-        @keyframes hlPulse { 0%{opacity:0.9} 100%{opacity:0} }
+        @keyframes fadeIn  { from { opacity:0 } to { opacity:1 } }
+        @keyframes flash   { 0%{opacity:0.9;box-shadow:0 0 0 4px rgba(255,255,255,0.4)} 100%{opacity:0;box-shadow:0 0 0 0} }
+        @keyframes slideIn { from{transform:translateX(-6px);opacity:0} to{transform:none;opacity:1} }
       `}</style>
 
       <div style={{
-        width: CANVAS_DISPLAY_W + 40,
+        display: "flex", flexDirection: "column",
+        width: CANVAS_DISPLAY_W + 260 + 40,
+        maxHeight: "92vh",
         background: "#FFFFFF",
         border: `4px solid ${NAVY}`,
         boxShadow: `10px 12px 0 ${ORANGE}`,
-        display: "flex", flexDirection: "column",
+        overflow: "hidden",
       }}>
 
         {/* ── Header ── */}
         <div style={{
-          background: NAVY, padding: "0.6rem 0.9rem",
-          display: "flex", alignItems: "center", gap: "0.7rem",
+          background: NAVY, padding: "0.5rem 0.9rem",
+          display: "flex", alignItems: "center", gap: "0.6rem", flexShrink: 0,
         }}>
-          <span style={{ fontFamily: BEBAS, fontSize: "1.1rem", letterSpacing: "0.2em", color: ORANGE }}>
-            🎬 ROUND REPLAY
-          </span>
-          <span style={{ fontFamily: DM, fontSize: "0.7rem", color: "rgba(255,255,255,0.45)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {prompt}
+          <span style={{ fontFamily: BEBAS, fontSize: "1rem", letterSpacing: "0.2em", color: ORANGE }}>🎬 REPLAY</span>
+          <span style={{
+            fontFamily: DM, fontSize: "0.68rem", color: "rgba(255,255,255,0.45)",
+            flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }}>{prompt}</span>
+
+          <span style={{ fontFamily: BEBAS, fontSize: "0.6rem", letterSpacing: "0.1em", color: "rgba(255,255,255,0.35)" }}>
+            {groups.length} EDITS
           </span>
 
-          {/* Speed */}
           <div style={{ display: "flex", gap: 4 }}>
             {([1, 2, 3] as const).map(s => (
               <button key={s} onClick={() => setSpeed(s)} style={{
-                fontFamily: BEBAS, fontSize: "0.75rem", letterSpacing: "0.08em",
-                padding: "2px 8px", cursor: "pointer", border: "none",
+                fontFamily: BEBAS, fontSize: "0.72rem", letterSpacing: "0.08em",
+                padding: "2px 7px", cursor: "pointer", border: "none",
                 background: speed === s ? ORANGE : "rgba(255,255,255,0.12)",
-                color: speed === s ? "#fff" : "rgba(255,255,255,0.55)",
-                transition: "background 0.12s",
+                color: speed === s ? "#fff" : "rgba(255,255,255,0.5)",
               }}>{s}x</button>
             ))}
           </div>
 
-          {/* Quick */}
-          <button onClick={() => setQuick(q => !q)} title="Compress idle gaps" style={{
-            fontFamily: BEBAS, fontSize: "0.75rem", letterSpacing: "0.08em",
-            padding: "2px 9px", cursor: "pointer", border: `1.5px solid ${quick ? TEAL : "rgba(255,255,255,0.2)"}`,
-            background: quick ? `${TEAL}33` : "transparent",
-            color: quick ? TEAL : "rgba(255,255,255,0.45)",
-            transition: "all 0.12s",
-          }}>⚡ QUICK</button>
-
-          {/* Play/Pause */}
-          <button onClick={() => isFinished ? restart() : setPlaying(p => !p)} style={{
-            fontFamily: BEBAS, fontSize: "0.85rem", letterSpacing: "0.1em",
+          <button onClick={() => {
+            if (playing) { setPlaying(false); }
+            else if (selIdx >= groups.length - 1) { setSelIdx(-1); setTimeout(() => { setSelIdx(0); setPlaying(true); }, 50); }
+            else { if (selIdx < 0) setSelIdx(0); setPlaying(true); }
+          }} style={{
+            fontFamily: BEBAS, fontSize: "0.8rem", letterSpacing: "0.1em",
             padding: "3px 12px", cursor: "pointer", border: `2px solid ${ORANGE}`,
             background: ORANGE, color: "#fff",
-            transition: "opacity 0.12s",
           }}>
-            {isFinished ? "⏮ REPLAY" : playing ? "⏸ PAUSE" : "▶ PLAY"}
+            {playing ? "⏸ PAUSE" : selIdx >= groups.length - 1 && groups.length > 0 ? "⏮ REPLAY" : "▶ PLAY"}
           </button>
 
-          {/* Restart */}
-          {!isFinished && (
-            <button onClick={restart} title="Restart" style={{
-              fontFamily: BEBAS, fontSize: "0.85rem",
-              padding: "3px 10px", cursor: "pointer", border: `2px solid rgba(255,255,255,0.2)`,
-              background: "transparent", color: "rgba(255,255,255,0.6)",
-            }}>⏮</button>
-          )}
-
-          {/* Close */}
           <button onClick={onClose} style={{
-            width: 28, height: 28, borderRadius: "50%", border: "none",
+            width: 26, height: 26, borderRadius: "50%", border: "none",
             background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)",
-            cursor: "pointer", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center",
-            marginLeft: 4,
+            cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center",
+            marginLeft: 2,
           }}>✕</button>
         </div>
 
-        {/* ── Canvas area ── */}
-        <div style={{ padding: "20px 20px 0", position: "relative" }}>
-          <div style={{ position: "relative", lineHeight: 0 }}>
-            <CanvasPreview elements={elements} displayWidth={CANVAS_DISPLAY_W} />
+        {/* ── Body ── */}
+        <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
 
-            {/* Highlight overlay */}
-            {highlightEl && (
-              <div style={{
-                position: "absolute",
-                left: highlightEl.x * SCALE,
-                top: highlightEl.y * SCALE,
-                width: highlightEl.width * SCALE,
-                height: highlightEl.height * SCALE,
-                border: `2.5px solid ${currentEv?.playerColor ?? ORANGE}`,
-                borderRadius: Math.min((highlightEl.cornerRadius ?? 0) * SCALE, 12),
-                boxShadow: `0 0 14px ${currentEv?.playerColor ?? ORANGE}AA, inset 0 0 10px ${currentEv?.playerColor ?? ORANGE}22`,
-                pointerEvents: "none",
-                animation: "hlPulse 0.7s ease-out forwards",
-                zIndex: 10,
-              }} />
-            )}
-
-            {/* Player attribution tag */}
-            {showTag && currentEv && (
-              <div style={{
-                position: "absolute", bottom: 10, left: 10,
-                display: "flex", alignItems: "center", gap: 6,
-                background: "rgba(20,14,8,0.85)",
-                border: `1.5px solid ${currentEv.playerColor}`,
-                padding: "4px 10px 4px 7px",
-                pointerEvents: "none",
-                animation: "tagPop 1.6s ease-out forwards",
-                zIndex: 20,
-              }}>
-                <div style={{ width: 8, height: 8, borderRadius: "50%", background: currentEv.playerColor, flexShrink: 0 }} />
-                <span style={{ fontFamily: DM, fontSize: "0.72rem", color: "#F0E8D8", fontWeight: 600 }}>
-                  {currentEv.playerName}
-                </span>
-                <span style={{ fontFamily: DM, fontSize: "0.72rem", color: "rgba(240,232,216,0.55)" }}>
-                  {actionWord}
-                </span>
-              </div>
-            )}
-
-            {/* Empty state */}
-            {elements.length === 0 && eventIndex < 0 && (
-              <div style={{
-                position: "absolute", inset: 0,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                background: "rgba(245,238,226,0.6)",
-              }}>
-                <span style={{ fontFamily: BEBAS, fontSize: "1.2rem", letterSpacing: "0.15em", color: NAVY, opacity: 0.5 }}>
-                  STARTING…
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ── Progress bar + counter ── */}
-        <div style={{ padding: "12px 20px 16px", display: "flex", flexDirection: "column", gap: 6 }}>
-          <div style={{ position: "relative", height: 6, background: "#E8E2D8", overflow: "hidden" }}>
-            <div style={{
-              position: "absolute", left: 0, top: 0, bottom: 0,
-              width: `${progress * 100}%`,
-              background: `linear-gradient(90deg, ${ORANGE}, ${TEAL})`,
-              transition: "width 0.15s linear",
-            }} />
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontFamily: DM, fontSize: "0.65rem", color: "#8A7868" }}>
-              {eventIndex < 0 ? "Ready" : isFinished ? "Finished" : `Event ${eventIndex + 1} of ${events.length}`}
-            </span>
-            <span style={{ fontFamily: BEBAS, fontSize: "0.65rem", letterSpacing: "0.12em", color: NAVY, opacity: 0.6 }}>
-              {events.length} TOTAL EDITS
-            </span>
-          </div>
-        </div>
-
-        {/* ── Action log ── */}
-        <div style={{ padding: "0 20px 16px" }}>
-          <button onClick={() => setShowLog(v => !v)} style={{
-            width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "5px 12px", background: showLog ? `${NAVY}12` : "#F5EEE2",
-            border: `1px solid ${showLog ? NAVY + "44" : "#E8E2D8"}`, cursor: "pointer",
-            fontFamily: BEBAS, fontSize: "0.62rem", letterSpacing: "0.12em", color: NAVY,
+          {/* ── History list ── */}
+          <div ref={listRef} style={{
+            width: 260, borderRight: `2px solid #F0E8D8`,
+            overflowY: "auto", background: "#FAFAF5", flexShrink: 0,
           }}>
-            <span>📋 ACTION LOG  ({events.length} edits)</span>
-            <span style={{ fontSize: 10 }}>{showLog ? "▲" : "▼"}</span>
-          </button>
-          {showLog && (
-            <div ref={logRef} style={{
-              maxHeight: 180, overflowY: "auto",
-              border: `1px solid ${NAVY}22`, borderTop: "none",
-              background: "#FAFAF5",
-            }}>
-              {events.map((ev, i) => (
-                <div key={i} style={{
-                  display: "flex", alignItems: "center", gap: 7,
-                  padding: "4px 10px",
-                  background: i === eventIndex ? `${ev.playerColor}18` : "transparent",
-                  borderBottom: "1px solid #F0E8D8",
-                  opacity: i > eventIndex ? 0.32 : 1,
-                  transition: "opacity 0.2s, background 0.2s",
-                }}>
-                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: ev.playerColor, flexShrink: 0 }} />
-                  <span style={{ fontFamily: DM, fontSize: "0.6rem", color: ev.playerColor, fontWeight: 700, flexShrink: 0 }}>{ev.playerName}</span>
-                  <span style={{ fontFamily: DM, fontSize: "0.6rem", color: "#8A7868", flexShrink: 0 }}>
-                    {ev.type === "add" ? "added" : ev.type === "update" ? "edited" : "deleted"}
-                  </span>
-                  <span style={{ fontFamily: DM, fontSize: "0.6rem", color: "#555", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {ev.element?.type ?? (ev.updates ? Object.keys(ev.updates)[0] : "element")}
-                  </span>
-                  <span style={{ fontFamily: BEBAS, fontSize: "0.55rem", color: "#bbb", flexShrink: 0 }}>
-                    {String(Math.floor((ev.timestamp - (events[0]?.timestamp ?? ev.timestamp)) / 1000))}s
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+            {groups.length === 0 && (
+              <div style={{ padding: "1.5rem", textAlign: "center", fontFamily: DM, fontSize: "0.72rem", color: "#C8B888" }}>
+                No edits recorded
+              </div>
+            )}
+            {groups.map((g, i) => {
+              const active = i === selIdx;
+              const color  = actionColor(g.type);
+              return (
+                <button key={i} onClick={() => { setPlaying(false); selectGroup(i); }}
+                  style={{
+                    width: "100%", display: "flex", alignItems: "flex-start", gap: 8,
+                    padding: "7px 10px",
+                    background: active ? `${g.playerColor}22` : "transparent",
+                    borderLeft: `3px solid ${active ? g.playerColor : "transparent"}`,
+                    border: "none", borderBottom: "1px solid #F0E8D8",
+                    cursor: "pointer", textAlign: "left",
+                    transition: "background 0.1s",
+                    animation: active ? "slideIn 0.14s ease" : "none",
+                  }}>
+                  {/* player dot + type icon */}
+                  <div style={{ flexShrink: 0, marginTop: 2 }}>
+                    <div style={{
+                      width: 20, height: 20, borderRadius: "50%",
+                      background: g.playerColor, border: `2px solid ${g.playerColor}88`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      <span style={{ fontSize: 9, color: "#fff", fontWeight: 700 }}>{typeIcon(g.type)}</span>
+                    </div>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      fontFamily: DM, fontSize: "0.68rem", fontWeight: 600,
+                      color: active ? "#1A1208" : "#4A3C22",
+                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                    }}>{g.label}</div>
+                    <div style={{ fontFamily: DM, fontSize: "0.56rem", color: "#8A7868", marginTop: 1 }}>
+                      {g.subLabel}
+                    </div>
+                  </div>
+                  <span style={{
+                    fontFamily: BEBAS, fontSize: "0.55rem", letterSpacing: "0.08em",
+                    color: color, flexShrink: 0, marginTop: 3,
+                  }}>{g.type.toUpperCase()}</span>
+                </button>
+              );
+            })}
+          </div>
 
+          {/* ── Canvas area ── */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "#F5EEE2", overflow: "hidden" }}>
+            {/* Canvas */}
+            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, overflow: "hidden" }}>
+              <div style={{ position: "relative", lineHeight: 0, flexShrink: 0 }}>
+                <CanvasPreview elements={elements} displayWidth={CANVAS_DISPLAY_W} />
+
+                {/* Flash overlay on changed element */}
+                {flashEl && (
+                  <div style={{
+                    position: "absolute",
+                    left: flashEl.x * SCALE, top: flashEl.y * SCALE,
+                    width: flashEl.width * SCALE, height: flashEl.height * SCALE,
+                    border: `2.5px solid ${selectedG?.playerColor ?? ORANGE}`,
+                    borderRadius: Math.min((flashEl.cornerRadius ?? 0) * SCALE, 12),
+                    boxShadow: `0 0 18px ${selectedG?.playerColor ?? ORANGE}BB`,
+                    pointerEvents: "none",
+                    animation: "flash 0.9s ease-out forwards",
+                    zIndex: 10,
+                  }} />
+                )}
+
+                {/* Empty state */}
+                {selIdx < 0 && (
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                    background: "rgba(245,238,226,0.85)",
+                    gap: 8,
+                  }}>
+                    <span style={{ fontFamily: BEBAS, fontSize: "1.4rem", letterSpacing: "0.15em", color: NAVY, opacity: 0.5 }}>
+                      SELECT AN EDIT
+                    </span>
+                    <span style={{ fontFamily: DM, fontSize: "0.7rem", color: "#8A7868" }}>
+                      Click any item from the history list, or press Play
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Info strip */}
+            {selectedG && (
+              <div style={{
+                flexShrink: 0, padding: "8px 16px",
+                background: "#FFFFFF", borderTop: `2px solid #F0E8D8`,
+                display: "flex", alignItems: "center", gap: 10,
+              }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: "50%",
+                  background: selectedG.playerColor,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  flexShrink: 0,
+                }}>
+                  <svg viewBox="0 0 28 28" style={{ width: "100%", height: "100%" }}>
+                    <circle cx="14" cy="11" r="5.5" fill="rgba(255,255,255,0.88)" />
+                    <ellipse cx="14" cy="26" rx="9.5" ry="7" fill="rgba(255,255,255,0.88)" />
+                  </svg>
+                </div>
+                <div>
+                  <div style={{ fontFamily: DM, fontSize: "0.72rem", fontWeight: 700, color: "#1A1208" }}>
+                    {selectedG.playerName}
+                    <span style={{ fontWeight: 400, color: "#8A7868", marginLeft: 5 }}>
+                      {selectedG.label.toLowerCase()}
+                    </span>
+                  </div>
+                  <div style={{ fontFamily: DM, fontSize: "0.58rem", color: "#C8B888" }}>
+                    {Math.round((selectedG.endTimestamp - (events[0]?.timestamp ?? selectedG.startTimestamp)) / 1000)}s into design phase
+                  </div>
+                </div>
+                <div style={{ flex: 1 }} />
+                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                  <button onClick={() => selIdx > 0 && selectGroup(selIdx - 1)} disabled={selIdx <= 0}
+                    style={{
+                      width: 28, height: 28, border: `1.5px solid ${selIdx > 0 ? NAVY : "#E8E2D8"}`,
+                      borderRadius: 4, background: "none", cursor: selIdx > 0 ? "pointer" : "default",
+                      color: selIdx > 0 ? NAVY : "#ccc", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>‹</button>
+                  <span style={{ fontFamily: BEBAS, fontSize: "0.65rem", letterSpacing: "0.1em", color: "#8A7868", minWidth: 60, textAlign: "center" }}>
+                    {selIdx + 1} / {groups.length}
+                  </span>
+                  <button onClick={() => selIdx < groups.length - 1 && selectGroup(selIdx + 1)} disabled={selIdx >= groups.length - 1}
+                    style={{
+                      width: 28, height: 28, border: `1.5px solid ${selIdx < groups.length - 1 ? NAVY : "#E8E2D8"}`,
+                      borderRadius: 4, background: "none", cursor: selIdx < groups.length - 1 ? "pointer" : "default",
+                      color: selIdx < groups.length - 1 ? NAVY : "#ccc", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>›</button>
+                </div>
+              </div>
+            )}
+
+            {/* Progress bar */}
+            <div style={{ height: 4, background: "#E8E2D8", flexShrink: 0 }}>
+              <div style={{
+                height: "100%",
+                width: groups.length > 0 ? `${((selIdx + 1) / groups.length) * 100}%` : "0%",
+                background: `linear-gradient(90deg, ${ORANGE}, ${TEAL})`,
+                transition: "width 0.2s",
+              }} />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

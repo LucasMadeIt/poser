@@ -209,6 +209,33 @@ async function downloadDesignAsPng(elements: CanvasElement[], prompt: string) {
         }
         break;
       }
+      case "avatar": {
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+        ctx.fillStyle = fill || "#9B59B6";
+        ctx.fill();
+        ctx.clip();
+        // Head
+        ctx.beginPath();
+        ctx.ellipse(x + w / 2, y + h * 0.33, w * 0.22, h * 0.22, 0, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(255,255,255,0.9)";
+        ctx.fill();
+        // Body
+        ctx.beginPath();
+        ctx.ellipse(x + w / 2, y + h * 1.0, w * 0.4, h * 0.3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        break;
+      }
+      case "icon": {
+        const emojiSize = el.fontSize ?? Math.round(Math.min(w, h) * 0.62);
+        ctx.font = `${emojiSize}px sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(el.content || "⭐", x + w / 2, y + h / 2);
+        break;
+      }
       default:
         break;
     }
