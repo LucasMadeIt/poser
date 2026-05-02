@@ -306,6 +306,21 @@ export function registerSocketHandlers(io: Server) {
       broadcastRoom(io, room);
     });
 
+    // Voice chat relay — broadcast audio chunk to all others in room
+    socket.on("voice:chunk", (data: { chunk: ArrayBuffer }) => {
+      const room = getRoomBySocket(socket.id);
+      const player = room ? getPlayerBySocket(room, socket.id) : undefined;
+      if (!room || !player) return;
+      socket.to(room.id).emit("voice:chunk", { playerId: player.id, chunk: data.chunk });
+    });
+
+    socket.on("voice:speaking", (data: { active: boolean }) => {
+      const room = getRoomBySocket(socket.id);
+      const player = room ? getPlayerBySocket(room, socket.id) : undefined;
+      if (!room || !player) return;
+      socket.to(room.id).emit("voice:speaking", { playerId: player.id, active: data.active });
+    });
+
     socket.on("disconnect", () => {
       const result = removePlayerBySocket(socket.id);
       if (result) {

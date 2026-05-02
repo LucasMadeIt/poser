@@ -87,6 +87,8 @@ export default function App() {
           onSkip={skipPhase}
           remoteCursors={remoteCursors}
           emitCursorMove={emitCursorMove}
+          socket={socket}
+          roomId={roomId}
         />
       </>
     );
