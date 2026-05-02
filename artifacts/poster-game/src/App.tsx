@@ -133,6 +133,7 @@ export default function App() {
           socket={socket}
           roomId={roomId}
           myConstraint={room.myConstraint}
+          imposterObjectives={imposterObjectives}
         />
       </>
     );

@@ -92,6 +92,8 @@ export type RoomState = {
   challengeMode?: boolean;
   /** True if someone has a constraint this round (visible to all) */
   challengeHint?: boolean;
+  /** Constraint type visible to ALL players — does NOT reveal who has it */
+  challengeHintType?: string;
   /** Constraint type — only populated for the affected player */
   myConstraint?: string;
   /** Imposter objectives — only included in results/ended phase */

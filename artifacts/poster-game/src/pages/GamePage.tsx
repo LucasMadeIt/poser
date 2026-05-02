@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { Socket } from "socket.io-client";
-import type { RoomState, CanvasElement } from "../types/game";
+import type { RoomState, CanvasElement, ImposterObjective } from "../types/game";
 import { Timer } from "../components/Timer";
 import type { RemoteCursor } from "../hooks/useGame";
 import { useVoiceChat } from "../hooks/useVoiceChat";
@@ -20,6 +20,7 @@ type Props = {
   socket: Socket;
   roomId: string;
   myConstraint?: string;
+  imposterObjectives?: ImposterObjective | null;
 };
 
 const CANVAS_W = 900;
@@ -492,7 +493,7 @@ function MicButton({ isRecording, permissionDenied, speakingCount, onStart, onSt
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete, onDone, doneVotes, remoteCursors, emitCursorMove, socket, roomId, myConstraint }: Props) {
+export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete, onDone, doneVotes, remoteCursors, emitCursorMove, socket, roomId, myConstraint, imposterObjectives }: Props) {
   const myPlayer   = room.players.find((p)=>p.id===myPlayerId);
   const isImposter = myPlayer?.isImposter ?? false;
 
@@ -526,6 +527,7 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
   const [pencilColor,  setPencilColor]  = useState("#1a1a1a");
   const [pencilWidth,  setPencilWidth]  = useState(3);
   const [livePoints,   setLivePoints]   = useState<{ x:number; y:number }[]|null>(null);
+  const [hudCollapsed, setHudCollapsed] = useState(false);
 
   const { isRecording, speakingPlayers, startRecording, stopRecording, permissionDenied } = useVoiceChat(socket, roomId);
 
@@ -842,18 +844,27 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
           <div style={{ fontFamily:BEBAS, fontSize:"0.7rem", letterSpacing:"0.12em", padding:"0.22rem 0.65rem", borderRadius:3, background:isImposter?`${ORANGE}18`:`${TEAL}14`, border:`2px solid ${isImposter?ORANGE:TEAL}`, color:isImposter?ORANGE:TEAL }}>
             {isImposter?"IMPOSTER":"CREWMATE"}
           </div>
-          {/* My constraint badge */}
+          {/* My constraint badge — prominent pulsing pill */}
           {myConstraint && CONSTRAINT_LABELS[myConstraint] && (
-            <div style={{ fontFamily:BEBAS, fontSize:"0.65rem", letterSpacing:"0.1em", padding:"0.22rem 0.6rem", background:`${CONSTRAINT_LABELS[myConstraint].color}18`, border:`2px solid ${CONSTRAINT_LABELS[myConstraint].color}`, color:CONSTRAINT_LABELS[myConstraint].color, animation:"challenge-pulse 2s ease-in-out infinite" }}>
-              {CONSTRAINT_LABELS[myConstraint].short}
+            <div style={{ fontFamily:BEBAS, fontSize:"0.72rem", letterSpacing:"0.1em", padding:"0.28rem 0.75rem", background:`${CONSTRAINT_LABELS[myConstraint].color}22`, border:`2.5px solid ${CONSTRAINT_LABELS[myConstraint].color}`, color:CONSTRAINT_LABELS[myConstraint].color, animation:"challenge-pulse 1.4s ease-in-out infinite", boxShadow:`0 0 10px ${CONSTRAINT_LABELS[myConstraint].color}55`, display:"flex", alignItems:"center", gap:5 }}>
+              ⚠ YOU: {CONSTRAINT_LABELS[myConstraint].short}
             </div>
           )}
-          {/* Challenge hint — someone in the room has a constraint (all players see this) */}
-          {!myConstraint && room.challengeHint && (
-            <div style={{ fontFamily:BEBAS, fontSize:"0.65rem", letterSpacing:"0.1em", padding:"0.22rem 0.6rem", background:`${MUSTARD}18`, border:`2px solid ${MUSTARD}66`, color:MUSTARD }}>
-              ⚡ CHALLENGE ACTIVE
-            </div>
-          )}
+          {/* Challenge hint — shows constraint TYPE (not who), visible to all non-constrained */}
+          {!myConstraint && room.challengeHint && (() => {
+            const hintMap: Record<string,string> = {
+              "colorblind-rg": "👁 1 COLORBLIND PLAYER (R/G)",
+              "colorblind-by": "👁 1 COLORBLIND PLAYER (B/Y)",
+              "no-undo":       "🚫 1 PLAYER HAS NO UNDO",
+              "one-font":      "🔤 1 PLAYER: ONE FONT ONLY",
+            };
+            const label = (room.challengeHintType && hintMap[room.challengeHintType]) ?? "⚡ 1 CHALLENGE ACTIVE";
+            return (
+              <div style={{ fontFamily:BEBAS, fontSize:"0.65rem", letterSpacing:"0.1em", padding:"0.22rem 0.7rem", background:`${MUSTARD}18`, border:`2px solid ${MUSTARD}88`, color:MUSTARD }}>
+                {label}
+              </div>
+            );
+          })()}
           <div style={{ textAlign:"right" }}>
             <div style={{ fontFamily:DM, fontSize:"0.52rem", color:"#B8A880", letterSpacing:"0.14em", marginBottom:1 }}>TIME</div>
             <Timer endTime={room.phaseEndTime} />
@@ -871,6 +882,46 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
           })()}
         </div>
       </div>
+
+      {/* ── IMPOSTER OBJECTIVES HUD (only visible to the imposter) ── */}
+      {isImposter && imposterObjectives && (
+        <div style={{ position:"fixed", bottom:16, right:16, zIndex:900, width: hudCollapsed ? "auto" : 300, fontFamily:BEBAS, pointerEvents:"auto" }}>
+          {/* Toggle tab */}
+          <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:4 }}>
+            <button onClick={()=>setHudCollapsed(c=>!c)}
+              style={{ fontFamily:BEBAS, fontSize:"0.65rem", letterSpacing:"0.14em", background:"rgba(6,1,0,0.88)", color:ORANGE, border:`2px solid ${ORANGE}88`, padding:"0.2rem 0.65rem", cursor:"pointer", backdropFilter:"blur(6px)" }}>
+              🕵️ MISSION {hudCollapsed ? "▲" : "▼"}
+            </button>
+          </div>
+          {!hudCollapsed && (
+            <div style={{ background:"rgba(6,1,0,0.91)", border:`2px solid ${ORANGE}66`, backdropFilter:"blur(8px)", padding:"0.85rem 1rem", boxShadow:`0 0 24px ${ORANGE}44, 0 4px 20px rgba(0,0,0,0.7)` }}>
+              <div style={{ fontSize:"0.55rem", letterSpacing:"0.35em", color:`${ORANGE}88`, marginBottom:"0.65rem" }}>YOUR MISSION THIS ROUND</div>
+              {/* Sabotage Style */}
+              <div style={{ marginBottom:"0.6rem", padding:"0.55rem 0.7rem", background:`${ORANGE}14`, border:`1.5px solid ${ORANGE}44` }}>
+                <div style={{ fontSize:"0.5rem", letterSpacing:"0.28em", color:`${ORANGE}77`, marginBottom:3 }}>SABOTAGE STYLE</div>
+                <div style={{ fontSize:"0.95rem", color:ORANGE, letterSpacing:"0.06em", lineHeight:1 }}>{imposterObjectives.styleName}</div>
+                <div style={{ fontFamily:DM, fontSize:"0.7rem", color:"rgba(237,229,204,0.65)", marginTop:4, lineHeight:1.4 }}>{imposterObjectives.style}</div>
+              </div>
+              {/* Hidden Objective */}
+              <div style={{ padding:"0.55rem 0.7rem", background:"rgba(28,58,96,0.35)", border:`1.5px solid rgba(138,184,232,0.3)` }}>
+                <div style={{ fontSize:"0.5rem", letterSpacing:"0.28em", color:"rgba(138,184,232,0.6)", marginBottom:3 }}>HIDDEN OBJECTIVE</div>
+                <div style={{ fontSize:"0.95rem", color:"#8AB8E8", letterSpacing:"0.06em", lineHeight:1 }}>{imposterObjectives.objectiveName}</div>
+                <div style={{ fontFamily:DM, fontSize:"0.7rem", color:"rgba(237,229,204,0.65)", marginTop:4, lineHeight:1.4 }}>{imposterObjectives.objective}</div>
+              </div>
+              <div style={{ marginTop:"0.55rem", fontSize:"0.48rem", letterSpacing:"0.22em", color:"rgba(237,229,204,0.2)", textAlign:"center", animation:"challenge-pulse 2s ease-in-out infinite" }}>ONLY YOU SEE THIS</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── MY CONSTRAINT BOTTOM STRIP (visible only to constrained player) ── */}
+      {myConstraint && CONSTRAINT_LABELS[myConstraint] && (
+        <div style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:800, height:28, background:`${CONSTRAINT_LABELS[myConstraint].color}DD`, display:"flex", alignItems:"center", justifyContent:"center", gap:8, animation:"challenge-pulse 1.4s ease-in-out infinite", boxShadow:`0 -2px 12px ${CONSTRAINT_LABELS[myConstraint].color}88` }}>
+          <span style={{ fontFamily:BEBAS, fontSize:"0.7rem", letterSpacing:"0.22em", color:"#FFFFFF" }}>
+            ⚠ CHALLENGE ACTIVE — {CONSTRAINT_LABELS[myConstraint].short} THIS ROUND
+          </span>
+        </div>
+      )}
 
       {/* ── MAIN ROW ── */}
       <div style={{ display:"flex", flex:1, overflow:"hidden" }}>

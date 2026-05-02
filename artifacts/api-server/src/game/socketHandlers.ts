@@ -60,6 +60,7 @@ function sanitizeRoom(room: Room, forSocketId: string) {
     doneVotes: room.doneVotes,
     challengeMode: room.challengeMode,
     challengeHint: room.challengeMode && !!room.activeConstraint,
+    challengeHintType: room.challengeMode && room.activeConstraint ? room.activeConstraint.type : undefined,
     myConstraint,
     imposterMeta: showReveal ? room.imposterMeta : undefined,
   };
