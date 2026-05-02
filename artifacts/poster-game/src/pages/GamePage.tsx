@@ -103,7 +103,7 @@ const SECTIONS: SectionDef[] = [
     id:"nav", label:"Navigation", color:TEAL, defaultOpen:false,
     chips:[
       { label:"Nav Bar",    type:"navbar",     defaults:{ width:600, height:60, fill:"#ffffff" }, preview:()=><div style={{ width:"100%", height:20, background:"#f0f0f0", borderRadius:3, display:"flex", alignItems:"center", padding:"0 6px", gap:8 }}><div style={{ width:24, height:6, background:"#ccc", borderRadius:2 }} /><div style={{ flex:1 }} />{[0,1,2].map(i=><div key={i} style={{ width:16, height:4, background:"#ddd", borderRadius:2 }} />)}</div> },
-      { label:"Tab Bar",    type:"tabbar",     defaults:{ width:375, height:64, fill:"#ffffff" }, preview:()=><div style={{ width:"100%", height:20, background:"#f5f5f5", borderRadius:3, display:"flex", alignItems:"center", justifyContent:"space-around" }}>{["🏠","🔍","➕","❤️","👤"].map((ic,i)=><span key={i} style={{ fontSize:i===0?11:9, opacity:i===0?1:0.35 }}>{ic}</span>)}</div> },
+      { label:"Tab Bar",    type:"tabbar",     defaults:{ width:375, height:64, fill:"#ffffff", content:JSON.stringify([{icon:"🏠",label:"Home",active:true},{icon:"🔍",label:"Search",active:false},{icon:"➕",label:"",active:false},{icon:"❤️",label:"Saved",active:false},{icon:"👤",label:"Profile",active:false}]) }, preview:()=><div style={{ width:"100%", height:20, background:"#f5f5f5", borderRadius:3, display:"flex", alignItems:"center", justifyContent:"space-around" }}>{["🏠","🔍","➕","❤️","👤"].map((ic,i)=><span key={i} style={{ fontSize:i===0?11:9, opacity:i===0?1:0.35 }}>{ic}</span>)}</div> },
       { label:"Sidebar",    type:"sidebar",    defaults:{ width:200, height:320, fill:"#f7f7f7" }, preview:()=><div style={{ width:"100%", height:32, border:"1.5px solid #e0e0e0", borderRadius:3, overflow:"hidden", display:"flex" }}><div style={{ width:"40%", background:"#f0f0f0", display:"flex", flexDirection:"column", gap:3, padding:3 }}>{[0,1,2].map(i=><div key={i} style={{ height:3, background:"#ddd", borderRadius:2, width:"80%" }} />)}</div><div style={{ flex:1, background:"#fff" }} /></div> },
       { label:"Breadcrumb", type:"breadcrumb", defaults:{ width:260, height:28, content:"Home / Page / Current", fill:"#555" }, preview:()=><div style={{ display:"flex", gap:3, alignItems:"center" }}>{["Home","›","Page","›","Here"].map((t,i)=><span key={i} style={{ fontSize:8, color:i===4?"#333":i%2===0?"#2A8080":"#ccc", fontFamily:DM }}>{t}</span>)}</div> },
     ],
@@ -172,8 +172,11 @@ function renderCanvasContent(el: CanvasElement): React.ReactNode {
       return <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", gap:10 }}><div style={{ width:50, height:28, background:c, borderRadius:100, position:"relative", flexShrink:0 }}><div style={{ position:"absolute", top:4, right:4, width:20, height:20, background:"#fff", borderRadius:"50%", boxShadow:"0 1px 3px rgba(0,0,0,0.2)" }} /></div><span style={{ fontFamily:DM, fontSize:12, color:"#333" }}>{el.content||""}</span></div>;
     case "navbar":
       return <div style={{ width:"100%", height:"100%", background:c, borderBottom:"1px solid #e8e8e8", display:"flex", alignItems:"center", padding:"0 20px", gap:28, boxSizing:"border-box" }}><div style={{ width:80, height:22, background:"#1a1a1a", borderRadius:4, flexShrink:0 }} /><div style={{ flex:1 }} />{["Home","About","Work"].map(t=><span key={t} style={{ fontFamily:DM, fontSize:13, color:"#555", flexShrink:0 }}>{t}</span>)}<div style={{ width:34, height:34, borderRadius:"50%", background:"#ddd", flexShrink:0 }} /></div>;
-    case "tabbar":
-      return <div style={{ width:"100%", height:"100%", background:c, borderTop:"1px solid #e8e8e8", display:"flex", alignItems:"center", justifyContent:"space-around", padding:"0 8px", boxSizing:"border-box" }}>{[["🏠","Home",true],["🔍","Search",false],["➕","",false],["❤️","Saved",false],["👤","Profile",false]].map(([icon,label,active])=><div key={label as string} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:2, opacity:active?1:0.4, flex:1 }}><span style={{ fontSize:label===""?24:18 }}>{icon}</span>{label&&<span style={{ fontFamily:DM, fontSize:10, color:"#333" }}>{label}</span>}</div>)}</div>;
+    case "tabbar": {
+      let tabs: Array<{icon:string;label:string;active?:boolean}> = [{icon:"🏠",label:"Home",active:true},{icon:"🔍",label:"Search"},{icon:"➕",label:""},{icon:"❤️",label:"Saved"},{icon:"👤",label:"Profile"}];
+      if (el.content) { try { const p=JSON.parse(el.content); if(Array.isArray(p)) tabs=p; } catch {} }
+      return <div style={{ width:"100%", height:"100%", background:c, borderTop:"1px solid #e8e8e8", display:"flex", alignItems:"center", justifyContent:"space-around", padding:"0 8px", boxSizing:"border-box" }}>{tabs.map((t,i)=><div key={i} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:2, opacity:t.active?1:0.4, flex:1 }}><span style={{ fontSize:t.label===""?24:18 }}>{t.icon}</span>{t.label&&<span style={{ fontFamily:DM, fontSize:10, color:"#333" }}>{t.label}</span>}</div>)}</div>;
+    }
     case "sidebar":
       return <div style={{ width:"100%", height:"100%", background:c, borderRight:"1px solid #e8e8e8", padding:"16px 0", display:"flex", flexDirection:"column", gap:2, boxSizing:"border-box" }}>{[["🏠","Home",true],["📁","Projects",false],["⭐","Favorites",false],["⚙️","Settings",false],["👤","Profile",false]].map(([icon,label,active])=><div key={label as string} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 16px", background:active?"rgba(0,0,0,0.06)":"transparent", borderRadius:"0 8px 8px 0", marginRight:8 }}><span style={{ fontSize:15 }}>{icon}</span><span style={{ fontFamily:DM, fontSize:13, color:active?"#222":"#888", fontWeight:active?600:400 }}>{label}</span></div>)}</div>;
     case "breadcrumb":
@@ -275,6 +278,9 @@ function PropertiesSidebar({
   const labelStyle: React.CSSProperties = { fontFamily:BEBAS, fontSize:"0.6rem", letterSpacing:"0.18em", color:ORANGE, marginBottom:4, display:"block" };
   const inputStyle: React.CSSProperties = { width:"100%", background:"#FAFAF5", border:`1.5px solid #E8E2D8`, color:"#1A1208", borderRadius:5, padding:"4px 7px", fontFamily:DM, fontSize:"0.78rem", outline:"none", boxSizing:"border-box" };
 
+  const CONTENT_EDITABLE_TYPES = new Set(["text","heading","label","button","badge","tag","alert","toast","input","dropdown","checkbox","radio","listitem","card","breadcrumb","modal","navbar"]);
+  const hasContent = CONTENT_EDITABLE_TYPES.has(el.type);
+
   function alignEl(axis: "lx"|"cx"|"rx"|"ty"|"cy"|"by") {
     let nx=lt.x, ny=lt.y;
     if (axis==="lx") nx=0; if (axis==="cx") nx=Math.round((CANVAS_W-lt.w)/2); if (axis==="rx") nx=CANVAS_W-lt.w;
@@ -300,6 +306,49 @@ function PropertiesSidebar({
       </div>
 
       <div style={{ flex:1, overflowY:"auto", padding:"0.8rem 0.9rem", display:"flex", flexDirection:"column", gap:"1rem" }}>
+
+        {/* ── Content text ── */}
+        {hasContent && (
+          <div>
+            <span style={labelStyle}>CONTENT TEXT</span>
+            <textarea value={el.content ?? ""} onChange={(e)=>onUpdate(el.id,{content:e.target.value})}
+              style={{ ...inputStyle, resize:"vertical", minHeight:50, paddingTop:6, paddingBottom:6, lineHeight:1.4 }}
+              placeholder="Type content…" />
+          </div>
+        )}
+
+        {/* ── Tab Bar editor ── */}
+        {el.type==="tabbar" && (()=>{
+          let tabs: Array<{icon:string;label:string;active?:boolean}> = [{icon:"🏠",label:"Home",active:true},{icon:"🔍",label:"Search"},{icon:"➕",label:""},{icon:"❤️",label:"Saved"},{icon:"👤",label:"Profile"}];
+          try { const p=JSON.parse(el.content??""); if(Array.isArray(p)) tabs=p; } catch {}
+          const updateTabs=(t: typeof tabs)=>onUpdate(el.id,{content:JSON.stringify(t)});
+          return (
+            <div>
+              <span style={labelStyle}>TABS</span>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
+                <span style={{ fontFamily:DM, fontSize:"0.6rem", color:"#C8B888" }}>{tabs.length} tab{tabs.length!==1?"s":""}</span>
+                <div style={{ display:"flex", gap:4 }}>
+                  <button onClick={()=>tabs.length<6&&updateTabs([...tabs,{icon:"⭐",label:"New",active:false}])} disabled={tabs.length>=6}
+                    style={{ height:22, padding:"0 8px", background:tabs.length>=6?"#f0f0f0":"#FFF0E8", border:`1.5px solid ${tabs.length>=6?"#ccc":ORANGE}`, borderRadius:4, cursor:tabs.length>=6?"not-allowed":"pointer", fontFamily:DM, fontSize:11, color:tabs.length>=6?"#aaa":ORANGE }}>+ Add</button>
+                  <button onClick={()=>tabs.length>2&&updateTabs(tabs.slice(0,-1))} disabled={tabs.length<=2}
+                    style={{ height:22, padding:"0 8px", background:tabs.length<=2?"#f0f0f0":"#FFF0E8", border:`1.5px solid ${tabs.length<=2?"#ccc":ORANGE}`, borderRadius:4, cursor:tabs.length<=2?"not-allowed":"pointer", fontFamily:DM, fontSize:11, color:tabs.length<=2?"#aaa":ORANGE }}>− Remove</button>
+                </div>
+              </div>
+              <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
+                {tabs.map((tab,i)=>(
+                  <div key={i} style={{ display:"flex", gap:4, alignItems:"center" }}>
+                    <input value={tab.icon} onChange={e=>{const t=[...tabs];t[i]={...t[i],icon:e.target.value};updateTabs(t);}}
+                      style={{ ...inputStyle, width:38, textAlign:"center", padding:"3px 2px", flexShrink:0 }} placeholder="🏠" />
+                    <input value={tab.label} onChange={e=>{const t=[...tabs];t[i]={...t[i],label:e.target.value};updateTabs(t);}}
+                      style={{ ...inputStyle, flex:1 }} placeholder="Label" />
+                    <button onClick={()=>{const t=[...tabs].map((tb,j)=>j===i?{...tb,active:true}:{...tb,active:false});updateTabs(t);}} title="Set active"
+                      style={{ width:26, height:26, background:tab.active?TEAL:"#FAFAF5", border:`1.5px solid ${tab.active?TEAL:"#E8E2D8"}`, borderRadius:4, cursor:"pointer", fontSize:10, color:tab.active?"#fff":"#aaa", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>✓</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── Fill color ── */}
         <div>
@@ -474,7 +523,8 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
   const [hoveredChip,  setHoveredChip]  = useState<string|null>(null);
   const [dragOver,     setDragOver]     = useState(false);
   const [layerMenu,    setLayerMenu]    = useState<{ elId:string; x:number; y:number }|null>(null);
-  const [activeTool,   setActiveTool]   = useState<"select"|"pencil"|"triangle">("select");
+  const [activeTool,   setActiveTool]   = useState<"select"|"pencil"|"shape">("select");
+  const [shapeType,    setShapeType]    = useState<"rect"|"circle"|"triangle"|"diamond"|"star"|"pill">("rect");
   const [pencilColor,  setPencilColor]  = useState("#1a1a1a");
   const [pencilWidth,  setPencilWidth]  = useState(3);
   const [livePoints,   setLivePoints]   = useState<{ x:number; y:number }[]|null>(null);
@@ -503,7 +553,7 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
         if (e.key==="r"||e.key==="R") { e.preventDefault(); quickAdd("rect",200,120); }
         if (e.key==="t"||e.key==="T") { e.preventDefault(); quickAdd("text",200,48,"Text"); }
         if (e.key==="p"||e.key==="P") { e.preventDefault(); setActiveTool("pencil"); }
-        if (e.key==="g"||e.key==="G") { e.preventDefault(); setActiveTool("triangle"); }
+        if (e.key==="g"||e.key==="G") { e.preventDefault(); setActiveTool("shape"); }
         if (e.key==="v"||e.key==="V") { e.preventDefault(); setActiveTool("select"); }
       }
     };
@@ -658,18 +708,35 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
     onUpdate(el.id,{content:div.innerText??div.textContent??""});
     setEditingId(null);
   }
+  function placeShape(type: typeof shapeType, cx: number, cy: number) {
+    const size = 110;
+    if (type==="rect") { onAdd({type:"rect",x:Math.round(cx-size/2),y:Math.round(cy-size/3),width:size,height:Math.round(size*0.6),fill:ORANGE}); return; }
+    if (type==="circle") { onAdd({type:"circle",x:Math.round(cx-size/2),y:Math.round(cy-size/2),width:size,height:size,fill:ORANGE}); return; }
+    if (type==="pill") { onAdd({type:"rect",x:Math.round(cx-size/2),y:Math.round(cy-size/4),width:size,height:Math.round(size/2),fill:ORANGE,cornerRadius:100}); return; }
+    if (type==="triangle") {
+      const h=size*Math.sqrt(3)/2;
+      const v0={x:Math.round(cx),y:Math.round(cy-h*2/3)},v1={x:Math.round(cx-size/2),y:Math.round(cy+h/3)},v2={x:Math.round(cx+size/2),y:Math.round(cy+h/3)};
+      const minX=Math.min(v0.x,v1.x,v2.x),minY=Math.min(v0.y,v1.y,v2.y),maxX=Math.max(v0.x,v1.x,v2.x),maxY=Math.max(v0.y,v1.y,v2.y);
+      onAdd({type:"triangle",x:Math.max(0,minX),y:Math.max(0,minY),width:maxX-minX,height:maxY-minY,fill:ORANGE,vertices:[v0,v1,v2]}); return;
+    }
+    if (type==="diamond") {
+      const r=size/2;
+      const v0={x:Math.round(cx),y:Math.round(cy-r)},v1={x:Math.round(cx+r),y:Math.round(cy)},v2={x:Math.round(cx),y:Math.round(cy+r)},v3={x:Math.round(cx-r),y:Math.round(cy)};
+      onAdd({type:"triangle",x:Math.max(0,Math.round(cx-r)),y:Math.max(0,Math.round(cy-r)),width:size,height:size,fill:ORANGE,vertices:[v0,v1,v2,v3]}); return;
+    }
+    if (type==="star") {
+      const outerR=size/2, innerR=size/5;
+      const verts=Array.from({length:10},(_,i)=>{ const a=(i*Math.PI*2/10)-Math.PI/2; const r2=i%2===0?outerR:innerR; return {x:Math.round(cx+r2*Math.cos(a)),y:Math.round(cy+r2*Math.sin(a))}; });
+      const minX=Math.min(...verts.map(v=>v.x)),minY=Math.min(...verts.map(v=>v.y)),maxX=Math.max(...verts.map(v=>v.x)),maxY=Math.max(...verts.map(v=>v.y));
+      onAdd({type:"triangle",x:Math.max(0,minX),y:Math.max(0,minY),width:maxX-minX,height:maxY-minY,fill:ORANGE,vertices:verts}); return;
+    }
+  }
+
   function handleCanvasClick(e: React.MouseEvent) {
-    // Triangle placement
-    if(activeTool==="triangle"&&canvasRef.current) {
+    // Shape placement
+    if(activeTool==="shape"&&canvasRef.current) {
       const rect=canvasRef.current.getBoundingClientRect();
-      const cx=e.clientX-rect.left, cy=e.clientY-rect.top;
-      const size=110, h=size*Math.sqrt(3)/2;
-      const v0={x:Math.round(cx),y:Math.round(cy-h*2/3)};
-      const v1={x:Math.round(cx-size/2),y:Math.round(cy+h/3)};
-      const v2={x:Math.round(cx+size/2),y:Math.round(cy+h/3)};
-      const minX=Math.min(v0.x,v1.x,v2.x), minY=Math.min(v0.y,v1.y,v2.y);
-      const maxX=Math.max(v0.x,v1.x,v2.x), maxY=Math.max(v0.y,v1.y,v2.y);
-      onAdd({type:"triangle",x:Math.max(0,minX),y:Math.max(0,minY),width:maxX-minX,height:maxY-minY,fill:ORANGE,vertices:[v0,v1,v2]});
+      placeShape(shapeType, e.clientX-rect.left, e.clientY-rect.top);
       return;
     }
     if(e.target===canvasRef.current||(e.target as HTMLElement).dataset.canvas==="true") {
@@ -740,14 +807,16 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
 
   return (
     <div style={{ height:"100vh", display:"flex", flexDirection:"column", background:"#F5EEE2", overflow:"hidden" }}>
-      {/* Hidden SVG colorblind filter defs */}
-      <svg style={{ position:"absolute", width:0, height:0, pointerEvents:"none" }} aria-hidden="true">
+      {/* Hidden SVG colorblind filter defs — positioned off-screen so filters are accessible */}
+      <svg style={{ position:"fixed", top:"-200vh", left:"-200vw", width:1, height:1, overflow:"hidden" }} aria-hidden="true">
         <defs>
-          <filter id="cb-rg" colorInterpolationFilters="linearRGB">
-            <feColorMatrix type="matrix" values="0.567 0.433 0 0 0  0.558 0.442 0 0 0  0 0.242 0.758 0 0  0 0 0 1 0" />
+          <filter id="cb-rg" colorInterpolationFilters="linearRGB" x="0%" y="0%" width="100%" height="100%">
+            {/* Makes red (1,0,0) and green (0,1,0) output identical dark-yellow — very obvious */}
+            <feColorMatrix type="matrix" values="0.5 0.5 0 0 0  0.5 0.5 0 0 0  0 0 1 0 0  0 0 0 1 0" />
           </filter>
-          <filter id="cb-by" colorInterpolationFilters="linearRGB">
-            <feColorMatrix type="matrix" values="0.95 0.05 0 0 0  0 0.433 0.567 0 0  0 0.475 0.525 0 0  0 0 0 1 0" />
+          <filter id="cb-by" colorInterpolationFilters="linearRGB" x="0%" y="0%" width="100%" height="100%">
+            {/* Makes blue and yellow look similar */}
+            <feColorMatrix type="matrix" values="0.85 0.15 0 0 0  0 0.5 0.5 0 0  0 0.5 0.5 0 0  0 0 0 1 0" />
           </filter>
         </defs>
       </svg>
@@ -815,13 +884,23 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
           <div style={{ padding:"0.45rem 0.5rem 0.35rem", borderBottom:`1.5px solid #F0E8D8`, background:"#FFFFFF", flexShrink:0 }}>
             <div style={{ fontFamily:BEBAS, fontSize:"0.52rem", letterSpacing:"0.18em", color:"#C8B888", marginBottom:4 }}>TOOLS</div>
             <div style={{ display:"flex", gap:4 }}>
-              {([["select","↖","V"],["pencil","✏","P"],["triangle","▲","G"]] as [string,string,string][]).map(([tool,icon,key])=>(
+              {([["select","↖","V"],["pencil","✏","P"],["shape","◆","G"]] as [string,string,string][]).map(([tool,icon,key])=>(
                 <button key={tool} onClick={()=>setActiveTool(tool as typeof activeTool)} title={`${tool.charAt(0).toUpperCase()+tool.slice(1)} (${key})`}
                   style={{ flex:1, height:28, display:"flex", alignItems:"center", justifyContent:"center", gap:3, background:activeTool===tool?NAVY:"#FAFAF5", color:activeTool===tool?"#FFF":"#555", border:`1.5px solid ${activeTool===tool?NAVY:"#E8E2D8"}`, borderRadius:5, fontFamily:DM, fontSize:"0.7rem", fontWeight:600, cursor:"pointer" }}>
                   <span style={{ fontSize:11 }}>{icon}</span>
                 </button>
               ))}
             </div>
+            {activeTool==="shape"&&(
+              <div style={{ marginTop:6, display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:3 }}>
+                {([["rect","■","Rect"],["circle","●","Circle"],["triangle","▲","Triangle"],["diamond","◆","Diamond"],["star","★","Star"],["pill","⬭","Pill"]] as [typeof shapeType,string,string][]).map(([st,icon,label])=>(
+                  <button key={st} onClick={()=>setShapeType(st)} title={label}
+                    style={{ height:24, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:1, background:shapeType===st?ORANGE:"#FAFAF5", color:shapeType===st?"#fff":"#555", border:`1.5px solid ${shapeType===st?ORANGE:"#E8E2D8"}`, borderRadius:4, cursor:"pointer", fontSize:10 }}>
+                    <span>{icon}</span>
+                  </button>
+                ))}
+              </div>
+            )}
             {activeTool==="pencil"&&(
               <div style={{ marginTop:6, display:"flex", alignItems:"center", gap:5 }}>
                 {["#1a1a1a",ORANGE,TEAL,NAVY,"#E87DBB","#1A5A30","#FFFFFF"].map(c=>(
@@ -925,7 +1004,7 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
               ))}
             </div>
             <div style={{ fontFamily:DM, fontSize:"0.55rem", color:"#C8B888", marginTop:"0.45rem", lineHeight:1.55 }}>
-              V=Select · P=Pencil · G=Triangle
+              V=Select · P=Pencil · G=Shapes
             </div>
           </div>
         </div>
@@ -938,7 +1017,7 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
 
             {/* Canvas */}
             <div ref={canvasRef} data-canvas="true"
-              style={{ position:"relative", width:CANVAS_W, height:CANVAS_H, background:canvasMode==="mobile"?"#FFFFFF":canvasMode==="web"?"#FFFFFF":"#F8F4EE", flexShrink:0, zIndex:1, overflow:"hidden", outline:dragOver?`4px dashed ${TEAL}`:"none", borderRadius:canvasMode==="mobile"?24:0, cursor:activeTool==="pencil"?"crosshair":activeTool==="triangle"?"crosshair":"default", filter:canvasFilter }}
+              style={{ position:"relative", width:CANVAS_W, height:CANVAS_H, background:canvasMode==="mobile"?"#FFFFFF":canvasMode==="web"?"#FFFFFF":"#F8F4EE", flexShrink:0, zIndex:1, overflow:"hidden", outline:dragOver?`4px dashed ${TEAL}`:"none", borderRadius:canvasMode==="mobile"?24:0, cursor:activeTool==="pencil"||activeTool==="shape"?"crosshair":"default", filter:canvasFilter }}
               onMouseDown={handleCanvasMouseDown}
               onMouseMove={handleCanvasMouseMove} onMouseUp={handleCanvasMouseUp} onMouseLeave={handleCanvasMouseUp}
               onClick={handleCanvasClick}

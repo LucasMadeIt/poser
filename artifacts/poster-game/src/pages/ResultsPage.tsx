@@ -1,50 +1,233 @@
 import { PosterWallBg, TapeH, TapeCorner } from "../components/PosterWallBg";
 import type { RoomState, CanvasElement } from "../types/game";
 
-function saveDesignAsSvg(elements: CanvasElement[], prompt: string) {
+// ── Canvas-based PNG export — renders all element types faithfully ─────────────
+function rrect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  r = Math.min(Math.abs(r), w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxW: number): string[] {
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let cur = "";
+  for (const w of words) {
+    const test = cur ? `${cur} ${w}` : w;
+    if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = w; }
+    else cur = test;
+  }
+  if (cur) lines.push(cur);
+  return lines.length ? lines : [""];
+}
+
+async function downloadDesignAsPng(elements: CanvasElement[], prompt: string) {
   const W = 900, H = 560;
+  const cvs = document.createElement("canvas");
+  cvs.width = W; cvs.height = H;
+  const ctx = cvs.getContext("2d")!;
+
+  // Load images first
+  const imgCache = new Map<string, HTMLImageElement>();
+  await Promise.all(
+    elements.filter(e => e.type === "image" && e.imageUrl).map(e => new Promise<void>(res => {
+      const img = new Image(); img.crossOrigin = "anonymous";
+      img.onload = () => { imgCache.set(e.imageUrl!, img); res(); };
+      img.onerror = () => res();
+      img.src = e.imageUrl!;
+    }))
+  );
+
+  // Background
+  ctx.fillStyle = "#F5EEE2";
+  ctx.fillRect(0, 0, W, H);
+
   const sorted = [...elements].sort((a, b) => a.zIndex - b.zIndex);
 
-  const esc = (s: string) =>
-    (s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  for (const el of sorted) {
+    ctx.save();
+    ctx.globalAlpha = el.opacity ?? 1;
+    const x = el.x, y = el.y, w = el.width, h = el.height;
+    const r = el.cornerRadius ?? 0;
+    const fill = el.fill || "#cccccc";
 
-  const shapes = sorted.map((el) => {
-    const op  = el.opacity ?? 1;
-    const sk  = el.stroke ? `stroke="${el.stroke}" stroke-width="2"` : 'stroke="none"';
-    const r   = el.cornerRadius ?? 0;
-
-    if (el.type === "circle") {
-      const cx = el.x + el.width / 2, cy = el.y + el.height / 2;
-      return `<ellipse cx="${cx}" cy="${cy}" rx="${el.width/2}" ry="${el.height/2}" fill="${el.fill}" ${sk} opacity="${op}"/>`;
+    switch (el.type) {
+      case "rect":
+      case "label":
+      case "input":
+      case "searchbar":
+      case "dropdown":
+      case "checkbox":
+      case "toggle":
+      case "progress":
+      case "alert":
+      case "toast":
+      case "modal":
+      case "fab":
+      case "card":
+      case "listitem":
+      case "badge":
+      case "tag":
+      case "navbar":
+      case "tabbar":
+      case "sidebar":
+      case "breadcrumb": {
+        rrect(ctx, x, y, w, h, r);
+        ctx.fillStyle = fill === "transparent" ? "rgba(0,0,0,0)" : fill;
+        ctx.fill();
+        if (el.stroke) { ctx.strokeStyle = el.stroke; ctx.lineWidth = 2; ctx.stroke(); }
+        // Render text content for text-bearing components
+        if (el.content && !["tabbar","sidebar","navbar","breadcrumb"].includes(el.type)) {
+          const fs = el.fontSize ?? 13;
+          const fw = el.fontWeight ?? 600;
+          ctx.font = `${fw} ${fs}px "DM Sans", sans-serif`;
+          const isDark = fill === "transparent" || fill === "#ffffff" || fill === "#f5f5f5" || fill.startsWith("#f") || fill.startsWith("#e");
+          ctx.fillStyle = isDark ? "#222222" : "#ffffff";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(el.content, x + w / 2, y + h / 2);
+        }
+        // Tabbar icon row
+        if (el.type === "tabbar") {
+          let tabs: Array<{icon:string;label:string;active?:boolean}> = [{icon:"🏠",label:"Home",active:true},{icon:"🔍",label:"Search"},{icon:"➕",label:""},{icon:"❤️",label:"Saved"},{icon:"👤",label:"Profile"}];
+          try { const p=JSON.parse(el.content??""); if(Array.isArray(p)) tabs=p; } catch {}
+          const tw = w / tabs.length;
+          ctx.textBaseline = "middle";
+          tabs.forEach((t, i) => {
+            ctx.globalAlpha = (el.opacity ?? 1) * (t.active ? 1 : 0.4);
+            const cx = x + tw * i + tw / 2;
+            ctx.font = `18px sans-serif`;
+            ctx.textAlign = "center";
+            ctx.fillStyle = "#333";
+            ctx.fillText(t.icon, cx, y + h / 2 - (t.label ? 8 : 0));
+            if (t.label) {
+              ctx.font = `400 10px "DM Sans", sans-serif`;
+              ctx.fillStyle = "#333";
+              ctx.fillText(t.label, cx, y + h / 2 + 10);
+            }
+          });
+        }
+        break;
+      }
+      case "circle": {
+        ctx.beginPath();
+        ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+        ctx.fillStyle = fill;
+        ctx.fill();
+        if (el.stroke) { ctx.strokeStyle = el.stroke; ctx.lineWidth = 2; ctx.stroke(); }
+        break;
+      }
+      case "divider": {
+        ctx.fillStyle = fill;
+        ctx.fillRect(x, y, w, Math.max(h, 2));
+        break;
+      }
+      case "button": {
+        rrect(ctx, x, y, w, h, r);
+        ctx.fillStyle = fill === "transparent" ? "rgba(0,0,0,0)" : fill;
+        ctx.fill();
+        if (el.stroke) { ctx.strokeStyle = el.stroke; ctx.lineWidth = 2; ctx.stroke(); }
+        const fs = el.fontSize ?? 14, fw = el.fontWeight ?? 600;
+        ctx.font = `${fw} ${fs}px "DM Sans", sans-serif`;
+        ctx.fillStyle = fill === "transparent" ? (el.stroke ?? "#222") : "#ffffff";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(el.content ?? "Button", x + w / 2, y + h / 2);
+        break;
+      }
+      case "text":
+      case "heading": {
+        const fs = el.fontSize ?? (el.type === "heading" ? 36 : 14);
+        const fw = el.fontWeight ?? (el.type === "heading" ? 800 : 400);
+        ctx.font = `${fw} ${fs}px "DM Sans", sans-serif`;
+        ctx.fillStyle = fill;
+        ctx.textAlign = (el.textAlign as CanvasTextAlign) ?? "left";
+        ctx.textBaseline = "top";
+        const lines = wrapLines(ctx, el.content ?? "", w - 8);
+        let lx = el.textAlign === "center" ? x + w / 2 : el.textAlign === "right" ? x + w - 4 : x + 4;
+        let ly = y + 4;
+        for (const line of lines) {
+          ctx.fillText(line, lx, ly);
+          ly += fs * 1.45;
+          if (ly > y + h) break;
+        }
+        break;
+      }
+      case "image": {
+        const img = el.imageUrl ? imgCache.get(el.imageUrl) : undefined;
+        ctx.save();
+        rrect(ctx, x, y, w, h, r);
+        ctx.clip();
+        if (img) {
+          // Contain fit
+          const scale = Math.min(w / img.naturalWidth, h / img.naturalHeight);
+          const dw = img.naturalWidth * scale, dh = img.naturalHeight * scale;
+          ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+        } else {
+          ctx.fillStyle = fill || "#f0e8d8";
+          ctx.fill();
+          ctx.font = "32px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+          ctx.fillText("🖼️", x + w / 2, y + h / 2);
+        }
+        ctx.restore();
+        break;
+      }
+      case "freedraw": {
+        const pts = el.points ?? [];
+        if (pts.length >= 2) {
+          ctx.beginPath();
+          ctx.moveTo(pts[0].x, pts[0].y);
+          for (let i = 1; i < pts.length - 1; i++) {
+            const mx = (pts[i].x + pts[i + 1].x) / 2;
+            const my = (pts[i].y + pts[i + 1].y) / 2;
+            ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
+          }
+          ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+          ctx.strokeStyle = fill;
+          ctx.lineWidth = el.strokeWidth ?? 3;
+          ctx.lineCap = "round"; ctx.lineJoin = "round";
+          ctx.stroke();
+        }
+        break;
+      }
+      case "triangle": {
+        const verts = el.vertices ?? [];
+        if (verts.length >= 3) {
+          ctx.beginPath();
+          ctx.moveTo(verts[0].x, verts[0].y);
+          for (let i = 1; i < verts.length; i++) ctx.lineTo(verts[i].x, verts[i].y);
+          ctx.closePath();
+          ctx.fillStyle = fill;
+          ctx.fill();
+          if (el.stroke) { ctx.strokeStyle = el.stroke; ctx.lineWidth = 2; ctx.stroke(); }
+        }
+        break;
+      }
+      default:
+        break;
     }
-    if (el.type === "divider") {
-      return `<line x1="${el.x}" y1="${el.y+el.height/2}" x2="${el.x+el.width}" y2="${el.y+el.height/2}" stroke="${el.fill}" stroke-width="${Math.max(el.height,2)}" opacity="${op}"/>`;
-    }
-    const isTextEl = ["text","heading","label","button","badge","tag"].includes(el.type);
-    if (isTextEl) {
-      const fs  = el.fontSize ?? (el.type === "heading" ? 28 : 14);
-      const fw  = el.fontWeight ?? (el.type === "heading" ? 700 : 400);
-      const hasBg = ["button","label","badge","tag"].includes(el.type);
-      const bg  = hasBg ? `<rect x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}" fill="${el.fill}" rx="${r}" opacity="${op}" ${sk}/>` : "";
-      const tc  = hasBg ? "#ffffff" : el.fill;
-      return `${bg}<text x="${el.x+el.width/2}" y="${el.y+el.height/2+fs*0.36}" text-anchor="middle" font-size="${fs}" font-weight="${fw}" fill="${tc}" opacity="${op}" font-family="DM Sans,sans-serif">${esc(el.content ?? "")}</text>`;
-    }
-    return `<rect x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}" fill="${el.fill}" rx="${r}" ${sk} opacity="${op}"/>`;
-  }).join("\n  ");
+    ctx.restore();
+  }
 
-  const svg = [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`,
-    `  <rect width="${W}" height="${H}" fill="#F5EEE2"/>`,
-    `  ${shapes}`,
-    `  <text x="10" y="${H-8}" font-family="sans-serif" font-size="11" fill="#8A7868" opacity="0.7">${esc(prompt)} — made with POSTER</text>`,
-    `</svg>`,
-  ].join("\n");
+  // Watermark
+  ctx.save();
+  ctx.font = `400 11px sans-serif`;
+  ctx.fillStyle = "rgba(138,120,104,0.6)";
+  ctx.textAlign = "left"; ctx.textBaseline = "bottom";
+  ctx.fillText(`${prompt} — made with POSTER`, 10, H - 6);
+  ctx.restore();
 
-  const blob = new Blob([svg], { type: "image/svg+xml" });
-  const url  = URL.createObjectURL(blob);
-  const a    = Object.assign(document.createElement("a"), { href: url, download: "poster-design.svg" });
-  a.click();
-  URL.revokeObjectURL(url);
+  cvs.toBlob(blob => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = Object.assign(document.createElement("a"), { href: url, download: "poster-design.png" });
+    a.click();
+    URL.revokeObjectURL(url);
+  }, "image/png");
 }
 
 const BEBAS   = "'Bebas Neue', sans-serif";
@@ -236,11 +419,11 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
                 <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:"0.9rem" }}>
                   {room.canvas.length > 0 && (
                     <button
-                      onClick={() => saveDesignAsSvg(room.canvas, room.prompt)}
+                      onClick={() => downloadDesignAsPng(room.canvas, room.prompt)}
                       style={{ fontFamily:BEBAS, letterSpacing:"0.12em", fontSize:"1.3rem", color:NAVY, background:"#FFFFFF", border:`3px solid ${NAVY}`, boxShadow:`4px 4px 0 ${TEAL}`, padding:"0.45rem 2.2rem", cursor:"pointer", transition:"transform 0.1s, box-shadow 0.1s" }}
                       onMouseEnter={(e)=>{e.currentTarget.style.transform="translate(-2px,-2px)";e.currentTarget.style.boxShadow=`6px 6px 0 ${TEAL}`;}}
                       onMouseLeave={(e)=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow=`4px 4px 0 ${TEAL}`;}}>
-                      ↓ SAVE DESIGN
+                      ↓ SAVE DESIGN (PNG)
                     </button>
                   )}
                   {amIHost ? (
