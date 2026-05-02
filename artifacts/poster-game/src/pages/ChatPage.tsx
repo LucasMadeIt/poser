@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import type { Socket } from "socket.io-client";
-import type { RoomState, CanvasElement } from "../types/game";
+import type { RoomState } from "../types/game";
 import type { VoteResult } from "../hooks/useGame";
 import { Timer } from "../components/Timer";
 import { PlayerAvatar } from "../components/PlayerAvatar";
 import { PosterWallBg, TapeCorner } from "../components/PosterWallBg";
 import { useVoiceChat } from "../hooks/useVoiceChat";
+import { CanvasPreview } from "../components/CanvasPreview";
 
 const BEBAS   = "'Bebas Neue', sans-serif";
 const DM      = "'DM Sans', sans-serif";
@@ -14,9 +15,7 @@ const NAVY    = "#1C3A60";
 const TEAL    = "#2A8080";
 const MUSTARD = "#C8A028";
 
-const MINI_W = 700;
-const MINI_SCALE = MINI_W / 900;
-const MINI_H = Math.round(560 * MINI_SCALE);
+const PREVIEW_W = 700;
 
 type Props = {
   room: RoomState;
@@ -33,21 +32,13 @@ type Props = {
   roomId: string;
 };
 
-function renderMiniElement(el: CanvasElement) {
-  const base: React.CSSProperties = {
-    position:"absolute", left:el.x*MINI_SCALE, top:el.y*MINI_SCALE,
-    width:el.width*MINI_SCALE, height:el.height*MINI_SCALE,
-    zIndex:el.zIndex, boxSizing:"border-box", pointerEvents:"none",
-    opacity:el.opacity??1, borderRadius:(el.cornerRadius??0)*MINI_SCALE,
-  };
-  if (el.type==="rect")    return <div key={el.id} style={{ ...base, background:el.fill, border:el.stroke?`1px solid ${el.stroke}`:"none" }} />;
-  if (el.type==="circle")  return <div key={el.id} style={{ ...base, background:el.fill, borderRadius:"50%" }} />;
-  if (el.type==="divider") return <div key={el.id} style={{ ...base, height:Math.max(1,el.height*MINI_SCALE), background:el.fill }} />;
-  if (el.type==="heading") return <div key={el.id} style={{ ...base, fontFamily:DM, fontSize:Math.max(8,(el.fontSize??36)*MINI_SCALE), color:el.fill, overflow:"hidden", userSelect:"none", display:"flex", alignItems:"center" }}>{el.content}</div>;
-  if (el.type==="text")    return <div key={el.id} style={{ ...base, fontFamily:DM, fontSize:Math.max(6,(el.fontSize??14)*MINI_SCALE), color:el.fill, overflow:"hidden", userSelect:"none" }}>{el.content}</div>;
-  if (el.type==="button")  return <div key={el.id} style={{ ...base, fontFamily:DM, fontSize:Math.max(6,(el.fontSize??14)*MINI_SCALE), color:"#fff", background:el.fill, display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", userSelect:"none" }}>{el.content}</div>;
-  if (el.type==="image" && el.imageUrl) return <img key={el.id} src={el.imageUrl} alt="" style={{ ...base, objectFit:"contain" }} />;
-  return <div key={el.id} style={{ ...base, background:el.fill }} />;
+function detectCanvasMode(prompt: string): "mobile" | "web" | "default" {
+  const p = prompt.toLowerCase();
+  const mobileHits = ["mobile","phone","ios","android","iphone","onboarding","splash","smartphone","app screen","instagram","story","twitter","snap"].filter(k=>p.includes(k)).length;
+  const webHits    = ["website","landing page","dashboard","desktop","saas","homepage","blog","checkout","portfolio","newsletter","hero section","pitch deck","banner","404","profile page","web page","web app","e-commerce"].filter(k=>p.includes(k)).length;
+  if (mobileHits > webHits) return "mobile";
+  if (webHits > mobileHits) return "web";
+  return "default";
 }
 
 function formatTime(secs: number): string {
@@ -286,13 +277,12 @@ export function ChatPage({ room, myPlayerId, amIHost, onSend, onSkip, voteTally,
               <TapeCorner color={NAVY}   corner="tr" style={{ background:`repeating-linear-gradient(90deg,#1A5070CC,#206090FF 10px,#1A5070CC 14px)` }} />
               <TapeCorner color={NAVY}   corner="bl" style={{ background:`repeating-linear-gradient(90deg,#1A5070CC,#206090FF 10px,#1A5070CC 14px)` }} />
               <TapeCorner color={ORANGE} corner="br" />
-              <div style={{ width:MINI_W, height:MINI_H, background:"#F8F4EE", border:`4px solid ${NAVY}`, overflow:"hidden", position:"relative", boxShadow:`6px 8px 0 ${ORANGE}` }}>
-                {room.canvas.map((el)=>renderMiniElement(el))}
-                {room.canvas.length===0 && (
-                  <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    <span style={{ fontFamily:DM, fontSize:"0.8rem", color:"rgba(44,44,44,0.22)" }}>Canvas was left empty</span>
-                  </div>
-                )}
+              <div style={{ border:`4px solid ${NAVY}`, overflow:"hidden", position:"relative", boxShadow:`6px 8px 0 ${ORANGE}`, display:"inline-block", lineHeight:0 }}>
+                <CanvasPreview
+                  elements={room.canvas}
+                  displayWidth={PREVIEW_W}
+                  canvasMode={detectCanvasMode(room.prompt)}
+                />
               </div>
             </div>
           </div>
