@@ -54,6 +54,20 @@ const NAVY    = "#1C3A60";
 const TEAL    = "#2A8080";
 const MUSTARD = "#C8A028";
 
+const STYLE_COLORS: Record<string, string> = {
+  "Subtle Saboteur": ORANGE,
+  "Chaos Agent":     "#C03020",
+  "The Minimalist":  TEAL,
+  "Over-Designer":   "#9B59B6",
+};
+
+const OBJECTIVE_COLORS: Record<string, string> = {
+  "Break Alignment":     ORANGE,
+  "Reduce Hierarchy":    NAVY,
+  "Inconsistent Sizing": MUSTARD,
+  "Reduce Clarity":      "#C03020",
+};
+
 type Props = {
   room: RoomState;
   myPlayerId: string;
@@ -98,7 +112,7 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
                     </div>
                     <div style={{
                       fontFamily:BEBAS, fontSize:"2rem", lineHeight:1, letterSpacing:"0.04em",
-                      color:latestResult.caught?"#FFFFFF":"#FFFFFF",
+                      color:"#FFFFFF",
                       background:latestResult.caught?ORANGE:TEAL,
                       border:`3px solid ${latestResult.caught?"#8A3008":"#1A5858"}`,
                       boxShadow:`4px 4px 0 ${NAVY}`,
@@ -119,6 +133,38 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
               <svg viewBox="0 0 620 18" style={{ display:"block", width:"100%", marginTop:-2 }} preserveAspectRatio="none">
                 <path d="M0 0 L0 7 Q30 16 60 7 Q90 0 120 13 Q150 18 180 7 Q210 0 240 14 Q270 18 300 7 Q330 0 360 13 Q390 18 420 7 Q450 0 480 13 Q510 18 540 7 Q570 0 600 13 Q615 16 620 9 L620 0 Z" fill="#FFFFFF"/>
               </svg>
+            </div>
+          )}
+
+          {/* ── IMPOSTER OBJECTIVES REVEAL ── */}
+          {room.imposterMeta && (
+            <div style={{ position:"relative" }}>
+              <div style={{ background:"rgba(8,2,0,0.92)", border:`3px solid ${ORANGE}44`, padding:"1.4rem 1.6rem", transform:"rotate(0.4deg)", position:"relative" }}>
+                <div style={{ position:"absolute", top:-10, left:20, width:100, height:20, background:`repeating-linear-gradient(90deg,${ORANGE}CC,${ORANGE}FF 10px,${ORANGE}CC 14px)`, transform:"rotate(-3deg)", zIndex:2 }} />
+                <div style={{ fontFamily:BEBAS, fontSize:"0.65rem", letterSpacing:"0.28em", color:`${ORANGE}88`, marginBottom:"0.7rem", marginTop:"0.2rem" }}>
+                  🕵️ IMPOSTER OBJECTIVES — REVEALED
+                </div>
+                <div style={{ display:"flex", gap:"0.85rem" }}>
+                  <div style={{ flex:1, background:`${ORANGE}12`, border:`1.5px solid ${ORANGE}44`, padding:"0.75rem 0.9rem" }}>
+                    <div style={{ fontFamily:BEBAS, fontSize:"0.55rem", letterSpacing:"0.25em", color:`${ORANGE}77`, marginBottom:4 }}>SABOTAGE STYLE</div>
+                    <div style={{ fontFamily:BEBAS, fontSize:"1rem", letterSpacing:"0.06em", color:STYLE_COLORS[room.imposterMeta.styleName] ?? ORANGE, marginBottom:4 }}>
+                      {room.imposterMeta.styleName}
+                    </div>
+                    <div style={{ fontFamily:DM, fontSize:"0.75rem", color:"rgba(237,229,204,0.65)", lineHeight:1.5 }}>
+                      {room.imposterMeta.style}
+                    </div>
+                  </div>
+                  <div style={{ flex:1, background:"rgba(28,58,96,0.25)", border:`1.5px solid ${NAVY}66`, padding:"0.75rem 0.9rem" }}>
+                    <div style={{ fontFamily:BEBAS, fontSize:"0.55rem", letterSpacing:"0.25em", color:"rgba(180,200,230,0.55)", marginBottom:4 }}>HIDDEN OBJECTIVE</div>
+                    <div style={{ fontFamily:BEBAS, fontSize:"1rem", letterSpacing:"0.06em", color:OBJECTIVE_COLORS[room.imposterMeta.objectiveName] ?? "#8AB8E8", marginBottom:4 }}>
+                      {room.imposterMeta.objectiveName}
+                    </div>
+                    <div style={{ fontFamily:DM, fontSize:"0.75rem", color:"rgba(237,229,204,0.65)", lineHeight:1.5 }}>
+                      {room.imposterMeta.objective}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 

@@ -65,6 +65,13 @@ export type RoundResult = {
   caught: boolean;
 };
 
+export type ImposterObjective = {
+  styleName: string;
+  style: string;
+  objectiveName: string;
+  objective: string;
+};
+
 export type RoomState = {
   id: string;
   phase: GamePhase;
@@ -81,4 +88,12 @@ export type RoomState = {
   votes?: Record<string, string>;
   voteTally?: Record<string, number>;
   doneVotes?: string[];
+  /** Challenge mode: true if host enabled it */
+  challengeMode?: boolean;
+  /** True if someone has a constraint this round (visible to all) */
+  challengeHint?: boolean;
+  /** Constraint type — only populated for the affected player */
+  myConstraint?: string;
+  /** Imposter objectives — only included in results/ended phase */
+  imposterMeta?: ImposterObjective;
 };

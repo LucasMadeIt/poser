@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { io, Socket } from "socket.io-client";
-import type { RoomState, CanvasElement } from "../types/game";
+import type { RoomState, CanvasElement, ImposterObjective } from "../types/game";
 
 export type RemoteCursor = {
   playerId: string;
@@ -34,6 +34,8 @@ export function useGame() {
   const [remoteCursors, setRemoteCursors] = useState<Record<string, RemoteCursor>>({});
   const [voteResult, setVoteResult] = useState<VoteResult | null>(null);
   const [typingPlayers, setTypingPlayers] = useState<Record<string, number>>({});
+  const [imposterObjectives, setImposterObjectives] = useState<ImposterObjective | null>(null);
+  const [pendingConstraint, setPendingConstraint] = useState<string | null>(null);
   const socketRef = useRef<Socket>(getSocket());
 
   useEffect(() => {
@@ -42,8 +44,9 @@ export function useGame() {
     socket.on("room:state", (state: RoomState) => {
       setRoom(state);
       if (state.voteTally) setVoteTally(state.voteTally);
-      // Clear voteResult when phase changes away from vote
       if (state.phase !== "vote") setVoteResult(null);
+      // Clear pending constraint when leaving design phase
+      if (state.phase !== "design") setPendingConstraint(null);
     });
 
     socket.on("room:joined", ({ roomId: rid, playerId }: { roomId: string; playerId: string }) => {
@@ -96,12 +99,21 @@ export function useGame() {
       setTypingPlayers((prev) => ({ ...prev, [playerId]: Date.now() }));
     });
 
-    // Remote player cursors
     socket.on("cursor:update", ({ playerId, x, y }: { playerId: string; x: number; y: number }) => {
       setRemoteCursors((prev) => ({
         ...prev,
         [playerId]: { playerId, x, y, lastSeen: Date.now() },
       }));
+    });
+
+    // Imposter objectives — private, only for imposter
+    socket.on("imposter:objectives", (data: ImposterObjective) => {
+      setImposterObjectives(data);
+    });
+
+    // Challenge constraint — private, only for constrained player
+    socket.on("constraint:assigned", ({ type }: { type: string }) => {
+      setPendingConstraint(type);
     });
 
     socket.on("connect", () => {
@@ -122,6 +134,8 @@ export function useGame() {
       socket.off("vote:result");
       socket.off("cursor:update");
       socket.off("chat:typing");
+      socket.off("imposter:objectives");
+      socket.off("constraint:assigned");
       socket.off("connect");
     };
   }, [roomId]);
@@ -136,6 +150,10 @@ export function useGame() {
 
   const startGame = useCallback(() => {
     socketRef.current.emit("game:start");
+  }, []);
+
+  const toggleChallengeMode = useCallback((enabled: boolean) => {
+    socketRef.current.emit("challenge:toggle", { enabled });
   }, []);
 
   const addElement = useCallback((element: Omit<CanvasElement, "id" | "zIndex" | "ownerId">) => {
@@ -193,9 +211,12 @@ export function useGame() {
     myPlayer,
     amIHost,
     socket: socketRef.current,
+    imposterObjectives,
+    pendingConstraint,
     createRoom,
     joinRoom,
     startGame,
+    toggleChallengeMode,
     addElement,
     updateElement,
     deleteElement,

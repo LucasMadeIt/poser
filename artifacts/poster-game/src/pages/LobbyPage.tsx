@@ -14,9 +14,12 @@ type Props = {
   myPlayerId: string;
   amIHost: boolean;
   onStart: () => void;
+  onToggleChallenge: (enabled: boolean) => void;
 };
 
-export function LobbyPage({ room, myPlayerId, amIHost, onStart }: Props) {
+export function LobbyPage({ room, myPlayerId, amIHost, onStart, onToggleChallenge }: Props) {
+  const challengeOn = !!room.challengeMode;
+
   return (
     <div style={{ position:"relative", minHeight:"100vh", overflow:"hidden", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"2rem 1rem" }}>
       <PosterWallBg />
@@ -82,8 +85,46 @@ export function LobbyPage({ room, myPlayerId, amIHost, onStart }: Props) {
               ))}
             </div>
 
+            {/* ── CHALLENGE MODE TOGGLE (host only) ── */}
+            {amIHost && (
+              <div style={{ marginBottom:"1rem", padding:"0.75rem 0.9rem", background:challengeOn?`${ORANGE}10`:"#FAFAF5", border:`2px solid ${challengeOn?ORANGE:"#E8E2D8"}`, display:"flex", alignItems:"center", justifyContent:"space-between", gap:"0.75rem" }}>
+                <div>
+                  <div style={{ fontFamily:BEBAS, fontSize:"0.75rem", letterSpacing:"0.14em", color:challengeOn?ORANGE:NAVY }}>
+                    ⚡ Challenge Mode
+                  </div>
+                  <div style={{ fontFamily:DM, fontSize:"0.7rem", color:"#8A7868", marginTop:1 }}>
+                    {challengeOn ? "Random player gets a constraint each round" : "Enable for extra chaos each round"}
+                  </div>
+                </div>
+                <button
+                  onClick={() => onToggleChallenge(!challengeOn)}
+                  style={{
+                    width: 46, height: 26, borderRadius: 13, border: "none", cursor: "pointer",
+                    background: challengeOn ? ORANGE : "#E8E2D8",
+                    position: "relative", flexShrink: 0, transition: "background 0.2s",
+                    boxShadow: challengeOn ? `inset 0 1px 4px rgba(0,0,0,0.2)` : "inset 0 1px 3px rgba(0,0,0,0.15)",
+                  }}>
+                  <div style={{
+                    position:"absolute", top: 3, left: challengeOn ? 23 : 3,
+                    width: 20, height: 20, borderRadius: "50%",
+                    background: "#FFFFFF", boxShadow:"0 1px 4px rgba(0,0,0,0.25)",
+                    transition: "left 0.2s",
+                  }} />
+                </button>
+              </div>
+            )}
+
+            {/* Challenge mode visible to non-hosts */}
+            {!amIHost && challengeOn && (
+              <div style={{ marginBottom:"1rem", padding:"0.6rem 0.9rem", background:`${ORANGE}10`, border:`2px solid ${ORANGE}44`, display:"flex", alignItems:"center", gap:"0.6rem" }}>
+                <span style={{ fontSize:16 }}>⚡</span>
+                <div style={{ fontFamily:BEBAS, fontSize:"0.72rem", letterSpacing:"0.1em", color:ORANGE }}>CHALLENGE MODE ON</div>
+                <div style={{ fontFamily:DM, fontSize:"0.68rem", color:"#8A7868", flex:1 }}>Random player constraint each round</div>
+              </div>
+            )}
+
             {amIHost ? (
-              room.players.length >= 2 ? (
+              room.players.length >= 3 ? (
                 <button onClick={onStart}
                   style={{ width:"100%", fontFamily:BEBAS, fontSize:"1.6rem", letterSpacing:"0.14em", color:"#FFFFFF", background:ORANGE, border:`3px solid #8A3008`, boxShadow:`5px 5px 0 ${NAVY}`, padding:"0.55rem", cursor:"pointer", transition:"transform 0.1s, box-shadow 0.1s" }}
                   onMouseEnter={(e)=>{e.currentTarget.style.transform="translate(-2px,-2px)";e.currentTarget.style.boxShadow=`7px 7px 0 ${NAVY}`;}}

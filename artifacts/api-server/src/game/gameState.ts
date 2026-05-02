@@ -66,6 +66,20 @@ export type RoundResult = {
   caught: boolean;
 };
 
+export type ImposterObjective = {
+  styleName: string;
+  style: string;
+  objectiveName: string;
+  objective: string;
+};
+
+export type ConstraintType = "colorblind-rg" | "colorblind-by" | "no-undo" | "one-font";
+
+export type ActiveConstraint = {
+  playerId: string;
+  type: ConstraintType;
+};
+
 export type Room = {
   id: string;
   players: Player[];
@@ -81,7 +95,26 @@ export type Room = {
   phaseEndTime: number;
   imposterId: string;
   phaseTimer?: ReturnType<typeof setTimeout>;
+  imposterMeta?: ImposterObjective;
+  challengeMode: boolean;
+  activeConstraint?: ActiveConstraint;
 };
+
+const IMPOSTER_STYLES: { name: string; desc: string }[] = [
+  { name: "Subtle Saboteur",  desc: "Make small, hard-to-notice mistakes" },
+  { name: "Chaos Agent",      desc: "Introduce disorder and randomness" },
+  { name: "The Minimalist",   desc: "Remove or under-design key elements" },
+  { name: "Over-Designer",    desc: "Add unnecessary clutter and noise" },
+];
+
+const IMPOSTER_OBJECTIVES: { name: string; desc: string }[] = [
+  { name: "Break Alignment",     desc: "Misalign elements in subtle, hard-to-spot ways" },
+  { name: "Reduce Hierarchy",    desc: "Make important elements less visually dominant" },
+  { name: "Inconsistent Sizing", desc: "Introduce random spacing or size discrepancies" },
+  { name: "Reduce Clarity",      desc: "Make the overall UI harder to understand" },
+];
+
+const CONSTRAINT_TYPES: ConstraintType[] = ["colorblind-rg", "colorblind-by", "no-undo", "one-font"];
 
 const rooms = new Map<string, Room>();
 
@@ -111,6 +144,7 @@ export function createRoom(hostSocketId: string, hostName: string): Room {
     results: [],
     phaseEndTime: 0,
     imposterId: "",
+    challengeMode: false,
   };
   rooms.set(id, room);
   return room;
@@ -179,11 +213,33 @@ export function assignImposter(room: Room): void {
   });
 }
 
+export function assignImposterObjectives(room: Room): void {
+  const s = IMPOSTER_STYLES[Math.floor(Math.random() * IMPOSTER_STYLES.length)];
+  const o = IMPOSTER_OBJECTIVES[Math.floor(Math.random() * IMPOSTER_OBJECTIVES.length)];
+  room.imposterMeta = {
+    styleName: s.name,
+    style: s.desc,
+    objectiveName: o.name,
+    objective: o.desc,
+  };
+}
+
+export function assignConstraint(room: Room): void {
+  room.activeConstraint = undefined;
+  if (!room.challengeMode) return;
+  const eligible = room.players.filter((p) => !p.isImposter && !p.eliminated);
+  if (eligible.length === 0) return;
+  const target = eligible[Math.floor(Math.random() * eligible.length)];
+  const type = CONSTRAINT_TYPES[Math.floor(Math.random() * CONSTRAINT_TYPES.length)];
+  room.activeConstraint = { playerId: target.id, type };
+}
+
 export function resetRound(room: Room): void {
   room.canvas = [];
   room.messages = [];
   room.votes = {};
   room.doneVotes = [];
+  room.activeConstraint = undefined;
 }
 
 /** Like resetRound but keeps the canvas — used when the imposter escaped */
@@ -191,6 +247,7 @@ export function resetRoundKeepCanvas(room: Room): void {
   room.messages = [];
   room.votes = {};
   room.doneVotes = [];
+  room.activeConstraint = undefined;
 }
 
 export function addCanvasElement(room: Room, element: Omit<CanvasElement, "id" | "zIndex">): CanvasElement {

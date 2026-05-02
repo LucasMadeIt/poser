@@ -19,6 +19,7 @@ type Props = {
   emitCursorMove: (x: number, y: number) => void;
   socket: Socket;
   roomId: string;
+  myConstraint?: string;
 };
 
 const CANVAS_W = 900;
@@ -437,15 +438,20 @@ function MicButton({ isRecording, permissionDenied, speakingCount, onStart, onSt
       )}
       <style>{`
         @keyframes pulse-speaking { 0%,100%{opacity:1} 50%{opacity:0.55} }
+        @keyframes challenge-pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
       `}</style>
     </div>
   );
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete, onDone, doneVotes, remoteCursors, emitCursorMove, socket, roomId }: Props) {
+export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete, onDone, doneVotes, remoteCursors, emitCursorMove, socket, roomId, myConstraint }: Props) {
   const myPlayer   = room.players.find((p)=>p.id===myPlayerId);
   const isImposter = myPlayer?.isImposter ?? false;
+
+  // Colorblind filter id — applied to the canvas container for constrained player
+  const cbFilterId = myConstraint === "colorblind-rg" ? "cb-rg" : myConstraint === "colorblind-by" ? "cb-by" : null;
+  const canvasFilter = cbFilterId ? `url(#${cbFilterId})` : undefined;
 
   const canvasRef      = useRef<HTMLDivElement>(null);
   const fileInputRef   = useRef<HTMLInputElement>(null);
@@ -490,7 +496,7 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
       if (tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT") return;
       if ((e.key==="Delete"||e.key==="Backspace")&&selectedId) { e.preventDefault(); onDelete(selectedId); setSelectedId(null); }
       if (e.key==="Escape") { setSelectedId(null); setActiveTool("select"); }
-      if ((e.ctrlKey||e.metaKey)&&e.key==="z") { e.preventDefault(); const a=undoStackRef.current.pop(); if(a?.type==="move") onUpdate(a.id,{x:a.oldX,y:a.oldY,width:a.oldW,height:a.oldH}); }
+      if ((e.ctrlKey||e.metaKey)&&e.key==="z") { e.preventDefault(); if(myConstraint!=="no-undo") { const a=undoStackRef.current.pop(); if(a?.type==="move") onUpdate(a.id,{x:a.oldX,y:a.oldY,width:a.oldW,height:a.oldH}); } }
       if ((e.ctrlKey||e.metaKey)&&e.key==="d"&&selectedId) { e.preventDefault(); const el=room.canvas.find(c=>c.id===selectedId); if(el) onAdd({type:el.type,x:el.x+16,y:el.y+16,width:el.width,height:el.height,content:el.content,fill:el.fill,stroke:el.stroke,fontSize:el.fontSize,cornerRadius:el.cornerRadius,opacity:el.opacity,imageUrl:el.imageUrl}); }
       if (selectedId&&["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(e.key)) { e.preventDefault(); const el=room.canvas.find(c=>c.id===selectedId); if(el){const n=e.shiftKey?10:1;const dx=e.key==="ArrowLeft"?-n:e.key==="ArrowRight"?n:0;const dy=e.key==="ArrowUp"?-n:e.key==="ArrowDown"?n:0;onUpdate(el.id,{x:Math.max(0,Math.min(CANVAS_W-el.width,el.x+dx)),y:Math.max(0,Math.min(CANVAS_H-el.height,el.y+dy))});} }
       if (!e.ctrlKey&&!e.metaKey&&!e.altKey) {
@@ -725,8 +731,27 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
   const selectedLT = selectedEl ? (localTransforms[selectedId!]??{x:selectedEl.x,y:selectedEl.y,w:selectedEl.width,h:selectedEl.height}) : null;
   const isTextEl   = selectedEl ? TEXT_TYPES.includes(selectedEl.type) : false;
 
+  const CONSTRAINT_LABELS: Record<string, { short: string; color: string }> = {
+    "colorblind-rg": { short: "👁️ COLORBLIND R/G", color: ORANGE },
+    "colorblind-by": { short: "👁️ COLORBLIND B/Y", color: "#6A4AD4" },
+    "no-undo":       { short: "🚫 NO UNDO",         color: "#C03020" },
+    "one-font":      { short: "🔤 ONE FONT",         color: MUSTARD  },
+  };
+
   return (
     <div style={{ height:"100vh", display:"flex", flexDirection:"column", background:"#F5EEE2", overflow:"hidden" }}>
+      {/* Hidden SVG colorblind filter defs */}
+      <svg style={{ position:"absolute", width:0, height:0, pointerEvents:"none" }} aria-hidden="true">
+        <defs>
+          <filter id="cb-rg" colorInterpolationFilters="linearRGB">
+            <feColorMatrix type="matrix" values="0.567 0.433 0 0 0  0.558 0.442 0 0 0  0 0.242 0.758 0 0  0 0 0 1 0" />
+          </filter>
+          <filter id="cb-by" colorInterpolationFilters="linearRGB">
+            <feColorMatrix type="matrix" values="0.95 0.05 0 0 0  0 0.433 0.567 0 0  0 0.475 0.525 0 0  0 0 0 1 0" />
+          </filter>
+        </defs>
+      </svg>
+
       <input ref={fileInputRef} type="file" accept="image/*" style={{ display:"none" }} onChange={handleFileChange} />
 
       {/* ── TOP BAR ── */}
@@ -750,6 +775,18 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
           <div style={{ fontFamily:BEBAS, fontSize:"0.7rem", letterSpacing:"0.12em", padding:"0.22rem 0.65rem", borderRadius:3, background:isImposter?`${ORANGE}18`:`${TEAL}14`, border:`2px solid ${isImposter?ORANGE:TEAL}`, color:isImposter?ORANGE:TEAL }}>
             {isImposter?"IMPOSTER":"CREWMATE"}
           </div>
+          {/* My constraint badge */}
+          {myConstraint && CONSTRAINT_LABELS[myConstraint] && (
+            <div style={{ fontFamily:BEBAS, fontSize:"0.65rem", letterSpacing:"0.1em", padding:"0.22rem 0.6rem", background:`${CONSTRAINT_LABELS[myConstraint].color}18`, border:`2px solid ${CONSTRAINT_LABELS[myConstraint].color}`, color:CONSTRAINT_LABELS[myConstraint].color, animation:"challenge-pulse 2s ease-in-out infinite" }}>
+              {CONSTRAINT_LABELS[myConstraint].short}
+            </div>
+          )}
+          {/* Challenge hint — someone in the room has a constraint (all players see this) */}
+          {!myConstraint && room.challengeHint && (
+            <div style={{ fontFamily:BEBAS, fontSize:"0.65rem", letterSpacing:"0.1em", padding:"0.22rem 0.6rem", background:`${MUSTARD}18`, border:`2px solid ${MUSTARD}66`, color:MUSTARD }}>
+              ⚡ CHALLENGE ACTIVE
+            </div>
+          )}
           <div style={{ textAlign:"right" }}>
             <div style={{ fontFamily:DM, fontSize:"0.52rem", color:"#B8A880", letterSpacing:"0.14em", marginBottom:1 }}>TIME</div>
             <Timer endTime={room.phaseEndTime} />
@@ -901,7 +938,7 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
 
             {/* Canvas */}
             <div ref={canvasRef} data-canvas="true"
-              style={{ position:"relative", width:CANVAS_W, height:CANVAS_H, background:canvasMode==="mobile"?"#FFFFFF":canvasMode==="web"?"#FFFFFF":"#F8F4EE", flexShrink:0, zIndex:1, overflow:"hidden", outline:dragOver?`4px dashed ${TEAL}`:"none", borderRadius:canvasMode==="mobile"?24:0, cursor:activeTool==="pencil"?"crosshair":activeTool==="triangle"?"crosshair":"default" }}
+              style={{ position:"relative", width:CANVAS_W, height:CANVAS_H, background:canvasMode==="mobile"?"#FFFFFF":canvasMode==="web"?"#FFFFFF":"#F8F4EE", flexShrink:0, zIndex:1, overflow:"hidden", outline:dragOver?`4px dashed ${TEAL}`:"none", borderRadius:canvasMode==="mobile"?24:0, cursor:activeTool==="pencil"?"crosshair":activeTool==="triangle"?"crosshair":"default", filter:canvasFilter }}
               onMouseDown={handleCanvasMouseDown}
               onMouseMove={handleCanvasMouseMove} onMouseUp={handleCanvasMouseUp} onMouseLeave={handleCanvasMouseUp}
               onClick={handleCanvasClick}

@@ -6,6 +6,8 @@ import { GamePage } from "./pages/GamePage";
 import { ChatPage } from "./pages/ChatPage";
 import { ResultsPage } from "./pages/ResultsPage";
 import { RoleReveal } from "./components/RoleReveal";
+import { ImposterBriefing } from "./components/ImposterBriefing";
+import { ChallengeOverlay } from "./components/ChallengeOverlay";
 
 export default function App() {
   const {
@@ -20,9 +22,12 @@ export default function App() {
     myPlayer,
     amIHost,
     socket,
+    imposterObjectives,
+    pendingConstraint,
     createRoom,
     joinRoom,
     startGame,
+    toggleChallengeMode,
     addElement,
     updateElement,
     deleteElement,
@@ -36,6 +41,8 @@ export default function App() {
   } = useGame();
 
   const [showReveal, setShowReveal] = useState(false);
+  const [showBriefing, setShowBriefing] = useState(false);
+  const [showConstraint, setShowConstraint] = useState(false);
   const prevPhase = useRef<string | null>(null);
 
   useEffect(() => {
@@ -44,9 +51,23 @@ export default function App() {
     const curr = room.phase;
     if (curr === "design" && prev !== "design" && prev !== null) {
       setShowReveal(true);
+      setShowBriefing(false);
+      setShowConstraint(false);
     }
     prevPhase.current = curr;
   }, [room?.phase]);
+
+  function handleRevealDismiss() {
+    setShowReveal(false);
+    // Show imposter briefing after role reveal, if applicable
+    if (myRole === "imposter" && imposterObjectives) {
+      setShowBriefing(true);
+    }
+    // Show constraint overlay if this player has a constraint
+    if (pendingConstraint) {
+      setShowConstraint(true);
+    }
+  }
 
   const myRole = myPlayer?.isImposter ? "imposter" : "crewmate";
 
@@ -68,6 +89,7 @@ export default function App() {
         myPlayerId={myPlayerId}
         amIHost={amIHost}
         onStart={startGame}
+        onToggleChallenge={toggleChallengeMode}
       />
     );
   }
@@ -76,7 +98,24 @@ export default function App() {
     return (
       <>
         {showReveal && (
-          <RoleReveal role={myRole} onDismiss={() => setShowReveal(false)} myPlayerId={myPlayerId} myPlayerColor={room.players.find(p=>p.id===myPlayerId)?.color} />
+          <RoleReveal
+            role={myRole}
+            onDismiss={handleRevealDismiss}
+            myPlayerId={myPlayerId}
+            myPlayerColor={room.players.find(p => p.id === myPlayerId)?.color}
+          />
+        )}
+        {showBriefing && imposterObjectives && (
+          <ImposterBriefing
+            objectives={imposterObjectives}
+            onDismiss={() => setShowBriefing(false)}
+          />
+        )}
+        {showConstraint && pendingConstraint && (
+          <ChallengeOverlay
+            constraintType={pendingConstraint}
+            onDismiss={() => setShowConstraint(false)}
+          />
         )}
         <GamePage
           room={room}
@@ -91,6 +130,7 @@ export default function App() {
           emitCursorMove={emitCursorMove}
           socket={socket}
           roomId={roomId}
+          myConstraint={room.myConstraint}
         />
       </>
     );

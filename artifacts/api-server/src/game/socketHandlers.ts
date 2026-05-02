@@ -7,6 +7,8 @@ import {
   getPlayerBySocket,
   removePlayerBySocket,
   assignImposter,
+  assignImposterObjectives,
+  assignConstraint,
   resetRound,
   resetRoundKeepCanvas,
   addCanvasElement,
@@ -25,6 +27,13 @@ function sanitizeRoom(room: Room, forSocketId: string) {
   const player = room.players.find((p) => p.socketId === forSocketId);
   const isImposter = player?.isImposter ?? false;
   const showVotes = room.phase === "results" || room.phase === "ended" || room.phase === "vote";
+  const showReveal = room.phase === "results" || room.phase === "ended";
+
+  const myConstraint =
+    room.activeConstraint && player?.id === room.activeConstraint.playerId
+      ? room.activeConstraint.type
+      : undefined;
+
   return {
     id: room.id,
     phase: room.phase,
@@ -35,7 +44,7 @@ function sanitizeRoom(room: Room, forSocketId: string) {
     messages: room.messages,
     results: room.results,
     phaseEndTime: room.phaseEndTime,
-    imposterId: room.phase === "results" || room.phase === "ended" ? room.imposterId : undefined,
+    imposterId: showReveal ? room.imposterId : undefined,
     players: room.players.map((p) => ({
       id: p.id,
       name: p.name,
@@ -49,6 +58,10 @@ function sanitizeRoom(room: Room, forSocketId: string) {
     votes: showVotes ? room.votes : undefined,
     voteTally: showVotes ? computeTally(room) : undefined,
     doneVotes: room.doneVotes,
+    challengeMode: room.challengeMode,
+    challengeHint: room.challengeMode && !!room.activeConstraint,
+    myConstraint,
+    imposterMeta: showReveal ? room.imposterMeta : undefined,
   };
 }
 
@@ -66,6 +79,22 @@ function broadcastRoom(io: Server, room: Room) {
   }
 }
 
+/** Emit imposter objectives + constraint privately after round starts */
+function emitPrivateRoundEvents(io: Server, room: Room) {
+  const imposterPlayer = room.players.find((p) => p.isImposter);
+  if (imposterPlayer && room.imposterMeta) {
+    io.to(imposterPlayer.socketId).emit("imposter:objectives", room.imposterMeta);
+  }
+  if (room.activeConstraint) {
+    const constrainedPlayer = room.players.find((p) => p.id === room.activeConstraint!.playerId);
+    if (constrainedPlayer) {
+      io.to(constrainedPlayer.socketId).emit("constraint:assigned", {
+        type: room.activeConstraint.type,
+      });
+    }
+  }
+}
+
 const FEEDBACK_LINES = [
   "Some strong contributions, but the layout feels unresolved.",
   "Interesting use of elements — composition could be tighter.",
@@ -79,7 +108,6 @@ const FEEDBACK_LINES = [
 
 function resolveVotePhase(io: Server, room: Room, prompts: string[]) {
   const { mostVoted, hasMajority } = tallyVotes(room);
-  // Imposter only caught if a strict majority voted for the same person who is the imposter
   const caught = hasMajority && mostVoted === room.imposterId;
   const imposter = room.players.find((p) => p.id === room.imposterId);
 
@@ -105,17 +133,18 @@ function resolveVotePhase(io: Server, room: Room, prompts: string[]) {
   } else {
     room.phaseTimer = setTimeout(() => {
       room.round = nextRound;
-      // Prompt stays frozen — same brief for the entire game
-      // If imposter escaped, keep the canvas so work carries over; otherwise wipe it
       if (caught) {
         resetRound(room);
       } else {
         resetRoundKeepCanvas(room);
       }
       assignImposter(room);
+      assignImposterObjectives(room);
+      assignConstraint(room);
       room.phase = "design";
       room.phaseEndTime = Date.now() + PHASE_DURATIONS.design;
       broadcastRoom(io, room);
+      emitPrivateRoundEvents(io, room);
       room.phaseTimer = setTimeout(() => advancePhase(io, room, prompts), PHASE_DURATIONS.design);
     }, PHASE_DURATIONS.results * 3);
   }
@@ -130,8 +159,11 @@ function advancePhase(io: Server, room: Room, prompts: string[]) {
     room.prompt = prompts[0] ?? "Design a beautiful UI";
     resetRound(room);
     assignImposter(room);
+    assignImposterObjectives(room);
+    assignConstraint(room);
     room.phaseEndTime = Date.now() + PHASE_DURATIONS.design;
     broadcastRoom(io, room);
+    emitPrivateRoundEvents(io, room);
     room.phaseTimer = setTimeout(() => advancePhase(io, room, prompts), PHASE_DURATIONS.design);
   } else if (room.phase === "design") {
     room.phase = "chat";
@@ -148,11 +180,9 @@ function advancePhase(io: Server, room: Room, prompts: string[]) {
     room.phaseTimer = setTimeout(() => advancePhase(io, room, prompts), PHASE_DURATIONS.vote);
   } else if (room.phase === "vote") {
     const { mostVoted, hasMajority } = tallyVotes(room);
-    // Majority must agree on the same person — otherwise imposter escapes
     const caught = hasMajority && mostVoted === room.imposterId;
     const imposter = room.players.find((p) => p.id === room.imposterId);
 
-    // Emit vote:result so clients can animate the reveal for 4.5s
     io.to(room.id).emit("vote:result", {
       eliminatedId: hasMajority ? mostVoted : "",
       wasImposter: caught,
@@ -160,7 +190,6 @@ function advancePhase(io: Server, room: Room, prompts: string[]) {
       isTie: !hasMajority,
     });
 
-    // Delay actual phase transition so clients see the reveal animation
     room.phaseTimer = setTimeout(() => {
       resolveVotePhase(io, room, prompts);
     }, 4500);
@@ -202,7 +231,14 @@ export function registerSocketHandlers(io: Server) {
       advancePhase(io, room, prompts);
     });
 
-    // Live cursor relay — broadcast to all OTHER players in the room
+    socket.on("challenge:toggle", ({ enabled }: { enabled: boolean }) => {
+      const room = getRoomBySocket(socket.id);
+      const player = room ? getPlayerBySocket(room, socket.id) : undefined;
+      if (!room || !player?.isHost || room.phase !== "lobby") return;
+      room.challengeMode = enabled;
+      broadcastRoom(io, room);
+    });
+
     socket.on("cursor:move", ({ x, y }: { x: number; y: number }) => {
       const room = getRoomBySocket(socket.id);
       const player = room ? getPlayerBySocket(room, socket.id) : undefined;
@@ -248,7 +284,6 @@ export function registerSocketHandlers(io: Server) {
       if (el) io.to(room.id).emit("canvas:updated", el);
     });
 
-    // Any player can delete any element (imposter sabotage mechanic)
     socket.on("canvas:delete", ({ elementId }: { elementId: string }) => {
       const room = getRoomBySocket(socket.id);
       const player = room ? getPlayerBySocket(room, socket.id) : undefined;
@@ -276,16 +311,11 @@ export function registerSocketHandlers(io: Server) {
       const room = getRoomBySocket(socket.id);
       const player = room ? getPlayerBySocket(room, socket.id) : undefined;
       if (!room || !player || room.phase !== "vote") return;
-      // Only allow one vote per player
       if (room.votes[player.id]) return;
       castVote(room, player.id, targetId);
       const tally = computeTally(room);
       io.to(room.id).emit("vote:update", { votes: tally, totalVoters: room.players.length });
-
-      // Broadcast updated room so vote counts show
       broadcastRoom(io, room);
-
-      // If all active players have voted, resolve early
       const activePlayers = room.players.filter((p) => !p.eliminated);
       const allVoted = activePlayers.every((p) => room.votes[p.id]);
       if (allVoted) {
@@ -294,7 +324,6 @@ export function registerSocketHandlers(io: Server) {
       }
     });
 
-    // Any player votes "done" — phase advances when majority agree
     socket.on("phase:done", () => {
       const room = getRoomBySocket(socket.id);
       const player = room ? getPlayerBySocket(room, socket.id) : undefined;
@@ -304,7 +333,6 @@ export function registerSocketHandlers(io: Server) {
       }
       const activePlayers = room.players.filter((p) => !p.eliminated);
       broadcastRoom(io, room);
-      // Majority (> half) must agree
       if (room.doneVotes.length > activePlayers.length / 2) {
         if (room.phaseTimer) clearTimeout(room.phaseTimer);
         const prompts = room.results.map((r) => r.prompt).concat(room.prompt ? [room.prompt] : []);
@@ -312,7 +340,6 @@ export function registerSocketHandlers(io: Server) {
       }
     });
 
-    // Host emergency skip (kept for edge cases)
     socket.on("phase:skip", () => {
       const room = getRoomBySocket(socket.id);
       const player = room ? getPlayerBySocket(room, socket.id) : undefined;
@@ -337,6 +364,8 @@ export function registerSocketHandlers(io: Server) {
       room.results = [];
       room.phaseEndTime = 0;
       room.imposterId = "";
+      room.imposterMeta = undefined;
+      room.activeConstraint = undefined;
       room.players.forEach((p) => {
         p.isImposter = false;
         p.score = 0;
@@ -345,7 +374,6 @@ export function registerSocketHandlers(io: Server) {
       broadcastRoom(io, room);
     });
 
-    // Voice chat relay — broadcast audio chunk to all others in room
     socket.on("voice:chunk", (data: { chunk: ArrayBuffer }) => {
       const room = getRoomBySocket(socket.id);
       const player = room ? getPlayerBySocket(room, socket.id) : undefined;
