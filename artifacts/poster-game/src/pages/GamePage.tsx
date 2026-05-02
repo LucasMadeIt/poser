@@ -820,9 +820,8 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
               {Object.values(remoteCursors).map(cursor=>{
                 const player=room.players.find(p=>p.id===cursor.playerId);
                 if(!player) return null;
-                const isVisible=Date.now()-cursor.lastSeen<3000;
                 return (
-                  <div key={cursor.playerId} style={{ position:"absolute", left:cursor.x*CANVAS_W, top:cursor.y*CANVAS_H, pointerEvents:"none", zIndex:999, opacity:isVisible?1:0, transition:"left 0.05s linear, top 0.05s linear, opacity 0.5s" }}>
+                  <div key={cursor.playerId} style={{ position:"absolute", left:cursor.x*CANVAS_W, top:cursor.y*CANVAS_H, pointerEvents:"none", zIndex:999, opacity:1, transition:"left 0.05s linear, top 0.05s linear" }}>
                     <svg width="16" height="20" viewBox="0 0 16 20"><path d="M0 0 L0 14 L4 11 L6 18 L8 17 L6 10 L11 10 Z" fill={player.color} stroke="rgba(0,0,0,0.3)" strokeWidth="1" /></svg>
                     <div style={{ position:"absolute", top:18, left:10, background:player.color, color:"#fff", fontSize:10, padding:"2px 6px", borderRadius:10, whiteSpace:"nowrap", fontFamily:DM, fontWeight:600 }}>{player.name}</div>
                   </div>
