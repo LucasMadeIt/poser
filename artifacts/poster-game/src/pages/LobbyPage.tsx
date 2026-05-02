@@ -15,9 +15,10 @@ type Props = {
   amIHost: boolean;
   onStart: () => void;
   onToggleChallenge: (enabled: boolean) => void;
+  onLeave: () => void;
 };
 
-export function LobbyPage({ room, myPlayerId, amIHost, onStart, onToggleChallenge }: Props) {
+export function LobbyPage({ room, myPlayerId, amIHost, onStart, onToggleChallenge, onLeave }: Props) {
   const challengeOn = !!room.challengeMode;
 
   return (
@@ -25,6 +26,14 @@ export function LobbyPage({ room, myPlayerId, amIHost, onStart, onToggleChalleng
       <PosterWallBg />
 
       <div style={{ position:"relative", zIndex:10, width:"100%", maxWidth:500, display:"flex", flexDirection:"column", gap:"1.2rem" }}>
+
+        {/* ── BACK BUTTON ── */}
+        <button onClick={onLeave}
+          style={{ alignSelf:"flex-start", fontFamily:BEBAS, fontSize:"0.85rem", letterSpacing:"0.14em", color:NAVY, background:"transparent", border:`2px solid ${NAVY}`, padding:"0.3rem 0.9rem", cursor:"pointer", display:"flex", alignItems:"center", gap:"0.4rem", boxShadow:"2px 2px 0 rgba(0,0,0,0.18)", transition:"transform 0.1s, box-shadow 0.1s" }}
+          onMouseEnter={(e)=>{e.currentTarget.style.transform="translate(-1px,-1px)";e.currentTarget.style.boxShadow="3px 3px 0 rgba(0,0,0,0.22)";}}
+          onMouseLeave={(e)=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="2px 2px 0 rgba(0,0,0,0.18)";}}>
+          ← Leave Room
+        </button>
 
         {/* ── LOGO ── */}
         <div style={{ alignSelf:"center", position:"relative" }}>

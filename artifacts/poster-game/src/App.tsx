@@ -36,6 +36,7 @@ export default function App() {
     skipPhase,
     voteDone,
     playAgain,
+    leaveRoom,
     emitCursorMove,
     emitTyping,
   } = useGame();
@@ -90,6 +91,7 @@ export default function App() {
         amIHost={amIHost}
         onStart={startGame}
         onToggleChallenge={toggleChallengeMode}
+        onLeave={leaveRoom}
       />
     );
   }

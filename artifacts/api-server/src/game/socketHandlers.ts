@@ -388,6 +388,17 @@ export function registerSocketHandlers(io: Server) {
       socket.to(room.id).emit("voice:speaking", { playerId: player.id, active: data.active });
     });
 
+    socket.on("room:leave", () => {
+      const result = removePlayerBySocket(socket.id);
+      if (result) {
+        const { room } = result;
+        if (room.players.length > 0) {
+          broadcastRoom(io, room);
+        }
+      }
+      logger.info({ socketId: socket.id }, "Player left room voluntarily");
+    });
+
     socket.on("disconnect", () => {
       const result = removePlayerBySocket(socket.id);
       if (result) {

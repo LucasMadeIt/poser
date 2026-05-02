@@ -188,6 +188,18 @@ export function useGame() {
     socketRef.current.emit("game:playAgain");
   }, []);
 
+  const leaveRoom = useCallback(() => {
+    socketRef.current.emit("room:leave");
+    setRoom(null);
+    setRoomId("");
+    setMyPlayerId("");
+    setError("");
+    setVoteTally({});
+    setVoteResult(null);
+    setImposterObjectives(null);
+    setPendingConstraint(null);
+  }, []);
+
   const emitCursorMove = useCallback((x: number, y: number) => {
     socketRef.current.emit("cursor:move", { x, y });
   }, []);
@@ -225,6 +237,7 @@ export function useGame() {
     skipPhase,
     voteDone,
     playAgain,
+    leaveRoom,
     emitCursorMove,
     emitTyping,
   };
