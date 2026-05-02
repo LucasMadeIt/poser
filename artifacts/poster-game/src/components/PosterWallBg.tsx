@@ -21,36 +21,26 @@ export function PosterWallBg() {
     <div style={{ position:"fixed", inset:0, zIndex:0, background:"#EDE5D4", overflow:"hidden", pointerEvents:"none" }}>
 
       {/* ── Big vivid textured colour blocks ── */}
-      <NoisyBlock bg="#1C3A60" opacity={0.92} top="-12%" left="-8%"  width="52%" height="65%" transform="rotate(-4deg)" />
-      <NoisyBlock bg="#D4561A" opacity={0.88} top="-6%"  left="8%"   width="36%" height="44%" transform="rotate(2.5deg)" />
-      <NoisyBlock bg="#2A8080" opacity={0.85} top="-8%"  right="-8%" width="48%" height="58%" transform="rotate(3.8deg)" />
-      <NoisyBlock bg="#C8A028" opacity={0.80} top="20%"  right="5%"  width="30%" height="40%" transform="rotate(-5deg)" />
-      <NoisyBlock bg="#8B1A10" opacity={0.88} top="32%"  left="-6%"  width="38%" height="50%" transform="rotate(5deg)" />
-      <NoisyBlock bg="#1C3A60" opacity={0.72} top="46%"  left="26%"  width="42%" height="46%" transform="rotate(-2.5deg)" />
-      <NoisyBlock bg="#D4561A" opacity={0.78} bottom="-12%" left="4%"  width="60%" height="52%" transform="rotate(-2deg)" />
-      <NoisyBlock bg="#1A5A30" opacity={0.82} bottom="-8%"  right="-6%" width="46%" height="56%" transform="rotate(3.5deg)" />
-      <NoisyBlock bg="#F0E8D0" opacity={0.65} top="58%"  right="12%" width="32%" height="38%" transform="rotate(-3deg)" />
-      <NoisyBlock bg="#C8A028" opacity={0.70} top="22%"  left="48%"  width="22%" height="30%" transform="rotate(6deg)" />
-      <NoisyBlock bg="#2A8080" opacity={0.75} bottom="22%" left="-3%" width="28%" height="34%" transform="rotate(-6deg)" />
-      <NoisyBlock bg="#E8302A" opacity={0.55} top="14%"  left="30%"  width="18%" height="24%" transform="rotate(-3deg)" />
-      <NoisyBlock bg="#F5C842" opacity={0.60} bottom="8%"  left="38%" width="16%" height="20%" transform="rotate(4deg)" />
-      <NoisyBlock bg="#2A4AAA" opacity={0.50} top="70%"  left="14%"  width="22%" height="18%" transform="rotate(-2deg)" />
-      <NoisyBlock bg="#F0E8D0" opacity={0.82} top="4%"   right="30%" width="14%" height="20%" transform="rotate(2deg)" />
-      <NoisyBlock bg="#8B1A10" opacity={0.55} bottom="35%" right="5%" width="18%" height="16%" transform="rotate(-4deg)" />
+      <NoisyBlock bg="#1C3A60" opacity={0.72} top="-12%" left="-8%"  width="52%" height="65%" transform="rotate(-4deg)" />
+      <NoisyBlock bg="#D4561A" opacity={0.68} top="-6%"  left="8%"   width="36%" height="44%" transform="rotate(2.5deg)" />
+      <NoisyBlock bg="#2A8080" opacity={0.65} top="-8%"  right="-8%" width="48%" height="58%" transform="rotate(3.8deg)" />
+      <NoisyBlock bg="#C8A028" opacity={0.60} top="20%"  right="5%"  width="30%" height="40%" transform="rotate(-5deg)" />
+      <NoisyBlock bg="#8B1A10" opacity={0.68} top="32%"  left="-6%"  width="38%" height="50%" transform="rotate(5deg)" />
+      <NoisyBlock bg="#1C3A60" opacity={0.54} top="46%"  left="26%"  width="42%" height="46%" transform="rotate(-2.5deg)" />
+      <NoisyBlock bg="#D4561A" opacity={0.58} bottom="-12%" left="4%"  width="60%" height="52%" transform="rotate(-2deg)" />
+      <NoisyBlock bg="#1A5A30" opacity={0.62} bottom="-8%"  right="-6%" width="46%" height="56%" transform="rotate(3.5deg)" />
+      <NoisyBlock bg="#F0E8D0" opacity={0.50} top="58%"  right="12%" width="32%" height="38%" transform="rotate(-3deg)" />
+      <NoisyBlock bg="#C8A028" opacity={0.52} top="22%"  left="48%"  width="22%" height="30%" transform="rotate(6deg)" />
+      <NoisyBlock bg="#2A8080" opacity={0.55} bottom="22%" left="-3%" width="28%" height="34%" transform="rotate(-6deg)" />
+      <NoisyBlock bg="#E8302A" opacity={0.38} top="14%"  left="30%"  width="18%" height="24%" transform="rotate(-3deg)" />
+      <NoisyBlock bg="#F5C842" opacity={0.42} bottom="8%"  left="38%" width="16%" height="20%" transform="rotate(4deg)" />
+      <NoisyBlock bg="#2A4AAA" opacity={0.34} top="70%"  left="14%"  width="22%" height="18%" transform="rotate(-2deg)" />
+      <NoisyBlock bg="#F0E8D0" opacity={0.60} top="4%"   right="30%" width="14%" height="20%" transform="rotate(2deg)" />
+      <NoisyBlock bg="#8B1A10" opacity={0.38} bottom="35%" right="5%" width="18%" height="16%" transform="rotate(-4deg)" />
       {/* extra mid-tone patches */}
-      <NoisyBlock bg="#4A1A70" opacity={0.45} top="8%"   left="55%"  width="16%" height="22%" transform="rotate(-7deg)" />
-      <NoisyBlock bg="#C8601A" opacity={0.38} bottom="50%" right="32%" width="12%" height="18%" transform="rotate(9deg)" />
-      <NoisyBlock bg="#1A4A3A" opacity={0.42} top="80%"  left="52%"  width="20%" height="22%" transform="rotate(-3deg)" />
-
-      {/* ── Halftone dot overlay (SVG pattern) ── */}
-      <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", opacity:0.07 }} xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <pattern id="dots" x="0" y="0" width="14" height="14" patternUnits="userSpaceOnUse">
-            <circle cx="7" cy="7" r="2.2" fill="#1a1208"/>
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#dots)"/>
-      </svg>
+      <NoisyBlock bg="#4A1A70" opacity={0.30} top="8%"   left="55%"  width="16%" height="22%" transform="rotate(-7deg)" />
+      <NoisyBlock bg="#C8601A" opacity={0.25} bottom="50%" right="32%" width="12%" height="18%" transform="rotate(9deg)" />
+      <NoisyBlock bg="#1A4A3A" opacity={0.28} top="80%"  left="52%"  width="20%" height="22%" transform="rotate(-3deg)" />
 
       {/* ── Diagonal crosshatch hatching ── */}
       <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", opacity:0.055 }} xmlns="http://www.w3.org/2000/svg">
@@ -133,7 +123,7 @@ export function PosterWallBg() {
       ))}
 
       {/* ── Ink bleed / paint splatter circles ── */}
-      <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", opacity:0.18, pointerEvents:"none" }} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", opacity:0.10, pointerEvents:"none" }} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
         <circle cx="220"  cy="155" r="38" fill="#D4561A" opacity="0.55"/>
         <circle cx="1310" cy="720" r="52" fill="#1C3A60" opacity="0.50"/>
         <circle cx="680"  cy="820" r="28" fill="#C8A028" opacity="0.60"/>
@@ -146,7 +136,7 @@ export function PosterWallBg() {
       </svg>
 
       {/* ── Street art scribbles / graffiti ── */}
-      <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", opacity:0.24 }} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", opacity:0.14 }} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
         <path d="M65 108 Q210 72 310 155 Q395 230 490 118 Q568 40 660 148" stroke="#FAFAF5" strokeWidth="4" fill="none" strokeLinecap="round"/>
         <path d="M940 60 Q1020 155 1055 82 Q1098 22 1188 98 Q1268 170 1365 65" stroke="#FAFAF5" strokeWidth="3" fill="none" strokeLinecap="round"/>
         <path d="M182 618 Q302 558 360 638 Q422 712 528 654 Q628 595 678 678" stroke="#FAFAF5" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
@@ -185,7 +175,7 @@ export function PosterWallBg() {
       </svg>
 
       {/* ── Circular stamp / ink ring marks ── */}
-      <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", opacity:0.12, pointerEvents:"none" }} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", opacity:0.07, pointerEvents:"none" }} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
         <circle cx="480"  cy="320" r="70" stroke="#1C3A60" strokeWidth="8" fill="none" opacity="0.6"/>
         <circle cx="480"  cy="320" r="58" stroke="#1C3A60" strokeWidth="2" fill="none" opacity="0.4"/>
         <circle cx="1060" cy="660" r="55" stroke="#D4561A" strokeWidth="7" fill="none" opacity="0.55"/>
@@ -194,15 +184,15 @@ export function PosterWallBg() {
         <circle cx="1340" cy="240" r="36" stroke="#2A8080" strokeWidth="5" fill="none" opacity="0.45"/>
       </svg>
 
-      {/* ── Global grain layers — heavy, like printed paper ── */}
-      <div style={{ position:"absolute", inset:0, backgroundImage:FINE,     backgroundSize:"170px", opacity:0.15, mixBlendMode:"overlay"  as React.CSSProperties["mixBlendMode"] }} />
-      <div style={{ position:"absolute", inset:0, backgroundImage:COARSE,   backgroundSize:"340px", opacity:0.11, mixBlendMode:"multiply" as React.CSSProperties["mixBlendMode"] }} />
-      <div style={{ position:"absolute", inset:0, backgroundImage:GRAIN2,   backgroundSize:"120px", opacity:0.07, mixBlendMode:"overlay"  as React.CSSProperties["mixBlendMode"] }} />
-      <div style={{ position:"absolute", inset:0, backgroundImage:TURBULENT,backgroundSize:"600px", opacity:0.06, mixBlendMode:"soft-light" as React.CSSProperties["mixBlendMode"] }} />
-      <div style={{ position:"absolute", inset:0, backgroundImage:FINE,     backgroundSize:"220px", opacity:0.07, mixBlendMode:"screen"   as React.CSSProperties["mixBlendMode"] }} />
+      {/* ── Global grain layers ── */}
+      <div style={{ position:"absolute", inset:0, backgroundImage:FINE,     backgroundSize:"170px", opacity:0.10, mixBlendMode:"overlay"    as React.CSSProperties["mixBlendMode"] }} />
+      <div style={{ position:"absolute", inset:0, backgroundImage:COARSE,   backgroundSize:"340px", opacity:0.07, mixBlendMode:"multiply"   as React.CSSProperties["mixBlendMode"] }} />
+      <div style={{ position:"absolute", inset:0, backgroundImage:GRAIN2,   backgroundSize:"120px", opacity:0.04, mixBlendMode:"overlay"    as React.CSSProperties["mixBlendMode"] }} />
+      <div style={{ position:"absolute", inset:0, backgroundImage:TURBULENT,backgroundSize:"600px", opacity:0.04, mixBlendMode:"soft-light" as React.CSSProperties["mixBlendMode"] }} />
+      <div style={{ position:"absolute", inset:0, backgroundImage:FINE,     backgroundSize:"220px", opacity:0.05, mixBlendMode:"screen"     as React.CSSProperties["mixBlendMode"] }} />
 
       {/* ── Vignette ── */}
-      <div style={{ position:"absolute", inset:0, background:"radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(10,6,0,0.42) 100%)" }} />
+      <div style={{ position:"absolute", inset:0, background:"radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(10,6,0,0.22) 100%)" }} />
     </div>
   );
 }
