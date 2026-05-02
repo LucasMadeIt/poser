@@ -253,6 +253,12 @@ export function registerSocketHandlers(io: Server) {
       points?: { x: number; y: number }[];
       strokeWidth?: number;
       vertices?: { x: number; y: number }[];
+      imageUrl?: string;
+      textColor?: string;
+      cornerRadius?: number;
+      opacity?: number;
+      fontWeight?: number;
+      textAlign?: string;
     }) => {
       const room = getRoomBySocket(socket.id);
       const player = room ? getPlayerBySocket(room, socket.id) : undefined;
@@ -272,6 +278,12 @@ export function registerSocketHandlers(io: Server) {
         points: element.points,
         strokeWidth: element.strokeWidth,
         vertices: element.vertices,
+        imageUrl: element.imageUrl,
+        textColor: element.textColor,
+        cornerRadius: element.cornerRadius,
+        opacity: element.opacity,
+        fontWeight: element.fontWeight,
+        textAlign: element.textAlign as CanvasElement["textAlign"],
         ownerId: player.id,
       });
       io.to(room.id).emit("canvas:added", el);
@@ -329,15 +341,21 @@ export function registerSocketHandlers(io: Server) {
       const room = getRoomBySocket(socket.id);
       const player = room ? getPlayerBySocket(room, socket.id) : undefined;
       if (!room || !player || !["design", "chat"].includes(room.phase)) return;
-      if (!room.doneVotes.includes(player.id)) {
+      const idx = room.doneVotes.indexOf(player.id);
+      if (idx === -1) {
         room.doneVotes.push(player.id);
+      } else {
+        room.doneVotes.splice(idx, 1);
       }
-      const activePlayers = room.players.filter((p) => !p.eliminated);
       broadcastRoom(io, room);
-      if (room.doneVotes.length > activePlayers.length / 2) {
-        if (room.phaseTimer) clearTimeout(room.phaseTimer);
-        const prompts = room.results.map((r) => r.prompt).concat(room.prompt ? [room.prompt] : []);
-        advancePhase(io, room, prompts);
+      // Only advance phase when the vote was just added (not removed)
+      if (idx === -1) {
+        const activePlayers = room.players.filter((p) => !p.eliminated);
+        if (room.doneVotes.length > activePlayers.length / 2) {
+          if (room.phaseTimer) clearTimeout(room.phaseTimer);
+          const prompts = room.results.map((r) => r.prompt).concat(room.prompt ? [room.prompt] : []);
+          advancePhase(io, room, prompts);
+        }
       }
     });
 
@@ -393,6 +411,7 @@ export function registerSocketHandlers(io: Server) {
       const result = removePlayerBySocket(socket.id);
       if (result) {
         const { room } = result;
+        socket.leave(room.id); // remove from socket.io channel so future broadcasts don't reach the leaving player
         if (room.players.length > 0) {
           broadcastRoom(io, room);
         }

@@ -297,18 +297,18 @@ export function ChatPage({ room, myPlayerId, amIHost, onSend, onSkip, voteTally,
             </div>
           </div>
 
-          <div style={{ height:2, background:"rgba(28,58,96,0.12)", margin:"0 1.4rem", flexShrink:0 }} />
+        </div>
 
-          {/* VOTING */}
-          <div style={{ flex:1, overflow:"auto", padding:"0.9rem 1.4rem 1.1rem" }}>
-            <div style={{ fontFamily:BEBAS, fontSize:"1.9rem", color:NAVY, letterSpacing:"0.08em", lineHeight:1 }}>
-              VOTE — WHO IS THE IMPOSTER?
-            </div>
-            <div style={{ fontFamily:DM, fontSize:"0.85rem", color:"#8A7868", marginTop:4, marginBottom:18 }}>
-              {isVotePhase?"Click a player to cast your vote":"🔒 Voting opens when discussion ends"}
-            </div>
+        {/* RIGHT: chat panel */}
+        <div style={{ width:340, flexShrink:0, display:"flex", flexDirection:"column", background:"#FFFFFF", borderLeft:`3px solid ${NAVY}` }}>
 
-            <div style={{ display:"flex", gap:14, flexWrap:"wrap" }}>
+          {/* Vote section — above chat */}
+          <div style={{ borderBottom:`2px solid #F0E8D8`, padding:"0.75rem 0.9rem 0.8rem", flexShrink:0, background:"#FAFAF5", maxHeight:268, overflowY:"auto" }}>
+            <div style={{ display:"flex", alignItems:"baseline", gap:8, marginBottom:8 }}>
+              <span style={{ fontFamily:BEBAS, fontSize:"0.82rem", letterSpacing:"0.18em", color:isVotePhase?ORANGE:NAVY }}>VOTE — WHO IS THE IMPOSTER?</span>
+              {!isVotePhase && <span style={{ fontFamily:DM, fontSize:"0.58rem", color:"#aaa" }}>🔒 opens during vote phase</span>}
+            </div>
+            <div style={{ display:"flex", gap:7, flexWrap:"wrap" }}>
               {room.players.map((player) => {
                 const votes = voteTally[player.id]??0;
                 const isMe = player.id===myPlayerId;
@@ -318,88 +318,49 @@ export function ChatPage({ room, myPlayerId, amIHost, onSend, onSkip, voteTally,
                 const isGreyed = !isVotePhase||isMe||(hasVoted&&!isVotedByMe);
                 return (
                   <div key={player.id}
-                    title={!isVotePhase?"Voting opens when discussion ends":undefined}
                     onClick={()=>isActive&&onVote(player.id)}
-                    style={{
-                      position:"relative", display:"flex", flexDirection:"column", alignItems:"center", gap:8, padding:"14px 18px",
-                      background:isVotedByMe?"#FFFFFF":"rgba(255,255,255,0.7)",
-                      border:isVotedByMe?`3px solid ${player.color}`:`2px solid ${isActive?"#E8E2D8":"#EAE4DC"}`,
-                      boxShadow:isVotedByMe?`4px 4px 0 ${player.color}`:"2px 2px 0 rgba(0,0,0,0.08)",
-                      cursor:isActive?"pointer":"default",
-                      opacity:isGreyed?0.38:1,
-                      transition:"transform 0.15s, box-shadow 0.15s",
-                      transform:isVotedByMe?"translateY(-3px)":"none",
-                      minWidth:90,
+                    style={{ position:"relative", display:"flex", flexDirection:"column", alignItems:"center", gap:4, padding:"7px 9px",
+                      background:isVotedByMe?"#FFFFFF":"rgba(255,255,255,0.75)",
+                      border:isVotedByMe?`2.5px solid ${player.color}`:`1.5px solid #E8E2D8`,
+                      boxShadow:isVotedByMe?`3px 3px 0 ${player.color}`:"none",
+                      cursor:isActive?"pointer":"default", opacity:isGreyed?0.35:1,
+                      transition:"transform 0.12s", transform:isVotedByMe?"translateY(-2px)":"none",
+                      minWidth:64,
                     }}
-                    onMouseEnter={(e)=>{if(isActive){e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow=`4px 4px 0 ${player.color}`;}}}
-                    onMouseLeave={(e)=>{if(!isVotedByMe){e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="2px 2px 0 rgba(0,0,0,0.08)";}}}
+                    onMouseEnter={(e)=>{if(isActive){e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow=`3px 3px 0 ${player.color}`;e.currentTarget.style.border=`2.5px solid ${player.color}`;}}}
+                    onMouseLeave={(e)=>{if(!isVotedByMe){e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="none";e.currentTarget.style.border="1.5px solid #E8E2D8";}}}
                   >
-                    {votes>0 && <div style={{ position:"absolute", top:-10, right:-10, background:ORANGE, color:"#fff", fontSize:12, fontFamily:DM, fontWeight:700, padding:"2px 7px", borderRadius:12, minWidth:22, textAlign:"center", zIndex:1, border:"2px solid #fff" }}>{votes}</div>}
+                    {votes>0 && <div style={{ position:"absolute", top:-8, right:-8, background:ORANGE, color:"#fff", fontSize:10, fontFamily:DM, fontWeight:700, padding:"1px 5px", borderRadius:10, minWidth:18, textAlign:"center", zIndex:1, border:"2px solid #fff" }}>{votes}</div>}
                     <div style={{ position:"relative" }}>
-                      <PlayerAvatar playerId={player.id} color={player.color} size={56} showBorder={isVotedByMe} />
-                      {isVotedByMe&&<div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(0,0,0,0.35)", borderRadius:"50%", fontSize:22, color:"#fff", fontWeight:700 }}>✓</div>}
-                      {!isVotePhase&&<div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(0,0,0,0.4)", borderRadius:"50%", fontSize:18 }}>🔒</div>}
+                      <PlayerAvatar playerId={player.id} color={player.color} size={38} showBorder={isVotedByMe} />
+                      {isVotedByMe&&<div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(0,0,0,0.32)", borderRadius:"50%", fontSize:15, color:"#fff", fontWeight:700 }}>✓</div>}
+                      {!isVotePhase&&<div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(0,0,0,0.38)", borderRadius:"50%", fontSize:13 }}>🔒</div>}
+                      {speakingPlayers.has(player.id)&&<div style={{ position:"absolute", bottom:-2, right:-2, width:10, height:10, borderRadius:"50%", background:TEAL, border:"2px solid #fff", animation:"pulse-speak 0.8s infinite" }} />}
                     </div>
-                    <div style={{ fontFamily:DM, fontSize:"0.82rem", color:"#4A3C22", fontWeight:600, textAlign:"center", maxWidth:88, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                      {player.name}{isMe?" (you)":""}
+                    <div style={{ fontFamily:DM, fontSize:"0.58rem", color:isMe?NAVY:"#4A3C22", fontWeight:isMe?700:600, textAlign:"center", maxWidth:64, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                      {isMe?"you":player.name}
                     </div>
                   </div>
                 );
               })}
             </div>
-
             {isVotePhase&&!myVote&&(
-              <div style={{ textAlign:"right", marginTop:14 }}>
-                <button onClick={()=>onVote("")} style={{ background:"none", border:"none", color:"#8A7868", fontFamily:DM, fontSize:"0.82rem", cursor:"pointer", textDecoration:"underline" }}>
-                  Skip vote (abstain)
-                </button>
+              <div style={{ textAlign:"right", marginTop:6 }}>
+                <button onClick={()=>onVote("")} style={{ background:"none", border:"none", color:"#8A7868", fontFamily:DM, fontSize:"0.7rem", cursor:"pointer", textDecoration:"underline" }}>Abstain</button>
               </div>
             )}
-            {myVote&&!voteResult&&<div style={{ fontFamily:DM, fontSize:"0.9rem", color:TEAL, marginTop:14, fontWeight:600 }}>Vote cast ✓ — waiting for others ({Object.keys(room.votes??{}).length}/{room.players.length})</div>}
+            {myVote&&!voteResult&&<div style={{ fontFamily:DM, fontSize:"0.72rem", color:TEAL, marginTop:6, fontWeight:600 }}>✓ Vote cast — waiting ({Object.keys(room.votes??{}).length}/{room.players.length})</div>}
             {voteResult&&(
-              <div style={{ marginTop:18, padding:"18px 20px", background:"#FFFFFF", border:`3px solid ${voteResult.wasImposter?TEAL:MUSTARD}`, boxShadow:`4px 4px 0 ${voteResult.wasImposter?TEAL:MUSTARD}` }}>
-                {voteResult.wasImposter ? (
-                  <><div style={{ fontFamily:BEBAS, fontSize:"2rem", color:TEAL, letterSpacing:"0.06em", lineHeight:1.1 }}>{voteResult.imposterName} WAS THE IMPOSTER! 🎉</div>
-                  <div style={{ fontFamily:BEBAS, fontSize:"1.2rem", color:TEAL, letterSpacing:"0.05em", marginTop:2 }}>DESIGNERS WIN THIS ROUND!</div></>
-                ) : voteResult.isTie ? (
-                  <div style={{ fontFamily:BEBAS, fontSize:"1.6rem", color:MUSTARD, letterSpacing:"0.06em" }}>IT'S A TIE — no one was eliminated 😬</div>
-                ) : (
-                  <><div style={{ fontFamily:BEBAS, fontSize:"1.6rem", color:ORANGE, letterSpacing:"0.06em", lineHeight:1.1 }}>
-                    {room.players.find((p)=>p.id===voteResult.eliminatedId)?.name??"That player"} WAS NOT THE IMPOSTER 😬
-                  </div>
-                  <div style={{ fontFamily:DM, fontSize:"0.9rem", color:"#8A7868", marginTop:6 }}>The imposter is still among you…</div></>
-                )}
-                <div style={{ fontFamily:DM, fontSize:"0.8rem", color:"#C8B888", marginTop:10 }}>Advancing to next phase…</div>
+              <div style={{ marginTop:7, padding:"8px 10px", background:"#FFFFFF", border:`2px solid ${voteResult.wasImposter?TEAL:MUSTARD}`, boxShadow:`3px 3px 0 ${voteResult.wasImposter?TEAL:MUSTARD}` }}>
+                {voteResult.wasImposter
+                  ? <div style={{ fontFamily:BEBAS, fontSize:"0.9rem", color:TEAL, letterSpacing:"0.05em", lineHeight:1.2 }}>{voteResult.imposterName} WAS THE IMPOSTER! 🎉</div>
+                  : voteResult.isTie
+                    ? <div style={{ fontFamily:BEBAS, fontSize:"0.9rem", color:MUSTARD, letterSpacing:"0.05em" }}>TIE — no one eliminated 😬</div>
+                    : <div style={{ fontFamily:BEBAS, fontSize:"0.9rem", color:ORANGE, letterSpacing:"0.05em" }}>{room.players.find(p=>p.id===voteResult.eliminatedId)?.name??"?"} NOT THE IMPOSTER 😬</div>
+                }
+                <div style={{ fontFamily:DM, fontSize:"0.62rem", color:"#C8B888", marginTop:3 }}>Advancing…</div>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* RIGHT: chat panel */}
-        <div style={{ width:340, flexShrink:0, display:"flex", flexDirection:"column", background:"#FFFFFF", borderLeft:`3px solid ${NAVY}` }}>
-
-          {/* Players with avatars */}
-          <div style={{ borderBottom:`2px solid #F0E8D8`, padding:"0.8rem 1rem", flexShrink:0, background:"#FAFAF5" }}>
-            <div style={{ fontFamily:BEBAS, fontSize:"0.7rem", letterSpacing:"0.25em", color:ORANGE, marginBottom:10 }}>PLAYERS</div>
-            <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-              {room.players.map((player) => (
-                <div key={player.id} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, opacity:player.eliminated?0.35:1 }}>
-                  <div style={{ position:"relative" }}>
-                    <PlayerAvatar playerId={player.id} color={player.color} size={44} showBorder={player.id===myPlayerId} />
-                    {speakingPlayers.has(player.id) && (
-                      <div style={{ position:"absolute", bottom:-2, right:-2, width:12, height:12, borderRadius:"50%", background:TEAL, border:"2px solid #fff", animation:"pulse-speak 0.8s infinite" }} />
-                    )}
-                  </div>
-                  <span style={{ fontFamily:DM, fontSize:"0.62rem", color:player.id===myPlayerId?NAVY:"#8A7868", fontWeight:player.id===myPlayerId?700:400, textDecoration:player.eliminated?"line-through":"none", maxWidth:48, textAlign:"center", lineHeight:1.2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                    {player.id===myPlayerId?"you":player.name}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ borderBottom:`2px solid #F0E8D8`, padding:"0.65rem 1rem", flexShrink:0, background:"#FAFAF5" }}>
-            <div style={{ fontFamily:BEBAS, fontSize:"1.3rem", color:NAVY, letterSpacing:"0.1em", lineHeight:1 }}>WHO IS THE IMPOSTER?</div>
           </div>
 
           {/* Messages */}

@@ -39,6 +39,8 @@ export type CanvasElement = {
   points?: { x: number; y: number }[];
   /** Freedraw: stroke width in px */
   strokeWidth?: number;
+  /** Explicit text / label colour for elements that have content */
+  textColor?: string;
   /** Triangle: 3 vertex positions in absolute canvas coordinates */
   vertices?: { x: number; y: number }[];
   ownerId: string;

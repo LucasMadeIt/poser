@@ -1,0 +1,166 @@
+🧠 PROMPT: FIX DESIGN SUBMISSION SIMPLIFICATION (PRESERVE FULL CANVAS FIDELITY)
+🚨 CORE ISSUE (READ CAREFULLY)
+
+Right now, when a round ends and the design is “submitted”, the system visually degrades and simplifies the canvas too much.
+
+From the screenshots:
+
+❌ What’s happening:
+The submitted view shows generic rectangles instead of actual components
+Layout loses exact positioning fidelity
+Styling is stripped (colors, shapes, hierarchy feel flattened)
+Complex elements (like shapes, drawings, overlays) are not preserved
+The result looks like a low-fidelity reconstruction, not the actual design
+
+👉 It feels like:
+
+“a rough approximation of the layout”
+
+instead of:
+
+“the exact design players created”
+
+🎯 WHAT IT SHOULD DO INSTEAD
+
+The submitted design must be:
+
+🔥 A pixel-accurate snapshot of the real canvas
+
+Meaning:
+
+Same positions
+Same sizes
+Same layering (z-index)
+Same colors
+Same shapes
+Same drawings (pen, paths, etc.)
+Same rotations
+Same spacing
+
+👉 ZERO simplification
+
+🧩 ROOT PROBLEM
+
+Currently, the system likely:
+
+Rebuilds the canvas from simplified component data
+OR maps components → generic display blocks
+OR re-renders using a different layout logic
+
+This causes:
+
+Loss of fidelity
+Loss of visual intent
+Loss of gameplay clarity (harder to spot sabotage)
+✅ REQUIRED FIX: TRUE CANVAS SNAPSHOT SYSTEM
+Option A (BEST): DOM → IMAGE SNAPSHOT
+
+At end of DESIGN phase:
+
+Capture the actual canvas DOM:
+import html2canvas from "html2canvas"
+
+const canvasEl = document.getElementById("canvas")
+
+const snapshot = await html2canvas(canvasEl, {
+  backgroundColor: null,
+  useCORS: true,
+  scale: 2
+})
+
+const dataUrl = snapshot.toDataURL()
+Store this per round:
+room.roundSnapshots.push(dataUrl)
+In SUBMISSION / CHAT phase:
+Render this image instead of reconstructing UI
+Option B: TRUE STATE RENDER (IF NOT USING SNAPSHOT)
+
+If you must re-render:
+
+You MUST preserve FULL component schema:
+
+{
+  id,
+  type,
+  x,
+  y,
+  width,
+  height,
+  rotation,
+  zIndex,
+  fill,
+  stroke,
+  text,
+  font,
+  pathData,
+  vertices,
+  opacity
+}
+
+Then render EXACTLY:
+
+No fallback styles
+No default replacements
+No layout recalculation
+🎨 CRITICAL VISUAL RULES
+DO NOT:
+Replace components with gray boxes
+Normalize sizes or spacing
+Remove rotation
+Flatten layers
+Simplify shapes
+DO:
+Respect absolute positioning
+Respect z-index stacking
+Render shapes (triangle, paths, drawings)
+Preserve colors exactly
+Preserve text styling
+⚡ SPECIAL CASES (IMPORTANT)
+1. Drawings (Free draw / pen tool)
+Must render using SVG paths or canvas replay
+NOT replaced with rectangles
+2. Shapes (triangle, custom)
+Must use vertex data
+NOT bounding boxes
+3. Overlapping elements
+Must visually overlap correctly
+Maintain stacking order
+4. Transparency / opacity
+Must be preserved
+🎮 GAMEPLAY IMPACT (WHY THIS MATTERS)
+
+This is NOT just visual polish.
+
+Right now:
+
+Players can’t clearly see sabotage
+Voting becomes random
+Design skill is not visible
+
+After fix:
+
+Misalignment is obvious
+Bad hierarchy is visible
+Sabotage becomes a real signal
+
+👉 This directly improves core gameplay
+
+🧪 TEST CASES (VERIFY AFTER FIX)
+
+Ensure submission view matches canvas EXACTLY for:
+
+Overlapping shapes
+Rotated elements
+Free draw scribbles
+Different colors
+Mixed component types
+Dense layouts
+✅ FINAL RESULT
+
+The “Submitted Design” screen should feel like:
+
+📸 A frozen, high-resolution screenshot of the real canvas
+
+NOT:
+
+a recreated wireframe

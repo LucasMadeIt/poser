@@ -26,6 +26,7 @@ const io = new Server(httpServer, {
     methods: ["GET", "POST"],
   },
   transports: ["websocket", "polling"],
+  maxHttpBufferSize: 10 * 1024 * 1024, // 10 MB — needed for image data URLs
 });
 
 registerSocketHandlers(io);

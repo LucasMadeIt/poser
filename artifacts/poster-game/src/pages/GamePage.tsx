@@ -230,9 +230,9 @@ function renderCanvasContent(el: CanvasElement): React.ReactNode {
     case "rect":    return null;
     case "circle":  return null;
     case "divider": return null;
-    case "heading": return <span style={{ fontFamily:DM, fontWeight:el.fontWeight??800, fontSize:el.fontSize??36, color:el.fill, letterSpacing:"-0.01em", lineHeight:1.2 }}>{el.content}</span>;
-    case "text":    return <span style={{ fontFamily:DM, fontSize:el.fontSize??14, color:el.fill, lineHeight:1.55, fontWeight:el.fontWeight??400 }}>{el.content}</span>;
-    case "label":   return <span style={{ fontFamily:DM, fontSize:el.fontSize??12, color:"#2C2C2C", fontWeight:el.fontWeight??600 }}>{el.content}</span>;
+    case "heading": return <span style={{ fontFamily:DM, fontWeight:el.fontWeight??800, fontSize:el.fontSize??36, color:el.textColor??el.fill, letterSpacing:"-0.01em", lineHeight:1.2 }}>{el.content}</span>;
+    case "text":    return <span style={{ fontFamily:DM, fontSize:el.fontSize??14, color:el.textColor??el.fill, lineHeight:1.55, fontWeight:el.fontWeight??400 }}>{el.content}</span>;
+    case "label":   return <span style={{ fontFamily:DM, fontSize:el.fontSize??12, color:el.textColor??"#2C2C2C", fontWeight:el.fontWeight??600 }}>{el.content}</span>;
     case "button":  return <span style={{ fontFamily:DM, fontSize:el.fontSize??14, fontWeight:el.fontWeight??600 }}>{el.content}</span>;
     default: return null;
   }
@@ -251,7 +251,7 @@ function getOuterStyle(el: CanvasElement): React.CSSProperties {
     case "heading": return { ...base, display:"flex", alignItems:"center", overflow:"hidden" };
     case "text":    return { ...base, display:"flex", alignItems:"flex-start", overflow:"hidden" };
     case "label":   return { ...base, background:el.fill, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:el.cornerRadius??2 };
-    case "button":  { const ghost=el.fill==="transparent"; return { ...base, background:el.fill, border:el.stroke?`2px solid ${el.stroke}`:"none", display:"flex", alignItems:"center", justifyContent:"center", borderRadius:el.cornerRadius??6, color:ghost?(el.stroke??"#222"):"#fff" }; }
+    case "button":  { const ghost=el.fill==="transparent"; return { ...base, background:el.fill, border:el.stroke?`2px solid ${el.stroke}`:"none", display:"flex", alignItems:"center", justifyContent:"center", borderRadius:el.cornerRadius??6, color:el.textColor??(ghost?(el.stroke??"#222"):"#fff") }; }
     case "image":   return { ...base, background:el.fill, borderRadius:el.cornerRadius??4 };
     case "video":   return { ...base, borderRadius:el.cornerRadius??4, overflow:"hidden" };
     case "freedraw":  return { ...base, background:"transparent", overflow:"visible" };
@@ -273,6 +273,7 @@ function PropertiesSidebar({
   onClose: () => void;
 }) {
   const [showPicker, setShowPicker] = useState(false);
+  const [showTextColorPicker, setShowTextColorPicker] = useState(false);
 
   const labelStyle: React.CSSProperties = { fontFamily:BEBAS, fontSize:"0.6rem", letterSpacing:"0.18em", color:ORANGE, marginBottom:4, display:"block" };
   const inputStyle: React.CSSProperties = { width:"100%", background:"#FAFAF5", border:`1.5px solid #E8E2D8`, color:"#1A1208", borderRadius:5, padding:"4px 7px", fontFamily:DM, fontSize:"0.78rem", outline:"none", boxSizing:"border-box" };
@@ -436,6 +437,37 @@ function PropertiesSidebar({
                   style={{ flex:1, height:30, background:el.fontWeight===800?"#FFF0E8":"#FFFFFF", border:`1.5px solid ${el.fontWeight===800?ORANGE:"#E8E2D8"}`, borderRadius:5, cursor:"pointer", fontFamily:DM, fontSize:13, fontWeight:700, color:"#4A3C22" }}>
                   B
                 </button>
+              </div>
+              {/* Text colour */}
+              <div>
+                <div style={{ fontFamily:DM, fontSize:"0.6rem", color:"#C8B888", marginBottom:2 }}>Text color</div>
+                <div style={{ position:"relative" }}>
+                  {(()=>{
+                    const isTextFill = ["text","heading"].includes(el.type);
+                    const activeTC = isTextFill ? el.fill : (el.textColor ?? "#222222");
+                    const isDark = activeTC==="transparent"||activeTC==="#ffffff"||activeTC==="#FFFFFF"||activeTC==="#fff";
+                    return (
+                      <>
+                        <button onClick={()=>setShowTextColorPicker(v=>!v)}
+                          style={{ width:"100%", height:30, background:activeTC, border:`2px solid ${isDark?"#E8E2D8":activeTC}`, borderRadius:6, cursor:"pointer", display:"flex", alignItems:"center", padding:"0 8px" }}>
+                          <span style={{ fontFamily:DM, fontSize:"0.68rem", color:isDark?"#555":"rgba(255,255,255,0.85)", fontWeight:600 }}>{activeTC}</span>
+                        </button>
+                        {showTextColorPicker && (
+                          <div style={{ position:"absolute", top:34, left:0, right:0, background:"#FFFFFF", border:`2px solid #E8E2D8`, borderRadius:8, padding:10, display:"grid", gridTemplateColumns:"repeat(8,1fr)", gap:5, zIndex:60, boxShadow:"0 8px 24px rgba(0,0,0,0.14)" }}>
+                            {PALETTE.map(color=>(
+                              <button key={color} onClick={()=>{
+                                if (isTextFill) onUpdate(el.id,{fill:color});
+                                else onUpdate(el.id,{textColor:color} as Partial<CanvasElement>);
+                                setShowTextColorPicker(false);
+                              }}
+                                style={{ width:"100%", aspectRatio:"1", borderRadius:"50%", background:color, border:activeTC===color?`2.5px solid ${TEAL}`:`1.5px solid #E8E2D8`, cursor:"pointer" }} />
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
               </div>
             </div>
           </div>
@@ -882,9 +914,9 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
             const myDone = doneVotes.includes(myPlayerId);
             const needed = Math.ceil(activePlayers.length / 2);
             return (
-              <button onClick={myDone ? undefined : onDone}
-                style={{ fontFamily:BEBAS, fontSize:"0.8rem", color:myDone?"#FFFFFF":"#EDE5CC", background:myDone?TEAL:NAVY, border:`2px solid ${myDone?"#1A6060":"#0A2040"}`, padding:"0.3rem 0.85rem", cursor:myDone?"default":"pointer", letterSpacing:"0.06em", boxShadow:"2px 2px 0 rgba(0,0,0,0.3)", opacity:myDone?0.85:1 }}>
-                {myDone ? `✓ DONE ${doneVotes.length}/${needed}` : `DONE ${doneVotes.length}/${needed}`}
+              <button onClick={onDone}
+                style={{ fontFamily:BEBAS, fontSize:"0.8rem", color:myDone?"#FFFFFF":"#EDE5CC", background:myDone?TEAL:NAVY, border:`2px solid ${myDone?"#1A6060":"#0A2040"}`, padding:"0.3rem 0.85rem", cursor:"pointer", letterSpacing:"0.06em", boxShadow:"2px 2px 0 rgba(0,0,0,0.3)", opacity:myDone?0.85:1 }}>
+                {myDone ? `✓ DONE ${doneVotes.length}/${needed} (undo)` : `DONE ${doneVotes.length}/${needed}`}
               </button>
             );
           })()}

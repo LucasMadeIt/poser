@@ -39,6 +39,7 @@ export type CanvasElement = {
   opacity?: number;
   imageUrl?: string;
   videoUrl?: string;
+  textColor?: string;
   points?: { x: number; y: number }[];
   strokeWidth?: number;
   vertices?: { x: number; y: number }[];
