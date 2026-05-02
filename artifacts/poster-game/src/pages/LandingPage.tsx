@@ -17,47 +17,60 @@ type Props = {
 const TUTORIAL_STEPS = [
   {
     icon: "🖱️",
-    title: "Add Elements",
+    title: "Add Components",
     color: ORANGE,
-    desc: "Click any block in the left panel to add it to the canvas. Or drag it directly to where you want it. Press R for a rectangle, T for text.",
+    desc: "Click any component in the left panel to drop it onto the canvas, or drag it to a precise spot. Sections include Shapes & Text, Inputs, Navigation, Content, and Feedback overlays.",
+  },
+  {
+    icon: "◆",
+    title: "Shape Picker (G)",
+    color: TEAL,
+    desc: "Press G (or click the ◆ tool) to open the shape picker: Rect, Circle, Triangle, Diamond, Star, and Pill. Click the canvas to place the selected shape. Press P for the freehand pen.",
   },
   {
     icon: "✋",
     title: "Move & Resize",
-    color: TEAL,
-    desc: "Click an element to select it. Drag it to reposition. Drag the corner handles to resize. Arrow keys nudge by 1px (Shift = 10px).",
+    color: NAVY,
+    desc: "Click an element to select it. Drag to reposition. Drag the corner handles to resize. Arrow keys nudge 1px — hold Shift for 10px jumps.",
   },
   {
     icon: "🎨",
-    title: "Style in the Sidebar",
-    color: NAVY,
-    desc: "When an element is selected, a properties panel opens on the right. Change fill colour, size, corner radius, opacity, and font settings.",
+    title: "Edit in the Properties Panel",
+    color: MUSTARD,
+    desc: "Selecting any element opens the right panel. Edit text content directly (buttons, alerts, labels, cards…), change fill colour, corner radius, opacity, font size, and alignment.",
   },
   {
-    icon: "✏️",
-    title: "Edit Text",
-    color: MUSTARD,
-    desc: "Double-click any text or heading block to type directly on the canvas. Press Escape or click away to confirm. Ctrl+D duplicates an element.",
+    icon: "📱",
+    title: "Tab Bar & Nav Editing",
+    color: TEAL,
+    desc: "Select a Tab Bar to edit each tab's emoji icon and label, add or remove tabs (2–6), and set the active tab — all from the properties panel.",
   },
   {
     icon: "📷",
     title: "Upload Media",
     color: "#6A1A8A",
-    desc: "Open the Media section in the panel and click Upload Image to pick a photo from your device. It lands on the canvas instantly.",
+    desc: "Open the Media section and click Upload Image to place a photo from your device. Images appear instantly on the canvas and are included in the final PNG export.",
   },
   {
     icon: "🔍",
     title: "Layer Order",
     color: "#8B1A10",
-    desc: "Double-click any non-text element to open the layer menu — bring to front, send to back, or nudge forward/backward through the stack.",
+    desc: "Double-click any non-text element to open the layer menu — bring to front, send to back, or nudge forward/backward.",
+  },
+  {
+    icon: "💾",
+    title: "Save as PNG",
+    color: ORANGE,
+    desc: "At game over, click Save Design (PNG) to download a full-quality screenshot. All elements render faithfully — shapes, images, freehand strokes, and UI components.",
   },
 ];
 
 const GAME_STEPS = [
   { num: "01", text: "2–5 players collaborate on a shared design canvas around a prompt" },
-  { num: "02", text: "One player is secretly the imposter — they subtly sabotage the design" },
-  { num: "03", text: "After each round, discuss who acted suspicious and vote them out" },
-  { num: "04", text: "Catch the imposter before all 4 rounds are over to win!" },
+  { num: "02", text: "One player is secretly the imposter — they're given a private Sabotage Style and Hidden Objective to subtly ruin the design" },
+  { num: "03", text: "Challenge Mode (host opt-in): each round one random player gets a secret design constraint — colorblind filter, no undo, or font lock" },
+  { num: "04", text: "After each round, use voice chat to discuss who seemed suspicious, then vote to eliminate someone" },
+  { num: "05", text: "Catch the imposter before all 4 rounds are over to win — at game over, their secret objectives are revealed to everyone!" },
 ];
 
 export function LandingPage({ onCreateRoom, onJoinRoom, error }: Props) {
@@ -191,10 +204,12 @@ export function LandingPage({ onCreateRoom, onJoinRoom, error }: Props) {
                   <div style={{ fontFamily:BEBAS, fontSize:"0.6rem", letterSpacing:"0.2em", color:ORANGE, marginBottom:8 }}>KEYBOARD SHORTCUTS</div>
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"4px 12px" }}>
                     {[
-                      ["R","Add rectangle"],["T","Add text"],
-                      ["Ctrl+D","Duplicate"],["Delete","Remove element"],
-                      ["Escape","Deselect"],["Ctrl+Z","Undo move"],
-                      ["← → ↑ ↓","Nudge 1px"],["Shift+Arrow","Nudge 10px"],
+                      ["V","Select tool"],["P","Pen / draw"],
+                      ["G","Shape picker"],["R","Add rectangle"],
+                      ["T","Add text"],["Ctrl+D","Duplicate"],
+                      ["Delete","Remove"],["Escape","Deselect"],
+                      ["Ctrl+Z","Undo move"],["← → ↑ ↓","Nudge 1px"],
+                      ["Shift+Arrow","Nudge 10px"],["Dbl-click","Layer menu"],
                     ].map(([key,desc]) => (
                       <div key={key} style={{ display:"flex", gap:6, alignItems:"center" }}>
                         <span style={{ fontFamily:DM, fontWeight:700, fontSize:"0.65rem", background:NAVY, color:"#FFFFFF", padding:"1px 5px", borderRadius:3, flexShrink:0 }}>{key}</span>
