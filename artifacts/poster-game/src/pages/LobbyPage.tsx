@@ -107,7 +107,7 @@ export function LobbyPage({ room, myPlayerId, amIHost, onStart }: Props) {
         <div style={{ display:"flex", gap:"0.6rem", justifyContent:"center" }}>
           {[
             { n:"4",   label:"Rounds",  bg:"#FFFFFF",     rot:-1.8, border:NAVY    },
-            { n:"2m",  label:"Design",  bg:MUSTARD,       rot:1.2,  border:"#8A6800" },
+            { n:"5m",  label:"Design",  bg:MUSTARD,       rot:1.2,  border:"#8A6800" },
             { n:"90s", label:"Discuss", bg:"#FFFFFF",     rot:-0.8, border:TEAL    },
             { n:"45s", label:"Vote",    bg:ORANGE,        rot:2.0,  border:"#8A3008" },
           ].map(({ n, label, bg, rot, border }) => (

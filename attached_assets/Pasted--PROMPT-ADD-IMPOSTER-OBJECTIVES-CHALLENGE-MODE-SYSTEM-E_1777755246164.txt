@@ -1,0 +1,201 @@
+🎭 + ⚠️ PROMPT: ADD IMPOSTER OBJECTIVES + CHALLENGE MODE SYSTEM
+
+Enhance the game by adding two major systems:
+
+Hidden Imposter Objectives (soft sabotage guidance)
+Host-controlled Challenge Mode (game modifiers like colorblindness)
+
+Both systems must integrate cleanly into the existing multiplayer + phase loop.
+
+🧠 PART 1 — IMPOSTER OBJECTIVES (SOFT SABOTAGE)
+🎯 Core Idea
+
+The imposter should NOT receive explicit tasks.
+
+Instead, they get:
+
+1 Sabotage Style (how they behave)
+1 Hidden Objective (what they influence)
+🧩 Server State Update
+
+Extend room state:
+
+imposterMeta: {
+  style: string,
+  objective: string
+}
+🎲 Assign on Game Start
+
+When game starts:
+
+Randomly assign 1 style + 1 objective to the imposter
+const STYLES = {
+  subtle: "Make small, hard-to-notice mistakes",
+  chaos: "Introduce disorder and randomness",
+  minimal: "Remove or under-design key elements",
+  overdesign: "Add unnecessary clutter"
+}
+
+const OBJECTIVES = {
+  alignment: "Break alignment subtly",
+  hierarchy: "Make important elements less obvious",
+  consistency: "Introduce inconsistent spacing/sizing",
+  clarity: "Make the UI harder to understand"
+}
+🔒 Send ONLY to Imposter
+socket.emit("imposter:objectives", {
+  style,
+  objective
+})
+🖥️ Imposter UI (Temporary Overlay)
+
+At start of DESIGN phase (3–4 seconds):
+
+🕵️ YOU ARE THE IMPOSTER
+
+Style: Subtle Saboteur  
+→ Make small, hard-to-notice mistakes
+
+Objective: Reduce hierarchy clarity  
+→ Make important elements less obvious
+
+Then fade out completely.
+
+⚡ Optional: Light Feedback
+
+Small private hint:
+
+Objective: Reduce clarity
+Status: ⚠️ In progress
+
+No scoring logic required.
+
+🧾 Game Over Reveal
+
+Show:
+
+IMPOSTER OBJECTIVES
+
+Style: Chaos  
+Objective: Break alignment
+🚫 Constraints
+No forced actions
+No special powers
+No visible differences
+⚠️ PART 2 — CHALLENGE MODE (HOST TOGGLE)
+🎯 Core Idea
+
+Before game starts, host can enable Challenge Mode, which applies random constraints to players each round.
+
+These simulate real-world design limitations (e.g. colorblindness).
+
+🧩 Lobby UI Changes
+
+In Lobby (host only):
+
+Add toggle:
+
+[ ] Enable Challenge Mode
+
+When enabled:
+
+Show label:
+
+⚠️ Challenge Mode ON
+Random player constraints each round
+
+Store in room state:
+
+challengeMode: boolean
+🎲 Constraint Assignment
+
+At start of each round:
+
+If challengeMode === true:
+
+Randomly select 1 non-imposter player
+Assign 1 constraint
+
+Store:
+
+activeConstraint: {
+  playerId,
+  type
+}
+🧪 Constraint Types
+1. Colorblind Mode (MOST IMPORTANT)
+
+Simulate color blindness using CSS/SVG filter.
+
+Types:
+
+red-green (protanopia/deuteranopia)
+blue-yellow (tritanopia)
+
+Apply ONLY to that player’s canvas:
+
+filter: url(#colorblind-filter);
+
+Use SVG <feColorMatrix> for simulation.
+
+2. No Undo
+Block Ctrl+Z / Cmd+Z for that player
+3. One Font Only
+Limit visible text styles/components
+Hide other typography options
+4. Optional Future
+Low opacity mode
+Delayed cursor (lag simulation)
+👁️ Player Awareness
+
+ALL players see:
+
+⚠️ Someone has a constraint this round
+
+BUT:
+
+Do NOT reveal who
+Do NOT reveal which constraint
+🔒 Affected Player UI
+
+Privately show:
+
+⚠️ CHALLENGE ACTIVE
+
+You are colorblind this round  
+Design carefully with limited color perception
+
+Fade after a few seconds.
+
+🎮 During Gameplay
+
+Constraint effects must:
+
+Only affect that player’s client
+NOT affect others’ views
+Still sync correct positions/data
+🔄 Reset Each Round
+Clear constraint after round ends
+Assign new one next round
+🔌 SOCKET EVENTS
+
+Add:
+
+constraint:assigned { playerId, type }
+imposter:objectives { style, objective }
+🎯 FINAL RESULT
+Imposter:
+Guided but not obvious
+More active and strategic
+Designers:
+Occasionally handicapped
+More chaotic + fun rounds
+Game:
+Higher replayability
+More social deduction tension
+More unpredictable outcomes
+🚨 IMPORTANT DESIGN PRINCIPLES
+Keep everything subtle
+No overwhelming UI
+Maintain identical tools
+Preserve fairness
