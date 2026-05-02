@@ -33,11 +33,14 @@
 }
 
 :root {
-  --cream: #E8E2D9;
-  --charcoal: #2C2C2C;
-  --charcoal-light: #3A3A3A;
-  --red-poster: #CC2200;
-  --red-dark: #A81B00;
+  --cream: #EDE5CC;
+  --charcoal: #1A1410;
+  --charcoal-light: #2A2018;
+  --red-poster: #D4561A;
+  --red-dark: #8A3008;
+  --navy: #1C3A60;
+  --teal: #2A8080;
+  --mustard: #C8A028;
 
   --background: 38 20% 87%;
   --foreground: 0 0% 17%;
