@@ -19,6 +19,7 @@ import {
   tallyVotes,
   type Room,
   type CanvasElement,
+  type ReplayEvent,
 } from "./gameState.js";
 import { pickPrompts, PHASE_DURATIONS } from "./rounds.js";
 import { logger } from "../lib/logger.js";
@@ -63,6 +64,7 @@ function sanitizeRoom(room: Room, forSocketId: string) {
     challengeHintType: room.challengeMode && room.activeConstraint ? room.activeConstraint.type : undefined,
     myConstraint,
     imposterMeta: showReveal ? room.imposterMeta : undefined,
+    replayEvents: room.phase !== "design" ? room.replayEvents : undefined,
   };
 }
 
@@ -287,6 +289,12 @@ export function registerSocketHandlers(io: Server) {
         ownerId: player.id,
       });
       io.to(room.id).emit("canvas:added", el);
+      const addEvent: ReplayEvent = {
+        type: "add", elementId: el.id, element: { ...el },
+        playerId: player.id, playerName: player.name, playerColor: player.color,
+        timestamp: Date.now(),
+      };
+      room.replayEvents.push(addEvent);
     });
 
     socket.on("canvas:update", ({ elementId, updates }: { elementId: string; updates: object }) => {
@@ -294,7 +302,15 @@ export function registerSocketHandlers(io: Server) {
       const player = room ? getPlayerBySocket(room, socket.id) : undefined;
       if (!room || !player || room.phase !== "design") return;
       const el = updateCanvasElement(room, elementId, updates as Record<string, unknown>);
-      if (el) io.to(room.id).emit("canvas:updated", el);
+      if (el) {
+        io.to(room.id).emit("canvas:updated", el);
+        const upEvent: ReplayEvent = {
+          type: "update", elementId, updates: updates as Partial<CanvasElement>,
+          playerId: player.id, playerName: player.name, playerColor: player.color,
+          timestamp: Date.now(),
+        };
+        room.replayEvents.push(upEvent);
+      }
     });
 
     socket.on("canvas:delete", ({ elementId }: { elementId: string }) => {
@@ -302,7 +318,15 @@ export function registerSocketHandlers(io: Server) {
       const player = room ? getPlayerBySocket(room, socket.id) : undefined;
       if (!room || !player || room.phase !== "design") return;
       const ok = deleteCanvasElement(room, elementId);
-      if (ok) io.to(room.id).emit("canvas:deleted", { elementId });
+      if (ok) {
+        io.to(room.id).emit("canvas:deleted", { elementId });
+        const delEvent: ReplayEvent = {
+          type: "delete", elementId,
+          playerId: player.id, playerName: player.name, playerColor: player.color,
+          timestamp: Date.now(),
+        };
+        room.replayEvents.push(delEvent);
+      }
     });
 
     socket.on("chat:typing", () => {

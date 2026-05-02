@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { PosterWallBg, TapeH, TapeCorner } from "../components/PosterWallBg";
 import type { RoomState, CanvasElement } from "../types/game";
+import { ReplayModal } from "../components/ReplayModal";
 
 // ── Canvas-based PNG export — renders all element types faithfully ─────────────
 function rrect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -259,12 +261,21 @@ type Props = {
 };
 
 export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
+  const [showReplay, setShowReplay] = useState(false);
   const latestResult = room.results[room.results.length - 1];
   const imposter     = room.players.find((p) => p.id === room.imposterId);
   const isEnded      = room.phase === "ended";
 
   return (
     <div style={{ position:"relative", minHeight:"100vh", overflow:"hidden" }}>
+      {showReplay && (room.replayEvents?.length ?? 0) > 0 && (
+        <ReplayModal
+          events={room.replayEvents!}
+          prompt={room.prompt}
+          defaultSpeed={1}
+          onClose={() => setShowReplay(false)}
+        />
+      )}
       <PosterWallBg />
 
       {/* Header */}
@@ -424,6 +435,15 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
                       onMouseEnter={(e)=>{e.currentTarget.style.transform="translate(-2px,-2px)";e.currentTarget.style.boxShadow=`6px 6px 0 ${TEAL}`;}}
                       onMouseLeave={(e)=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow=`4px 4px 0 ${TEAL}`;}}>
                       ↓ SAVE DESIGN (PNG)
+                    </button>
+                  )}
+                  {(room.replayEvents?.length ?? 0) > 0 && (
+                    <button
+                      onClick={() => setShowReplay(true)}
+                      style={{ fontFamily:BEBAS, letterSpacing:"0.12em", fontSize:"1.3rem", color:"#FFFFFF", background:NAVY, border:`3px solid ${ORANGE}`, boxShadow:`4px 4px 0 ${ORANGE}`, padding:"0.45rem 2.2rem", cursor:"pointer", transition:"transform 0.1s, box-shadow 0.1s" }}
+                      onMouseEnter={(e)=>{e.currentTarget.style.transform="translate(-2px,-2px)";e.currentTarget.style.boxShadow=`6px 6px 0 ${ORANGE}`;}}
+                      onMouseLeave={(e)=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow=`4px 4px 0 ${ORANGE}`;}}>
+                      🎬 WATCH FULL REPLAY
                     </button>
                   )}
                   {amIHost ? (

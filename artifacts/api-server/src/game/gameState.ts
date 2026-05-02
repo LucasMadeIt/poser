@@ -76,6 +76,17 @@ export type ImposterObjective = {
 
 export type ConstraintType = "colorblind-rg" | "colorblind-by" | "no-undo" | "one-font";
 
+export type ReplayEvent = {
+  type: "add" | "update" | "delete";
+  elementId: string;
+  element?: CanvasElement;
+  updates?: Partial<CanvasElement>;
+  playerId: string;
+  playerName: string;
+  playerColor: string;
+  timestamp: number;
+};
+
 export type ActiveConstraint = {
   playerId: string;
   type: ConstraintType;
@@ -99,6 +110,7 @@ export type Room = {
   imposterMeta?: ImposterObjective;
   challengeMode: boolean;
   activeConstraint?: ActiveConstraint;
+  replayEvents: ReplayEvent[];
 };
 
 const IMPOSTER_STYLES: { name: string; desc: string }[] = [
@@ -146,6 +158,7 @@ export function createRoom(hostSocketId: string, hostName: string): Room {
     phaseEndTime: 0,
     imposterId: "",
     challengeMode: false,
+    replayEvents: [],
   };
   rooms.set(id, room);
   return room;
@@ -241,6 +254,7 @@ export function resetRound(room: Room): void {
   room.votes = {};
   room.doneVotes = [];
   room.activeConstraint = undefined;
+  room.replayEvents = [];
 }
 
 /** Like resetRound but keeps the canvas — used when the imposter escaped */

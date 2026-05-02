@@ -7,6 +7,7 @@ import { PlayerAvatar } from "../components/PlayerAvatar";
 import { PosterWallBg, TapeCorner } from "../components/PosterWallBg";
 import { useVoiceChat } from "../hooks/useVoiceChat";
 import { CanvasPreview } from "../components/CanvasPreview";
+import { ReplayModal } from "../components/ReplayModal";
 
 const BEBAS   = "'Bebas Neue', sans-serif";
 const DM      = "'DM Sans', sans-serif";
@@ -124,8 +125,9 @@ function MicButton({ isRecording, permissionDenied, speakingCount, onStart, onSt
 }
 
 export function ChatPage({ room, myPlayerId, amIHost, onSend, onSkip, voteTally, onVote, voteResult, typingPlayers, emitTyping, socket, roomId }: Props) {
-  const [draft,     setDraft]     = useState("");
-  const [now,       setNow]       = useState(Date.now());
+  const [draft,       setDraft]       = useState("");
+  const [now,         setNow]         = useState(Date.now());
+  const [showReplay,  setShowReplay]  = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // ── Live voice chat (walkie-talkie)
@@ -269,8 +271,29 @@ export function ChatPage({ room, myPlayerId, amIHost, onSend, onSkip, voteTally,
         <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden", background:"rgba(245,238,226,0.85)", backdropFilter:"blur(2px)" }}>
 
           <div style={{ padding:"1.1rem 1.4rem 0.85rem", flexShrink:0 }}>
-            <div style={{ fontFamily:BEBAS, fontSize:"0.85rem", letterSpacing:"0.2em", color:ORANGE, marginBottom:12 }}>
-              SUBMITTED DESIGN — WHO SABOTAGED IT?
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
+              <div style={{ fontFamily:BEBAS, fontSize:"0.85rem", letterSpacing:"0.2em", color:ORANGE, flex:1 }}>
+                SUBMITTED DESIGN — WHO SABOTAGED IT?
+              </div>
+              {(room.replayEvents?.length ?? 0) > 0 && (
+                <button
+                  onClick={() => setShowReplay(true)}
+                  onMouseEnter={e => { e.currentTarget.style.transform = "rotate(-2deg) scale(1.05)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = "rotate(-1deg)"; }}
+                  style={{
+                    fontFamily: BEBAS, fontSize:"0.72rem", letterSpacing:"0.14em",
+                    color:"#FFFFFF", background: NAVY,
+                    border:`2px solid ${ORANGE}`,
+                    padding:"3px 10px 3px 8px",
+                    cursor:"pointer",
+                    transform:"rotate(-1deg)",
+                    boxShadow:`2px 2px 0 ${ORANGE}`,
+                    transition:"transform 0.12s, box-shadow 0.12s",
+                    flexShrink:0,
+                  }}>
+                  ▶ WATCH REPLAY
+                </button>
+              )}
             </div>
             <div style={{ position:"relative", display:"inline-block" }}>
               <TapeCorner color={ORANGE} corner="tl" />
@@ -286,6 +309,15 @@ export function ChatPage({ room, myPlayerId, amIHost, onSend, onSkip, voteTally,
               </div>
             </div>
           </div>
+
+          {showReplay && (room.replayEvents?.length ?? 0) > 0 && (
+            <ReplayModal
+              events={room.replayEvents!}
+              prompt={room.prompt}
+              defaultSpeed={2}
+              onClose={() => setShowReplay(false)}
+            />
+          )}
 
         </div>
 

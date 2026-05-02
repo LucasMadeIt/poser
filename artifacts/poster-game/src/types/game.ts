@@ -67,6 +67,17 @@ export type RoundResult = {
   caught: boolean;
 };
 
+export type ReplayEvent = {
+  type: "add" | "update" | "delete";
+  elementId: string;
+  element?: CanvasElement;
+  updates?: Partial<CanvasElement>;
+  playerId: string;
+  playerName: string;
+  playerColor: string;
+  timestamp: number;
+};
+
 export type ImposterObjective = {
   styleName: string;
   style: string;
@@ -90,14 +101,11 @@ export type RoomState = {
   votes?: Record<string, string>;
   voteTally?: Record<string, number>;
   doneVotes?: string[];
-  /** Challenge mode: true if host enabled it */
   challengeMode?: boolean;
-  /** True if someone has a constraint this round (visible to all) */
   challengeHint?: boolean;
-  /** Constraint type visible to ALL players — does NOT reveal who has it */
   challengeHintType?: string;
-  /** Constraint type — only populated for the affected player */
   myConstraint?: string;
-  /** Imposter objectives — only included in results/ended phase */
   imposterMeta?: ImposterObjective;
+  /** Canvas edit history — populated once design phase ends */
+  replayEvents?: ReplayEvent[];
 };
