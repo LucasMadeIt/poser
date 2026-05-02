@@ -1,0 +1,499 @@
+Good instinct adding the “modern + clean + white” constraint—that’s exactly what makes lo-fi look intentional instead of messy.
+
+I’ll describe **what each component should visually look like on screen** so you can recreate it fast in Figma without overthinking.
+
+---
+
+# 🧱 1. Foundations
+
+### **Container / Card**
+
+Looks like:
+
+* A **soft white rectangle floating on a light gray page**
+* Background: pure white (#FFFFFF)
+* Page behind it: very light gray (#F7F7F7)
+* Rounded corners (8–12px)
+* Inside: content spaced evenly (text blocks, buttons)
+
+Visual:
+
+```
+[        Title         ]
+[  short description   ]
+[   button      →      ]
+```
+
+👉 Feels like a “tile” or “card” sitting on the page
+
+---
+
+### **Section / Frame**
+
+Looks like:
+
+* Full-width invisible container
+* Stacks multiple cards vertically
+* Clean spacing between items (16–24px)
+
+Visual:
+
+```
+[ Section Title ]
+
+[ Card ]
+[ Card ]
+[ Card ]
+```
+
+👉 Think “page structure,” not visible UI
+
+---
+
+# 🔘 2. Inputs & Actions
+
+### **Button**
+
+Looks like:
+
+* Rounded rectangle
+* Solid dark gray or black fill
+* White centered text
+
+```
+[   Continue   ]
+```
+
+Variants:
+
+* Primary: filled dark
+* Secondary: white with gray border
+* Disabled: faded (low opacity)
+
+---
+
+### **Text Input**
+
+Looks like:
+
+* White box with light gray border
+* Slight rounding
+* Gray placeholder text inside
+
+```
+[   Enter your name...   ]
+```
+
+States:
+
+* Focus: darker border
+* Error: red border
+
+---
+
+### **Search Bar**
+
+Looks like:
+
+* Pill-shaped (fully rounded ends)
+* Light gray fill
+* Small search icon on left
+
+```
+[ 🔍  Search...             ]
+```
+
+---
+
+### **Dropdown**
+
+Looks like:
+
+* Same as input
+* Small arrow (chevron) on right
+
+```
+[  Select option     ⌄  ]
+```
+
+When open:
+
+```
+[ Option 1 ]
+[ Option 2 ]
+[ Option 3 ]
+```
+
+---
+
+### **Checkbox**
+
+Looks like:
+
+```
+[ ] Option
+[x] Option
+```
+
+* Small square
+* Checked = filled or checkmark
+
+---
+
+### **Radio Button**
+
+Looks like:
+
+```
+( ) Option
+(•) Option
+```
+
+---
+
+### **Toggle Switch**
+
+Looks like:
+
+```
+[  ○──── ]  (off)
+[ ────○ ]  (on)
+```
+
+* Pill track
+* Circle slides left/right
+
+---
+
+# 🧭 3. Navigation
+
+### **Navbar (Top)**
+
+Looks like:
+
+* White horizontal bar
+* Slight bottom border
+
+```
+Logo        Search      Profile
+```
+
+---
+
+### **Tab Bar (Bottom mobile)**
+
+Looks like:
+
+```
+[🏠 Home] [🔍] [➕] [❤️] [👤]
+```
+
+* Icons + small labels
+* Active = darker
+
+---
+
+### **Sidebar**
+
+Looks like:
+
+* Vertical strip on left
+* Light background
+
+```
+🏠 Home
+📁 Projects
+⚙️ Settings
+```
+
+Active item:
+
+* Highlighted background
+
+---
+
+### **Breadcrumbs**
+
+Looks like:
+
+```
+Home > Dashboard > Settings
+```
+
+* Small, subtle text
+
+---
+
+# 🧾 4. Content Display
+
+### **List Item**
+
+Looks like:
+
+```
+[🖼]  Title
+      Subtitle         →
+```
+
+* Clean horizontal row
+* Slight spacing
+
+---
+
+### **Card (Content Block)**
+
+Looks like:
+
+```
+[ Image placeholder ]
+[ Title             ]
+[ Description       ]
+[ Button ] 
+```
+
+Image = gray box in lo-fi
+
+---
+
+### **Table Row**
+
+Looks like:
+
+```
+Name     Status     Date     →
+John     Active     Today
+```
+
+* Clean grid
+* Thin separators
+
+---
+
+### **Avatar**
+
+Looks like:
+
+* Circle
+* Either:
+
+  * Initials (JD)
+  * Gray circle
+
+---
+
+### **Tag / Chip**
+
+Looks like:
+
+```
+[ Design ]
+[ Urgent ]
+```
+
+* Small rounded pill
+* Light gray fill
+
+---
+
+### **Badge**
+
+Looks like:
+
+```
+Inbox ●3
+```
+
+or small red dot
+
+---
+
+# 📊 5. Feedback & States
+
+### **Loading Spinner**
+
+Looks like:
+
+* Simple spinning circle
+  OR
+* Gray skeleton blocks
+
+```
+[██████     ]
+[█████████  ]
+```
+
+---
+
+### **Progress Bar**
+
+Looks like:
+
+```
+[██████----]
+```
+
+* Filled portion = progress
+
+---
+
+### **Alert / Banner**
+
+Looks like:
+
+```
+[ ⚠️ Something went wrong ]
+```
+
+* Light background
+* Icon + text
+
+---
+
+### **Toast**
+
+Looks like:
+
+* Small floating box (bottom corner)
+
+```
+Saved successfully ✓
+```
+
+---
+
+# 🪟 6. Overlays
+
+### **Modal**
+
+Looks like:
+
+* Dark transparent background
+* White card in center
+
+```
+[   Title       ]
+[   Content     ]
+[ Cancel ][OK ]
+```
+
+---
+
+### **Dropdown Menu**
+
+Looks like:
+
+```
+[ Profile ]
+[ Settings ]
+[ Logout ]
+```
+
+* Small floating box
+
+---
+
+### **Tooltip**
+
+Looks like:
+
+* Tiny label above element
+
+```
+[ Delete item ]
+```
+
+---
+
+# 🧩 7. Utility
+
+### **Divider**
+
+Looks like:
+
+```
+──────────────
+```
+
+---
+
+### **Spacer**
+
+Looks like:
+
+* Literally empty space
+
+---
+
+### **Icon Button**
+
+Looks like:
+
+```
+[ ❤️ ]
+```
+
+* Square or circle
+
+---
+
+# 📱 8. Mobile Patterns
+
+### **Bottom Sheet**
+
+Looks like:
+
+* Slides up from bottom
+
+```
+──────────
+Option 1
+Option 2
+Option 3
+```
+
+---
+
+### **Floating Action Button (FAB)**
+
+Looks like:
+
+```
+      [+]
+```
+
+* Circular
+* Bottom-right
+* Stands out slightly
+
+---
+
+# 🧠 Final Design Rules (what makes it look “modern”)
+
+Everything should feel:
+
+* **White base**
+* **Soft gray accents**
+* **Consistent spacing (8px grid)**
+* **Same border radius everywhere**
+* **Minimal clutter**
+* **No heavy shadows**
+
+---
+
+# ⚡ Mental shortcut
+
+If you’re ever unsure:
+
+* Everything = rectangles + text
+* Rounded slightly
+* Spaced evenly
+
+That’s literally 90% of UI design.
+
+---
+
+If you want, I can:
+
+* Turn this into a **visual cheat sheet**
+* Or make you a **drag-and-drop Figma kit so you can build apps in under 5 min**
+* Or apply this directly to your **Kindro app screens** so you move faster than most interns

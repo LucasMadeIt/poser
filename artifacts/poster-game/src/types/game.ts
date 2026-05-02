@@ -12,7 +12,13 @@ export type Player = {
 
 export type CanvasElement = {
   id: string;
-  type: "text" | "heading" | "rect" | "circle" | "label" | "button" | "divider";
+  type:
+    | "text" | "heading" | "rect" | "circle" | "label" | "button" | "divider"
+    | "input" | "searchbar" | "dropdown" | "checkbox" | "radio" | "toggle"
+    | "navbar" | "tabbar" | "sidebar" | "breadcrumb"
+    | "listitem" | "card" | "badge" | "tag"
+    | "progress" | "alert" | "toast" | "modal" | "fab"
+    | "framemobile" | "frameweb";
   x: number;
   y: number;
   width: number;
@@ -23,6 +29,8 @@ export type CanvasElement = {
   fontSize?: number;
   fontWeight?: number;
   textAlign?: "left" | "center" | "right";
+  cornerRadius?: number;
+  opacity?: number;
   ownerId: string;
   zIndex: number;
 };

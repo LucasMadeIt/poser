@@ -1,0 +1,74 @@
+make prompt for replit to have this Drawing Canvas — Draw, sketch & annotate on your site
+Drawing Canvas
+Transform your Framer site into an interactive whiteboard. Draw freehand, sketch shapes, add annotations, and export your creations. Features customizable toolbar, grid overlay, auto-save, and full touch support.
+About this Component
+Drawing Canvas for Framer
+Turn any Framer page into a collaborative whiteboard. Let visitors draw, sketch, and annotate directly on your site with professional-grade tools.
+
+
+Key Features:
+Drawing Tools: Pen, eraser, line, rectangle, and circle shapes
+
+Customizable Toolbar: Position top/bottom/left/right with full color control
+
+Grid Overlay: Optional alignment grid with adjustable size and color
+
+Auto-Save: Never lose work with automatic localStorage backup
+
+Export: Download creations as PNG images instantly
+
+Touch Support: Full tablet and mobile compatibility
+
+Undo/Redo: 20-step history for mistake-free drawing
+
+Customization:
+Background color: Any solid color or transparent
+
+Toolbar: Show/hide, position, alignment, colors
+
+Grid: Enable/disable, size (10-100px), color
+
+Tool visibility: Toggle individual tools on/off
+
+Custom icons: Upload your own SVG icons for each tool
+
+Eraser width: 5-50px adjustable
+
+
+Toolbar Controls:
+Position: Top, bottom, left, or right
+
+Alignment: Start, center, or end
+
+Colors: Custom background and text colors
+
+Tools: Show/hide pen, eraser, shapes, color picker, width slider, grid toggle, export, undo, redo, clear
+
+Use Cases:
+Creative portfolios with client sketching
+
+Educational sites for interactive lessons
+
+Design feedback and annotation
+
+Digital signature capture
+
+Brainstorming and wireframing
+
+Kids' activity pages
+
+Responsive:
+Works on desktop (mouse) and mobile (touch)
+
+Toolbar adapts to screen size
+
+Canvas scales automatically
+
+Performance:
+HTML5 Canvas with hardware acceleration
+
+Optimized rendering for 60fps drawing
+
+Efficient memory management
+
+No external dependencies
