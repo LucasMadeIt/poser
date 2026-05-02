@@ -1,96 +1,117 @@
-// Logo palette: orange #D4561A · navy #1C3A60 · teal #2A8080 · mustard #C8A028 · cream #EDE5CC
 export function PosterWallBg() {
   return (
-    <div style={{ position:"fixed", inset:0, zIndex:0, background:"#18130E", overflow:"hidden", pointerEvents:"none" }}>
+    <div style={{ position:"fixed", inset:0, zIndex:0, background:"#F5EEE2", overflow:"hidden", pointerEvents:"none" }}>
 
-      {/* ── Layered ripped-poster colour patches (vibrant, chaotic) ── */}
-      <div style={{ position:"absolute", top:"-8%",  left:"-6%",  width:"46%", height:"60%", background:"#1C3A60", opacity:0.45, transform:"rotate(-3.8deg)" }} />
-      <div style={{ position:"absolute", top:"-4%",  left:"10%",  width:"30%", height:"38%", background:"#D4561A", opacity:0.28, transform:"rotate(2.1deg)" }} />
-      <div style={{ position:"absolute", top:"5%",   right:"-6%", width:"42%", height:"52%", background:"#2A8080", opacity:0.30, transform:"rotate(3.2deg)" }} />
-      <div style={{ position:"absolute", top:"18%",  right:"10%", width:"28%", height:"35%", background:"#C8A028", opacity:0.22, transform:"rotate(-4deg)" }} />
-      <div style={{ position:"absolute", top:"35%",  left:"-5%",  width:"32%", height:"45%", background:"#8B1A10", opacity:0.35, transform:"rotate(4.5deg)" }} />
-      <div style={{ position:"absolute", top:"40%",  left:"22%",  width:"38%", height:"42%", background:"#1C3A60", opacity:0.20, transform:"rotate(-2deg)" }} />
-      <div style={{ position:"absolute", bottom:"-10%", left:"8%",  width:"55%", height:"48%", background:"#D4561A", opacity:0.18, transform:"rotate(-1.5deg)" }} />
-      <div style={{ position:"absolute", bottom:"-5%",  right:"-5%", width:"40%", height:"50%", background:"#2A6040", opacity:0.28, transform:"rotate(3deg)" }} />
-      <div style={{ position:"absolute", top:"60%",  right:"15%", width:"28%", height:"35%", background:"#EDE5CC", opacity:0.04, transform:"rotate(-2.5deg)" }} />
-      <div style={{ position:"absolute", top:"25%",  left:"45%",  width:"20%", height:"28%", background:"#C8A028", opacity:0.15, transform:"rotate(5deg)" }} />
-      <div style={{ position:"absolute", bottom:"25%", left:"-2%", width:"24%", height:"30%", background:"#2A8080", opacity:0.22, transform:"rotate(-5deg)" }} />
+      {/* ── Big vivid poster colour blocks (street art chaos) ── */}
+      <div style={{ position:"absolute", top:"-12%", left:"-8%",  width:"52%", height:"65%", background:"#1C3A60", opacity:0.92, transform:"rotate(-4deg)" }} />
+      <div style={{ position:"absolute", top:"-6%",  left:"8%",   width:"36%", height:"44%", background:"#D4561A", opacity:0.88, transform:"rotate(2.5deg)" }} />
+      <div style={{ position:"absolute", top:"-8%",  right:"-8%", width:"48%", height:"58%", background:"#2A8080", opacity:0.85, transform:"rotate(3.8deg)" }} />
+      <div style={{ position:"absolute", top:"20%",  right:"5%",  width:"30%", height:"40%", background:"#C8A028", opacity:0.80, transform:"rotate(-5deg)" }} />
+      <div style={{ position:"absolute", top:"32%",  left:"-6%",  width:"38%", height:"50%", background:"#8B1A10", opacity:0.88, transform:"rotate(5deg)" }} />
+      <div style={{ position:"absolute", top:"46%",  left:"26%",  width:"42%", height:"46%", background:"#1C3A60", opacity:0.72, transform:"rotate(-2.5deg)" }} />
+      <div style={{ position:"absolute", bottom:"-12%", left:"4%",  width:"60%", height:"52%", background:"#D4561A", opacity:0.78, transform:"rotate(-2deg)" }} />
+      <div style={{ position:"absolute", bottom:"-8%", right:"-6%", width:"46%", height:"56%", background:"#1A5A30", opacity:0.82, transform:"rotate(3.5deg)" }} />
+      <div style={{ position:"absolute", top:"58%",  right:"12%",  width:"32%", height:"38%", background:"#F0E8D0", opacity:0.65, transform:"rotate(-3deg)" }} />
+      <div style={{ position:"absolute", top:"22%",  left:"48%",  width:"22%", height:"30%", background:"#C8A028", opacity:0.70, transform:"rotate(6deg)" }} />
+      <div style={{ position:"absolute", bottom:"22%", left:"-3%", width:"28%", height:"34%", background:"#2A8080", opacity:0.75, transform:"rotate(-6deg)" }} />
+      {/* extra bright accent patches */}
+      <div style={{ position:"absolute", top:"14%",  left:"30%",  width:"18%", height:"24%", background:"#E8302A", opacity:0.55, transform:"rotate(-3deg)" }} />
+      <div style={{ position:"absolute", bottom:"8%",  left:"38%", width:"16%", height:"20%", background:"#F5C842", opacity:0.60, transform:"rotate(4deg)" }} />
+      <div style={{ position:"absolute", top:"70%",  left:"14%",  width:"22%", height:"18%", background:"#2A4AAA", opacity:0.50, transform:"rotate(-2deg)" }} />
+      <div style={{ position:"absolute", top:"4%",   right:"30%", width:"14%", height:"20%", background:"#F0E8D0", opacity:0.82, transform:"rotate(2deg)" }} />
+      <div style={{ position:"absolute", bottom:"35%", right:"5%", width:"18%", height:"16%", background:"#8B1A10", opacity:0.55, transform:"rotate(-4deg)" }} />
 
-      {/* White-ish torn paper scrap overlays (faded posters) */}
-      <div style={{ position:"absolute", top:"8%",  right:"28%", width:"18%", height:"22%", background:"#F0E8D0", opacity:0.06, transform:"rotate(3deg)" }} />
-      <div style={{ position:"absolute", bottom:"18%", left:"28%", width:"22%", height:"18%", background:"#EDE5CC", opacity:0.05, transform:"rotate(-2deg)" }} />
+      {/* ── Ripped white/cream paper overlay scraps ── */}
+      <div style={{ position:"absolute", top:"6%",  right:"26%", width:"22%", height:"26%", background:"#FAFAF5", opacity:0.82, transform:"rotate(3.5deg)", boxShadow:"3px 6px 18px rgba(0,0,0,0.25)" }} />
+      <div style={{ position:"absolute", bottom:"16%", left:"26%", width:"26%", height:"20%", background:"#F5F0E8", opacity:0.78, transform:"rotate(-2.5deg)", boxShadow:"3px 6px 18px rgba(0,0,0,0.25)" }} />
+      <div style={{ position:"absolute", top:"48%",  left:"6%",   width:"16%", height:"24%", background:"#FFFDF5", opacity:0.70, transform:"rotate(4deg)" }} />
 
       {/* ── Orange duct tape strips ── */}
       {([
-        { top:"11%", left:"6%",   w:150, h:24, rot:-40 },
-        { top:"48%", left:"32%",  w:110, h:20, rot:-26 },
-        { bottom:"18%", right:"8%",  w:140, h:24, rot:20 },
-        { top:"68%", left:"2%",   w:100, h:18, rot:-16 },
-        { top:"24%", right:"2%",  w:88,  h:22, rot:44 },
-        { bottom:"42%", left:"54%", w:92, h:18, rot:-30 },
-        { top:"80%", right:"30%", w:120, h:20, rot:12 },
+        { top:"10%",  left:"4%",   w:160, h:26, rot:-42 },
+        { top:"50%",  left:"30%",  w:120, h:22, rot:-28 },
+        { bottom:"15%", right:"6%", w:150, h:26, rot:22 },
+        { top:"70%",  left:"0%",   w:110, h:20, rot:-18 },
+        { top:"22%",  right:"0%",  w:95,  h:24, rot:46 },
+        { bottom:"40%", left:"52%", w:100, h:20, rot:-32 },
+        { top:"82%",  right:"28%", w:130, h:22, rot:14 },
+        { top:"36%",  left:"18%",  w:80,  h:18, rot:58 },
       ] as { top?:string; bottom?:string; left?:string; right?:string; w:number; h:number; rot:number }[]).map((t,i) => (
         <div key={`ot${i}`} style={{
           position:"absolute", top:t.top, bottom:t.bottom, left:t.left, right:t.right,
           width:t.w, height:t.h,
-          background:"repeating-linear-gradient(90deg,#B84E10CC,#D4621AEE 10px,#B84E10CC 14px)",
+          background:"repeating-linear-gradient(90deg,#B84E10EE,#D4621AFF 10px,#B84E10EE 14px)",
           transform:`rotate(${t.rot}deg)`,
-          boxShadow:"1px 4px 14px rgba(0,0,0,0.55)",
-          opacity:0.88,
+          boxShadow:"2px 5px 16px rgba(0,0,0,0.55)",
+          opacity:0.95,
         }} />
       ))}
 
-      {/* ── Blue/teal duct tape strips ── */}
+      {/* ── Teal/blue tape strips ── */}
       {([
-        { top:"6%",  right:"18%", w:128, h:20, rot:16 },
-        { top:"54%", left:"44%",  w:100, h:18, rot:-9 },
-        { bottom:"8%", left:"28%", w:160, h:22, rot:22 },
-        { top:"36%", right:"28%", w:78,  h:18, rot:-37 },
-        { top:"78%", right:"42%", w:110, h:20, rot:9 },
+        { top:"4%",   right:"16%", w:140, h:22, rot:18 },
+        { top:"56%",  left:"42%",  w:110, h:20, rot:-11 },
+        { bottom:"6%",  left:"26%", w:170, h:24, rot:24 },
+        { top:"38%",  right:"26%", w:86,  h:20, rot:-40 },
+        { top:"76%",  right:"40%", w:120, h:22, rot:11 },
+        { top:"62%",  left:"60%",  w:75,  h:18, rot:-22 },
       ] as { top?:string; bottom?:string; left?:string; right?:string; w:number; h:number; rot:number }[]).map((t,i) => (
         <div key={`bt${i}`} style={{
           position:"absolute", top:t.top, bottom:t.bottom, left:t.left, right:t.right,
           width:t.w, height:t.h,
-          background:"repeating-linear-gradient(90deg,#1A5070CC,#206090EE 10px,#1A5070CC 14px)",
+          background:"repeating-linear-gradient(90deg,#1A5070EE,#206090FF 10px,#1A5070EE 14px)",
           transform:`rotate(${t.rot}deg)`,
-          boxShadow:"1px 4px 14px rgba(0,0,0,0.55)",
-          opacity:0.80,
+          boxShadow:"2px 5px 16px rgba(0,0,0,0.55)",
+          opacity:0.90,
         }} />
       ))}
 
-      {/* ── Hand-drawn scribbles matching logo style ── */}
-      <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", opacity:0.08 }} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-        {/* squiggly lines */}
-        <path d="M70 115 Q200 80 295 158 Q375 228 465 122 Q538 48 625 142" stroke="#EDE5CC" strokeWidth="3.5" fill="none" strokeLinecap="round"/>
-        <path d="M920 68 Q1005 148 1038 88 Q1078 28 1162 98 Q1244 165 1335 70" stroke="#EDE5CC" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-        <path d="M188 608 Q295 552 350 628 Q410 700 510 646 Q612 590 660 668" stroke="#EDE5CC" strokeWidth="2" fill="none" strokeLinecap="round"/>
-        {/* doodle shapes */}
-        <path d="M958 715 L1068 688 L1008 762 L1118 742" stroke="#EDE5CC" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-        <circle cx="1362" cy="198" r="44" stroke="#EDE5CC" strokeWidth="2.5" fill="none" strokeDasharray="9 7"/>
-        <circle cx="108" cy="762" r="28" stroke="#EDE5CC" strokeWidth="2" fill="none" strokeDasharray="6 9"/>
-        <circle cx="725" cy="852" r="18" stroke="#D4561A" strokeWidth="2" fill="none" strokeDasharray="4 6" opacity="0.4"/>
-        {/* lightning / arrow */}
-        <path d="M705 398 L728 372 L748 428 L765 370 L788 435" stroke="#D4561A" strokeWidth="3.5" fill="none" strokeLinecap="round" opacity="0.4"/>
-        {/* small doodles */}
-        <path d="M395 300 C420 272 444 320 456 288 S488 265 500 298" stroke="#EDE5CC" strokeWidth="2" fill="none"/>
-        <line x1="42" y1="455" x2="188" y2="488" stroke="#EDE5CC" strokeWidth="1.5" strokeDasharray="4 10" opacity="0.45"/>
-        <line x1="1285" y1="608" x2="1435" y2="575" stroke="#EDE5CC" strokeWidth="1.5" strokeDasharray="4 10" opacity="0.45"/>
-        {/* sticker outlines */}
-        <rect x="1048" y="648" width="185" height="82" fill="none" stroke="#EDE5CC" strokeWidth="1.5" strokeDasharray="6 8" transform="rotate(6 1140 689)" opacity="0.14"/>
-        <rect x="58" y="178" width="124" height="56" fill="none" stroke="#EDE5CC" strokeWidth="1.5" strokeDasharray="5 7" transform="rotate(-8 120 206)" opacity="0.12"/>
-        {/* small star */}
-        <path d="M840 302 L845 290 L850 302 L862 302 L852 310 L856 322 L845 314 L834 322 L838 310 L828 302 Z" stroke="#C8A028" strokeWidth="1.5" fill="none" opacity="0.3"/>
-        {/* watermark text */}
-        <text x="1108" y="498" fontFamily="'Bebas Neue',sans-serif" fontSize="40" fill="#EDE5CC" transform="rotate(-11 1108 498)" opacity="0.05">POSTER</text>
-        <text x="50" y="356" fontFamily="sans-serif" fontSize="17" fill="#D4561A" transform="rotate(5 50 356)" opacity="0.16">WHO DID THIS?</text>
-        <text x="795" y="152" fontFamily="sans-serif" fontSize="13" fill="#EDE5CC" transform="rotate(-3 795 152)" opacity="0.07">SABOTEUR</text>
+      {/* ── Mustard tape strips ── */}
+      {([
+        { top:"16%",  left:"60%",  w:100, h:18, rot:30 },
+        { bottom:"28%", right:"22%", w:88, h:18, rot:-15 },
+      ] as { top?:string; bottom?:string; left?:string; right?:string; w:number; h:number; rot:number }[]).map((t,i) => (
+        <div key={`mt${i}`} style={{
+          position:"absolute", top:t.top, bottom:t.bottom, left:t.left, right:t.right,
+          width:t.w, height:t.h,
+          background:"repeating-linear-gradient(90deg,#A88010EE,#C8A028FF 10px,#A88010EE 14px)",
+          transform:`rotate(${t.rot}deg)`,
+          boxShadow:"2px 4px 12px rgba(0,0,0,0.5)",
+          opacity:0.85,
+        }} />
+      ))}
+
+      {/* ── Street art scribbles / graffiti ── */}
+      <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", opacity:0.22 }} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+        <path d="M65 108 Q210 72 310 155 Q395 230 490 118 Q568 40 660 148" stroke="#FAFAF5" strokeWidth="4" fill="none" strokeLinecap="round"/>
+        <path d="M940 60 Q1020 155 1055 82 Q1098 22 1188 98 Q1268 170 1365 65" stroke="#FAFAF5" strokeWidth="3" fill="none" strokeLinecap="round"/>
+        <path d="M182 618 Q302 558 360 638 Q422 712 528 654 Q628 595 678 678" stroke="#FAFAF5" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+        <path d="M978 725 L1085 695 L1022 768 L1130 748" stroke="#FAFAF5" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+        <circle cx="1378" cy="195" r="52" stroke="#FAFAF5" strokeWidth="3" fill="none" strokeDasharray="10 8"/>
+        <circle cx="102"  cy="770" r="34" stroke="#FAFAF5" strokeWidth="2.5" fill="none" strokeDasharray="7 10"/>
+        <circle cx="735"  cy="858" r="22" stroke="#D4561A" strokeWidth="3" fill="none" strokeDasharray="5 7"/>
+        <path d="M715 408 L740 378 L762 438 L782 375 L808 445" stroke="#D4561A" strokeWidth="4.5" fill="none" strokeLinecap="round"/>
+        <path d="M388 295 C416 265 444 318 460 284 S496 260 512 298" stroke="#FAFAF5" strokeWidth="2.5" fill="none"/>
+        <line x1="38"  y1="460" x2="192" y2="496" stroke="#FAFAF5" strokeWidth="2" strokeDasharray="5 12" opacity="0.6"/>
+        <line x1="1295" y1="615" x2="1440" y2="580" stroke="#FAFAF5" strokeWidth="2" strokeDasharray="5 12" opacity="0.6"/>
+        <rect x="1058" y="655" width="192" height="88" fill="none" stroke="#FAFAF5" strokeWidth="2" strokeDasharray="7 9" transform="rotate(6 1154 699)" opacity="0.35"/>
+        <rect x="52"  y="182" width="132" height="60" fill="none" stroke="#FAFAF5" strokeWidth="2" strokeDasharray="6 8" transform="rotate(-8 118 212)" opacity="0.28"/>
+        <path d="M848 310 L854 295 L860 310 L875 310 L863 320 L868 335 L854 326 L840 335 L845 320 L833 310 Z" stroke="#C8A028" strokeWidth="2" fill="none" opacity="0.6"/>
+        <text x="1118" y="505" fontFamily="'Bebas Neue',sans-serif" fontSize="55" fill="#FAFAF5" transform="rotate(-12 1118 505)" opacity="0.12">POSTER</text>
+        <text x="42"   y="362" fontFamily="sans-serif" fontSize="20" fill="#D4561A" transform="rotate(5 42 362)" opacity="0.30">WHO DID THIS?</text>
+        <text x="808"  y="155" fontFamily="sans-serif" fontSize="15" fill="#FAFAF5" transform="rotate(-3 808 155)" opacity="0.15">SABOTEUR</text>
+        <text x="1220" y="345" fontFamily="sans-serif" fontSize="13" fill="#F5F0E8" transform="rotate(8 1220 345)" opacity="0.12">IMPOSTER</text>
+        {/* dripping paint */}
+        <path d="M280 0 Q282 35 278 60 Q275 85 280 110" stroke="#D4561A" strokeWidth="6" fill="none" strokeLinecap="round" opacity="0.4"/>
+        <path d="M620 0 Q623 28 619 50 Q616 72 621 90" stroke="#C8A028" strokeWidth="5" fill="none" strokeLinecap="round" opacity="0.35"/>
+        <path d="M1100 0 Q1103 40 1098 68 Q1094 96 1100 118" stroke="#2A8080" strokeWidth="6" fill="none" strokeLinecap="round" opacity="0.35"/>
       </svg>
 
-      {/* ── Paper grain overlay ── */}
+      {/* ── Very light grain overlay ── */}
       <div style={{
         position:"absolute", inset:0,
-        backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.88' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        backgroundSize:"160px", opacity:0.06, mixBlendMode:"overlay",
+        backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        backgroundSize:"160px", opacity:0.04, mixBlendMode:"multiply",
       }} />
     </div>
   );
@@ -99,10 +120,10 @@ export function PosterWallBg() {
 export function TapeH({ color = "#C4681A", width = 90, style = {} }: { color?: string; width?: number; style?: React.CSSProperties }) {
   return (
     <div style={{
-      position:"absolute", top:-13, left:"50%", transform:"translateX(-50%)",
-      width, height:26,
-      background:`repeating-linear-gradient(90deg,${color}AA,${color}EE 10px,${color}AA 14px)`,
-      boxShadow:"0 2px 12px rgba(0,0,0,0.55)",
+      position:"absolute", top:-14, left:"50%", transform:"translateX(-50%)",
+      width, height:28,
+      background:`repeating-linear-gradient(90deg,${color}CC,${color}FF 10px,${color}CC 14px)`,
+      boxShadow:"0 3px 14px rgba(0,0,0,0.45)",
       zIndex:2, ...style,
     }} />
   );
@@ -110,16 +131,16 @@ export function TapeH({ color = "#C4681A", width = 90, style = {} }: { color?: s
 
 export function TapeCorner({ color = "#C4681A", corner = "tl", style = {} }: { color?: string; corner?: "tl"|"tr"|"bl"|"br"; style?: React.CSSProperties }) {
   const positions: Record<string, React.CSSProperties> = {
-    tl: { top:-10, left:-10, transform:"rotate(-45deg)" },
-    tr: { top:-10, right:-10, transform:"rotate(45deg)" },
-    bl: { bottom:-10, left:-10, transform:"rotate(45deg)" },
-    br: { bottom:-10, right:-10, transform:"rotate(-45deg)" },
+    tl: { top:-11, left:-11, transform:"rotate(-45deg)" },
+    tr: { top:-11, right:-11, transform:"rotate(45deg)" },
+    bl: { bottom:-11, left:-11, transform:"rotate(45deg)" },
+    br: { bottom:-11, right:-11, transform:"rotate(-45deg)" },
   };
   return (
     <div style={{
-      position:"absolute", width:56, height:20,
-      background:`repeating-linear-gradient(90deg,${color}AA,${color}EE 10px,${color}AA 14px)`,
-      boxShadow:"0 2px 8px rgba(0,0,0,0.5)",
+      position:"absolute", width:60, height:22,
+      background:`repeating-linear-gradient(90deg,${color}CC,${color}FF 10px,${color}CC 14px)`,
+      boxShadow:"0 2px 10px rgba(0,0,0,0.45)",
       ...positions[corner], ...style,
     }} />
   );
