@@ -317,12 +317,6 @@ export function ResultsPage({ room, myPlayerId, amIHost, onPlayAgain }: Props) {
                     </div>
                   </div>
                 )}
-                {latestResult.feedback&&(
-                  <div style={{ borderTop:`2px dashed #E8E2D8`, paddingTop:"1rem" }}>
-                    <div style={{ fontFamily:BEBAS, fontSize:"0.68rem", letterSpacing:"0.15em", color:ORANGE, marginBottom:"0.5rem" }}>DESIGN CRITIQUE</div>
-                    <p style={{ fontFamily:DM, fontSize:"0.92rem", color:"#4A3C22", lineHeight:1.6, margin:0, fontStyle:"italic" }}>"{latestResult.feedback}"</p>
-                  </div>
-                )}
               </div>
               <svg viewBox="0 0 620 18" style={{ display:"block", width:"100%", marginTop:-2 }} preserveAspectRatio="none">
                 <path d="M0 0 L0 7 Q30 16 60 7 Q90 0 120 13 Q150 18 180 7 Q210 0 240 14 Q270 18 300 7 Q330 0 360 13 Q390 18 420 7 Q450 0 480 13 Q510 18 540 7 Q570 0 600 13 Q615 16 620 9 L620 0 Z" fill="#FFFFFF"/>

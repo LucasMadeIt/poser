@@ -104,7 +104,6 @@ const SECTIONS: SectionDef[] = [
     id:"nav", label:"Navigation", color:TEAL, defaultOpen:false,
     chips:[
       { label:"Nav Bar",    type:"navbar",     defaults:{ width:600, height:60, fill:"#ffffff" }, preview:()=><div style={{ width:"100%", height:20, background:"#f0f0f0", borderRadius:3, display:"flex", alignItems:"center", padding:"0 6px", gap:8 }}><div style={{ width:24, height:6, background:"#ccc", borderRadius:2 }} /><div style={{ flex:1 }} />{[0,1,2].map(i=><div key={i} style={{ width:16, height:4, background:"#ddd", borderRadius:2 }} />)}</div> },
-      { label:"Tab Bar",    type:"tabbar",     defaults:{ width:375, height:64, fill:"#ffffff", content:JSON.stringify([{icon:"🏠",label:"Home",active:true},{icon:"🔍",label:"Search",active:false},{icon:"➕",label:"",active:false},{icon:"❤️",label:"Saved",active:false},{icon:"👤",label:"Profile",active:false}]) }, preview:()=><div style={{ width:"100%", height:20, background:"#f5f5f5", borderRadius:3, display:"flex", alignItems:"center", justifyContent:"space-around" }}>{["🏠","🔍","➕","❤️","👤"].map((ic,i)=><span key={i} style={{ fontSize:i===0?11:9, opacity:i===0?1:0.35 }}>{ic}</span>)}</div> },
       { label:"Sidebar",    type:"sidebar",    defaults:{ width:200, height:320, fill:"#f7f7f7" }, preview:()=><div style={{ width:"100%", height:32, border:"1.5px solid #e0e0e0", borderRadius:3, overflow:"hidden", display:"flex" }}><div style={{ width:"40%", background:"#f0f0f0", display:"flex", flexDirection:"column", gap:3, padding:3 }}>{[0,1,2].map(i=><div key={i} style={{ height:3, background:"#ddd", borderRadius:2, width:"80%" }} />)}</div><div style={{ flex:1, background:"#fff" }} /></div> },
       { label:"Breadcrumb", type:"breadcrumb", defaults:{ width:260, height:28, content:"Home / Page / Current", fill:"#555" }, preview:()=><div style={{ display:"flex", gap:3, alignItems:"center" }}>{["Home","›","Page","›","Here"].map((t,i)=><span key={i} style={{ fontSize:8, color:i===4?"#333":i%2===0?"#2A8080":"#ccc", fontFamily:DM }}>{t}</span>)}</div> },
     ],
@@ -115,6 +114,7 @@ const SECTIONS: SectionDef[] = [
       { label:"Card",       type:"card",     defaults:{ width:240, height:210, fill:"#ffffff", cornerRadius:12 }, preview:()=><div style={{ width:"100%", border:"1.5px solid #e8e8e8", borderRadius:6, overflow:"hidden" }}><div style={{ height:18, background:"#e8e8e8", width:"100%" }} /><div style={{ padding:"4px 6px", display:"flex", flexDirection:"column", gap:2 }}>{[80,60].map((w,i)=><div key={i} style={{ height:2.5, background:i===0?"#bbb":"#ddd", borderRadius:2, width:`${w}%` }} />)}</div></div> },
       { label:"List Item",  type:"listitem", defaults:{ width:340, height:64, content:"List Item", fill:"#ffffff" }, preview:()=><div style={{ width:"100%", height:22, border:"1px solid #e8e8e8", borderRadius:3, display:"flex", alignItems:"center", gap:5, padding:"0 5px" }}><div style={{ width:14, height:14, borderRadius:"50%", background:"#e0e0e0", flexShrink:0 }} /><div style={{ flex:1, height:2.5, background:"#e0e0e0", borderRadius:2 }} /></div> },
       { label:"Avatar",     type:"circle",   defaults:{ width:52, height:52, fill:"#9B59B6" }, preview:()=><div style={{ width:28, height:28, borderRadius:"50%", background:"linear-gradient(135deg,#9B59B6,#E87DBB)", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", position:"relative" }}><svg viewBox="0 0 28 28" style={{ position:"absolute", inset:0, width:"100%", height:"100%" }}><circle cx="14" cy="11" r="5.5" fill="rgba(255,255,255,0.85)"/><ellipse cx="14" cy="26" rx="9.5" ry="7" fill="rgba(255,255,255,0.85)"/></svg></div> },
+      { label:"Chart",      type:"chart",    defaults:{ width:300, height:200, fill:TEAL, content:JSON.stringify({chartType:"bar",labels:["Jan","Feb","Mar","Apr","May","Jun"],values:[40,65,45,80,55,70]}) }, preview:()=><div style={{ width:"100%", height:32, background:"#f8f8f8", borderRadius:3, display:"flex", alignItems:"flex-end", justifyContent:"center", gap:2, padding:"4px 6px" }}>{[40,65,45,80,55,70].map((v,i)=><div key={i} style={{ flex:1, height:`${(v/80)*100}%`, background:i===3?TEAL:`${TEAL}66`, borderRadius:"2px 2px 0 0" }} />)}</div> },
     ],
   },
   {
@@ -169,15 +169,34 @@ function renderCanvasContent(el: CanvasElement): React.ReactNode {
       return <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", gap:10 }}><div style={{ width:18, height:18, border:"2px solid #bbb", borderRadius:"50%", background:"#fff", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}><div style={{ width:8, height:8, borderRadius:"50%", background:c!=="#ffffff"?c:"#ccc" }} /></div><span style={{ fontFamily:DM, fontSize:13, color:"#333" }}>{el.content||"Option"}</span></div>;
     case "toggle":
       return <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", gap:10 }}><div style={{ width:50, height:28, background:c, borderRadius:100, position:"relative", flexShrink:0 }}><div style={{ position:"absolute", top:4, right:4, width:20, height:20, background:"#fff", borderRadius:"50%", boxShadow:"0 1px 3px rgba(0,0,0,0.2)" }} /></div><span style={{ fontFamily:DM, fontSize:12, color:"#333" }}>{el.content||""}</span></div>;
-    case "navbar":
-      return <div style={{ width:"100%", height:"100%", background:c, borderBottom:"1px solid #e8e8e8", display:"flex", alignItems:"center", padding:"0 20px", gap:28, boxSizing:"border-box" }}><div style={{ width:80, height:22, background:"#1a1a1a", borderRadius:4, flexShrink:0 }} /><div style={{ flex:1 }} />{["Home","About","Work"].map(t=><span key={t} style={{ fontFamily:DM, fontSize:13, color:"#555", flexShrink:0 }}>{t}</span>)}<div style={{ width:34, height:34, borderRadius:"50%", background:"#ddd", flexShrink:0 }} /></div>;
+    case "navbar": {
+      let navCfg: {logo?:boolean;logoText?:string;links?:{label:string}[]} = {logo:true,logoText:"Brand",links:[{label:"Home"},{label:"About"},{label:"Work"}]};
+      if (el.content) { try { navCfg = JSON.parse(el.content); } catch {} }
+      const navLinks = navCfg.links ?? [{label:"Home"},{label:"About"},{label:"Work"}];
+      const linkFs = el.fontSize ?? 13;
+      return <div style={{ width:"100%", height:"100%", background:c, borderBottom:"1px solid #e8e8e8", display:"flex", alignItems:"center", padding:"0 20px", gap:18, boxSizing:"border-box" }}>
+        {navCfg.logo!==false && <div style={{ height:22, background:"#1a1a1a", borderRadius:4, flexShrink:0, display:"flex", alignItems:"center", padding:"0 8px" }}><span style={{ fontFamily:DM, fontSize:11, color:"#fff", fontWeight:700 }}>{navCfg.logoText||"Brand"}</span></div>}
+        <div style={{ flex:1 }} />
+        {navLinks.map((link,i)=><span key={i} style={{ fontFamily:DM, fontSize:linkFs, color:"#555", flexShrink:0 }}>{link.label}</span>)}
+        <div style={{ width:32, height:32, borderRadius:"50%", background:"#ddd", flexShrink:0 }} />
+      </div>;
+    }
     case "tabbar": {
       let tabs: Array<{icon:string;label:string;active?:boolean}> = [{icon:"🏠",label:"Home",active:true},{icon:"🔍",label:"Search"},{icon:"➕",label:""},{icon:"❤️",label:"Saved"},{icon:"👤",label:"Profile"}];
       if (el.content) { try { const p=JSON.parse(el.content); if(Array.isArray(p)) tabs=p; } catch {} }
-      return <div style={{ width:"100%", height:"100%", background:c, borderTop:"1px solid #e8e8e8", display:"flex", alignItems:"center", justifyContent:"space-around", padding:"0 8px", boxSizing:"border-box" }}>{tabs.map((t,i)=><div key={i} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:2, opacity:t.active?1:0.4, flex:1 }}><span style={{ fontSize:t.label===""?24:18 }}>{t.icon}</span>{t.label&&<span style={{ fontFamily:DM, fontSize:10, color:"#333" }}>{t.label}</span>}</div>)}</div>;
+      return <div style={{ width:"100%", height:"100%", background:c, borderTop:"1px solid #e8e8e8", display:"flex", alignItems:"center", justifyContent:"space-around", padding:"0 8px", boxSizing:"border-box" }}>{tabs.map((t,i)=><div key={i} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:2, opacity:t.active?1:0.4, flex:1 }}><span style={{ fontSize:el.fontSize??(t.label===""?24:18) }}>{t.icon}</span>{t.label&&<span style={{ fontFamily:DM, fontSize:10, color:"#333" }}>{t.label}</span>}</div>)}</div>;
     }
-    case "sidebar":
-      return <div style={{ width:"100%", height:"100%", background:c, borderRight:"1px solid #e8e8e8", padding:"16px 0", display:"flex", flexDirection:"column", gap:2, boxSizing:"border-box" }}>{[["🏠","Home",true],["📁","Projects",false],["⭐","Favorites",false],["⚙️","Settings",false],["👤","Profile",false]].map(([icon,label,active])=><div key={label as string} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 16px", background:active?"rgba(0,0,0,0.06)":"transparent", borderRadius:"0 8px 8px 0", marginRight:8 }}><span style={{ fontSize:15 }}>{icon}</span><span style={{ fontFamily:DM, fontSize:13, color:active?"#222":"#888", fontWeight:active?600:400 }}>{label}</span></div>)}</div>;
+    case "sidebar": {
+      let sideItems: {icon:string;label:string;active?:boolean}[] = [{icon:"🏠",label:"Home",active:true},{icon:"📁",label:"Projects"},{icon:"⭐",label:"Favorites"},{icon:"⚙️",label:"Settings"},{icon:"👤",label:"Profile"}];
+      if (el.content) { try { const p=JSON.parse(el.content); if(Array.isArray(p)) sideItems=p; } catch {} }
+      const iconSz = el.fontSize ?? 15;
+      return <div style={{ width:"100%", height:"100%", background:c, borderRight:"1px solid #e8e8e8", padding:"16px 0", display:"flex", flexDirection:"column", gap:2, boxSizing:"border-box" }}>
+        {sideItems.map((item,i)=><div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 16px", background:item.active?"rgba(0,0,0,0.06)":"transparent", borderRadius:"0 8px 8px 0", marginRight:8 }}>
+          <span style={{ fontSize:iconSz }}>{item.icon}</span>
+          <span style={{ fontFamily:DM, fontSize:13, color:item.active?"#222":"#888", fontWeight:item.active?600:400 }}>{item.label}</span>
+        </div>)}
+      </div>;
+    }
     case "breadcrumb":
       return <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", gap:6 }}>{(el.content||"Home / Page / Current").split("/").map((seg,i,arr)=><span key={i} style={{ fontFamily:DM, fontSize:13, color:i===arr.length-1?"#222":"#999", display:"flex", alignItems:"center", gap:6 }}>{seg.trim()}{i<arr.length-1&&<span style={{ color:"#ddd" }}>›</span>}</span>)}</div>;
     case "listitem":
@@ -227,6 +246,70 @@ function renderCanvasContent(el: CanvasElement): React.ReactNode {
         </svg>
       );
     }
+    case "chart": {
+      const W = el.width, H = el.height;
+      let data: {chartType?:string;title?:string;labels?:string[];values?:number[];color?:string} = {};
+      try { data = JSON.parse(el.content ?? "{}"); } catch {}
+      const chartType = data.chartType ?? "bar";
+      const labels = data.labels ?? ["Jan","Feb","Mar","Apr","May","Jun"];
+      const values = data.values ?? [40,65,45,80,55,70];
+      const color = data.color ?? el.fill ?? TEAL;
+      const maxVal = Math.max(...values, 1);
+      const padL=38, padR=10, padT=data.title?26:14, padB=26;
+      const chartW=W-padL-padR, chartH=H-padT-padB;
+      if (chartType==="pie"||chartType==="donut") {
+        const cx=W/2, cy=H/2+(data.title?8:0);
+        const R=Math.min(W,H)*0.37;
+        const innerR=chartType==="donut"?R*0.55:0;
+        const total=values.reduce((a,b)=>a+b,0)||1;
+        const COLORS=[color,"#F5A623","#E87DBB","#9B59B6","#3498DB","#F1C40F"];
+        let angle=-Math.PI/2;
+        const slices=values.map((v,i)=>{
+          const sweep=(v/total)*Math.PI*2;
+          const x1=cx+R*Math.cos(angle),y1=cy+R*Math.sin(angle);
+          const x2=cx+R*Math.cos(angle+sweep),y2=cy+R*Math.sin(angle+sweep);
+          const ix1=cx+innerR*Math.cos(angle),iy1=cy+innerR*Math.sin(angle);
+          const ix2=cx+innerR*Math.cos(angle+sweep),iy2=cy+innerR*Math.sin(angle+sweep);
+          const large=sweep>Math.PI?1:0;
+          const d=innerR>0
+            ?`M ${x1} ${y1} A ${R} ${R} 0 ${large} 1 ${x2} ${y2} L ${ix2} ${iy2} A ${innerR} ${innerR} 0 ${large} 0 ${ix1} ${iy1} Z`
+            :`M ${cx} ${cy} L ${x1} ${y1} A ${R} ${R} 0 ${large} 1 ${x2} ${y2} Z`;
+          const s={d,fill:COLORS[i%COLORS.length]};
+          angle+=sweep; return s;
+        });
+        return <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ display:"block",width:"100%",height:"100%" }}>
+          {data.title&&<text x={W/2} y={16} textAnchor="middle" fontSize={11} fontFamily={DM} fontWeight="600" fill="#1a1a1a">{data.title}</text>}
+          {slices.map((s,i)=><path key={i} d={s.d} fill={s.fill} stroke="#fff" strokeWidth={1.5}/>)}
+        </svg>;
+      }
+      if (chartType==="line") {
+        const gap=values.length>1?chartW/(values.length-1):chartW;
+        const pts=values.map((v,i)=>({x:padL+i*gap,y:padT+chartH-(v/maxVal)*chartH}));
+        const d=pts.map((p,i)=>i===0?`M ${p.x} ${p.y}`:`L ${p.x} ${p.y}`).join(" ");
+        const areaD=`${d} L ${pts[pts.length-1].x} ${padT+chartH} L ${padL} ${padT+chartH} Z`;
+        return <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ display:"block",width:"100%",height:"100%" }}>
+          {data.title&&<text x={W/2} y={14} textAnchor="middle" fontSize={11} fontFamily={DM} fontWeight="600" fill="#1a1a1a">{data.title}</text>}
+          <line x1={padL} y1={padT} x2={padL} y2={padT+chartH} stroke="#ddd" strokeWidth={1}/>
+          <line x1={padL} y1={padT+chartH} x2={padL+chartW} y2={padT+chartH} stroke="#ddd" strokeWidth={1}/>
+          <path d={areaD} fill={color} opacity={0.12}/>
+          <path d={d} stroke={color} strokeWidth={2.5} fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+          {pts.map((p,i)=><g key={i}><circle cx={p.x} cy={p.y} r={3.5} fill={color}/><text x={p.x} y={padT+chartH+16} textAnchor="middle" fontSize={9} fontFamily={DM} fill="#888">{labels[i]??""}</text></g>)}
+        </svg>;
+      }
+      const barGap=chartW/(values.length||1);
+      const barW=barGap*0.65;
+      return <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ display:"block",width:"100%",height:"100%" }}>
+        {data.title&&<text x={W/2} y={14} textAnchor="middle" fontSize={11} fontFamily={DM} fontWeight="600" fill="#1a1a1a">{data.title}</text>}
+        <line x1={padL} y1={padT} x2={padL} y2={padT+chartH} stroke="#ddd" strokeWidth={1}/>
+        <line x1={padL} y1={padT+chartH} x2={padL+chartW} y2={padT+chartH} stroke="#ddd" strokeWidth={1}/>
+        {values.map((v,i)=>{
+          const bH=Math.max(2,(v/maxVal)*chartH);
+          const bx=padL+i*barGap+(barGap-barW)/2;
+          const by=padT+chartH-bH;
+          return <g key={i}><rect x={bx} y={by} width={barW} height={bH} fill={color} rx={2} opacity={0.85}/><text x={bx+barW/2} y={padT+chartH+16} textAnchor="middle" fontSize={9} fontFamily={DM} fill="#888">{labels[i]??""}</text></g>;
+        })}
+      </svg>;
+    }
     case "rect":    return null;
     case "circle":  return null;
     case "divider": return null;
@@ -254,6 +337,7 @@ function getOuterStyle(el: CanvasElement): React.CSSProperties {
     case "button":  { const ghost=el.fill==="transparent"; return { ...base, background:el.fill, border:el.stroke?`2px solid ${el.stroke}`:"none", display:"flex", alignItems:"center", justifyContent:"center", borderRadius:el.cornerRadius??6, color:el.textColor??(ghost?(el.stroke??"#222"):"#fff") }; }
     case "image":   return { ...base, background:el.fill, borderRadius:el.cornerRadius??4 };
     case "video":   return { ...base, borderRadius:el.cornerRadius??4, overflow:"hidden" };
+    case "chart":     return { ...base, background:"#f8f8f8", borderRadius:el.cornerRadius??8 };
     case "freedraw":  return { ...base, background:"transparent", overflow:"visible" };
     case "triangle":  return { ...base, background:"transparent", overflow:"visible" };
     default:        return base;
@@ -274,18 +358,40 @@ function PropertiesSidebar({
 }) {
   const [showPicker, setShowPicker] = useState(false);
   const [showTextColorPicker, setShowTextColorPicker] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState<string|null>(null);
 
   const labelStyle: React.CSSProperties = { fontFamily:BEBAS, fontSize:"0.6rem", letterSpacing:"0.18em", color:ORANGE, marginBottom:4, display:"block" };
   const inputStyle: React.CSSProperties = { width:"100%", background:"#FAFAF5", border:`1.5px solid #E8E2D8`, color:"#1A1208", borderRadius:5, padding:"4px 7px", fontFamily:DM, fontSize:"0.78rem", outline:"none", boxSizing:"border-box" };
+  const EMOJIS = ["🏠","📁","⭐","⚙️","👤","🔍","❤️","➕","📊","📈","📅","💬","🔔","📌","🏆","💡","🎯","✅","⚠️","🔒","🔓","💳","📦","🚀","🌍","📧","🎁","💰","🔑","🎉","👋","📸","✏️","🔗","🏷️","🔖","📝","🎨","🌙","👥","💼","🔄","❓","🛒","🎵","🎬","🏃","🌟","🔥","💎","🎓","🤝","🍔","🍕","🚗","✈️","📱","💻","🎮"];
+  const emojiPickerStyle: React.CSSProperties = { background:"#fff", border:`2px solid #E8E2D8`, borderRadius:8, padding:8, display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:3, zIndex:50, boxShadow:"0 8px 24px rgba(0,0,0,0.18)", maxHeight:160, overflowY:"auto", marginTop:2 };
 
-  const CONTENT_EDITABLE_TYPES = new Set(["text","heading","label","button","badge","tag","alert","toast","input","dropdown","checkbox","radio","listitem","card","breadcrumb","modal","navbar"]);
+  const CONTENT_EDITABLE_TYPES = new Set(["text","heading","label","button","badge","tag","alert","toast","input","dropdown","checkbox","radio","listitem","card","breadcrumb","modal"]);
   const hasContent = CONTENT_EDITABLE_TYPES.has(el.type);
+  const isNavbar   = el.type === "navbar";
+  const isSidebar  = el.type === "sidebar";
+  const isTabbar   = el.type === "tabbar";
+  const isChart    = el.type === "chart";
+  const isIconElement = isNavbar || isSidebar || isTabbar;
+  const showFillColor = !["text","heading"].includes(el.type) && !isChart;
 
-  function alignEl(axis: "lx"|"cx"|"rx"|"ty"|"cy"|"by") {
-    let nx=lt.x, ny=lt.y;
-    if (axis==="lx") nx=0; if (axis==="cx") nx=Math.round((CANVAS_W-lt.w)/2); if (axis==="rx") nx=CANVAS_W-lt.w;
-    if (axis==="ty") ny=0; if (axis==="cy") ny=Math.round((CANVAS_H-lt.h)/2); if (axis==="by") ny=CANVAS_H-lt.h;
-    onUpdate(el.id, { x:nx, y:ny });
+  let navCfg: {logo?:boolean;logoText?:string;links?:{label:string}[]} = {logo:true,logoText:"Brand",links:[{label:"Home"},{label:"About"},{label:"Work"}]};
+  if (isNavbar && el.content) { try { navCfg = JSON.parse(el.content); } catch {} }
+  const navLinks = navCfg.links ?? [{label:"Home"},{label:"About"},{label:"Work"}];
+  function updateNavbar(cfg: typeof navCfg) { onUpdate(el.id, {content:JSON.stringify(cfg)}); }
+
+  let sideItems: {icon:string;label:string;active?:boolean}[] = [{icon:"🏠",label:"Home",active:true},{icon:"📁",label:"Projects"},{icon:"⭐",label:"Favorites"},{icon:"⚙️",label:"Settings"},{icon:"👤",label:"Profile"}];
+  if (isSidebar && el.content) { try { const p=JSON.parse(el.content); if(Array.isArray(p)) sideItems=p; } catch {} }
+  function updateSidebar(items: typeof sideItems) { onUpdate(el.id, {content:JSON.stringify(items)}); }
+
+  let tabItems: {icon:string;label:string;active?:boolean}[] = [{icon:"🏠",label:"Home",active:true},{icon:"🔍",label:"Search"},{icon:"➕",label:""},{icon:"❤️",label:"Saved"},{icon:"👤",label:"Profile"}];
+  if (isTabbar && el.content) { try { const p=JSON.parse(el.content); if(Array.isArray(p)) tabItems=p; } catch {} }
+  function updateTabbar(items: typeof tabItems) { onUpdate(el.id, {content:JSON.stringify(items)}); }
+
+  let chartCfg: {chartType?:string;title?:string;labels?:string[];values?:number[];color?:string} = {chartType:"bar",labels:["Jan","Feb","Mar","Apr","May","Jun"],values:[40,65,45,80,55,70]};
+  if (isChart && el.content) { try { const p=JSON.parse(el.content); chartCfg={...chartCfg,...p}; } catch {} }
+  function updateChart(updates: Partial<typeof chartCfg>) {
+    const next={...chartCfg,...updates};
+    onUpdate(el.id, {content:JSON.stringify(next),...(updates.color?{fill:updates.color}:{})});
   }
 
   const typeName = el.type.charAt(0).toUpperCase() + el.type.slice(1);
@@ -305,79 +411,194 @@ function PropertiesSidebar({
         </button>
       </div>
 
-      <div style={{ flex:1, overflowY:"auto", padding:"0.8rem 0.9rem", display:"flex", flexDirection:"column", gap:"1rem" }}>
+      <div style={{ flex:1, overflowY:"auto", padding:"0.8rem 0.9rem", display:"flex", flexDirection:"column", gap:"1rem" }}
+        onClick={()=>setShowEmojiPicker(null)}>
 
-        {/* ── Content text ── */}
-        {hasContent && (
+        {/* ── Non-nav, non-text content ── */}
+        {hasContent && !isText && (
           <div>
-            <span style={labelStyle}>CONTENT TEXT</span>
+            <span style={labelStyle}>CONTENT</span>
             <textarea value={el.content ?? ""} onChange={(e)=>onUpdate(el.id,{content:e.target.value})}
               style={{ ...inputStyle, resize:"vertical", minHeight:50, paddingTop:6, paddingBottom:6, lineHeight:1.4 }}
               placeholder="Type content…" />
           </div>
         )}
 
-        {/* ── Tab Bar editor ── */}
-        {el.type==="tabbar" && (()=>{
-          let tabs: Array<{icon:string;label:string;active?:boolean}> = [{icon:"🏠",label:"Home",active:true},{icon:"🔍",label:"Search"},{icon:"➕",label:""},{icon:"❤️",label:"Saved"},{icon:"👤",label:"Profile"}];
-          try { const p=JSON.parse(el.content??""); if(Array.isArray(p)) tabs=p; } catch {}
-          const updateTabs=(t: typeof tabs)=>onUpdate(el.id,{content:JSON.stringify(t)});
-          return (
-            <div>
-              <span style={labelStyle}>TABS</span>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
-                <span style={{ fontFamily:DM, fontSize:"0.6rem", color:"#C8B888" }}>{tabs.length} tab{tabs.length!==1?"s":""}</span>
-                <div style={{ display:"flex", gap:4 }}>
-                  <button onClick={()=>tabs.length<6&&updateTabs([...tabs,{icon:"⭐",label:"New",active:false}])} disabled={tabs.length>=6}
-                    style={{ height:22, padding:"0 8px", background:tabs.length>=6?"#f0f0f0":"#FFF0E8", border:`1.5px solid ${tabs.length>=6?"#ccc":ORANGE}`, borderRadius:4, cursor:tabs.length>=6?"not-allowed":"pointer", fontFamily:DM, fontSize:11, color:tabs.length>=6?"#aaa":ORANGE }}>+ Add</button>
-                  <button onClick={()=>tabs.length>2&&updateTabs(tabs.slice(0,-1))} disabled={tabs.length<=2}
-                    style={{ height:22, padding:"0 8px", background:tabs.length<=2?"#f0f0f0":"#FFF0E8", border:`1.5px solid ${tabs.length<=2?"#ccc":ORANGE}`, borderRadius:4, cursor:tabs.length<=2?"not-allowed":"pointer", fontFamily:DM, fontSize:11, color:tabs.length<=2?"#aaa":ORANGE }}>− Remove</button>
-                </div>
-              </div>
-              <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
-                {tabs.map((tab,i)=>(
-                  <div key={i} style={{ display:"flex", gap:4, alignItems:"center" }}>
-                    <input value={tab.icon} onChange={e=>{const t=[...tabs];t[i]={...t[i],icon:e.target.value};updateTabs(t);}}
-                      style={{ ...inputStyle, width:38, textAlign:"center", padding:"3px 2px", flexShrink:0 }} placeholder="🏠" />
-                    <input value={tab.label} onChange={e=>{const t=[...tabs];t[i]={...t[i],label:e.target.value};updateTabs(t);}}
-                      style={{ ...inputStyle, flex:1 }} placeholder="Label" />
-                    <button onClick={()=>{const t=[...tabs].map((tb,j)=>j===i?{...tb,active:true}:{...tb,active:false});updateTabs(t);}} title="Set active"
-                      style={{ width:26, height:26, background:tab.active?TEAL:"#FAFAF5", border:`1.5px solid ${tab.active?TEAL:"#E8E2D8"}`, borderRadius:4, cursor:"pointer", fontSize:10, color:tab.active?"#fff":"#aaa", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>✓</button>
-                  </div>
-                ))}
-              </div>
+        {/* ── Navbar editor ── */}
+        {isNavbar && (
+          <div onClick={e=>e.stopPropagation()}>
+            <span style={labelStyle}>NAVBAR</span>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:7 }}>
+              <span style={{ fontFamily:DM, fontSize:"0.7rem", color:"#4A3C22" }}>Show logo</span>
+              <button onClick={()=>updateNavbar({...navCfg,logo:navCfg.logo===false?true:false})}
+                style={{ width:42,height:24,background:navCfg.logo!==false?TEAL:"#ddd",borderRadius:100,border:"none",cursor:"pointer",position:"relative",transition:"background 0.15s",flexShrink:0 }}>
+                <div style={{ position:"absolute",top:3,left:navCfg.logo!==false?20:3,width:18,height:18,background:"#fff",borderRadius:"50%",transition:"left 0.15s",boxShadow:"0 1px 3px rgba(0,0,0,0.15)" }} />
+              </button>
             </div>
-          );
-        })()}
-
-        {/* ── Fill color ── */}
-        <div>
-          <span style={labelStyle}>FILL COLOR</span>
-          <div style={{ position:"relative" }}>
-            <button onClick={()=>setShowPicker(v=>!v)}
-              style={{ width:"100%", height:34, background:el.fill==="transparent"?"linear-gradient(135deg,#f55,#5af,#5f5)":el.fill, border:`2px solid ${el.fill==="#ffffff"?"#E8E2D8":el.fill}`, borderRadius:6, cursor:"pointer", display:"flex", alignItems:"center", padding:"0 10px", gap:8 }}>
-              <span style={{ fontFamily:DM, fontSize:"0.72rem", color:el.fill==="transparent"||el.fill==="white"?"#555":"rgba(255,255,255,0.8)", fontWeight:600, textShadow:"0 1px 2px rgba(0,0,0,0.25)" }}>
-                {el.fill==="transparent"?"Transparent":el.fill}
-              </span>
-            </button>
-            {showPicker && (
-              <div style={{ position:"absolute", top:38, left:0, right:0, background:"#FFFFFF", border:`2px solid #E8E2D8`, borderRadius:8, padding:10, display:"grid", gridTemplateColumns:"repeat(8,1fr)", gap:5, zIndex:50, boxShadow:"0 8px 24px rgba(0,0,0,0.14)" }}>
-                {/* Transparent swatch — circle with red no-symbol */}
-                <button title="Transparent" onClick={()=>{ onUpdate(el.id,{fill:"transparent"}); setShowPicker(false); }}
-                  style={{ width:"100%", aspectRatio:"1", borderRadius:"50%", background:"#ffffff", border:el.fill==="transparent"?`2.5px solid ${TEAL}`:`1.5px solid #E8E2D8`, cursor:"pointer", padding:0, overflow:"hidden" }}>
-                  <svg viewBox="0 0 20 20" style={{ width:"100%", height:"100%", display:"block" }}>
-                    <circle cx="10" cy="10" r="9" fill="white"/>
-                    <line x1="3.5" y1="3.5" x2="16.5" y2="16.5" stroke="#E02020" strokeWidth="2.2" strokeLinecap="round"/>
-                  </svg>
-                </button>
-                {PALETTE.map(color=>(
-                  <button key={color} onClick={()=>{ onUpdate(el.id,{fill:color}); setShowPicker(false); }}
-                    style={{ width:"100%", aspectRatio:"1", borderRadius:"50%", background:color, border:el.fill===color?`2.5px solid ${TEAL}`:`1.5px solid #E8E2D8`, cursor:"pointer" }} />
-                ))}
+            {navCfg.logo!==false && (
+              <div style={{ marginBottom:8 }}>
+                <div style={{ fontFamily:DM,fontSize:"0.6rem",color:"#C8B888",marginBottom:2 }}>Logo text</div>
+                <input value={navCfg.logoText??""} onChange={e=>updateNavbar({...navCfg,logoText:e.target.value})} style={inputStyle} placeholder="Brand" />
               </div>
             )}
+            <div style={{ fontFamily:DM,fontSize:"0.6rem",color:"#C8B888",marginBottom:4 }}>Nav links</div>
+            <div style={{ display:"flex",flexDirection:"column",gap:4,marginBottom:6 }}>
+              {navLinks.map((link,i)=>(
+                <div key={i} style={{ display:"flex",gap:4,alignItems:"center" }}>
+                  <input value={link.label} onChange={e=>{const l=[...navLinks];l[i]={label:e.target.value};updateNavbar({...navCfg,links:l});}} style={{ ...inputStyle,flex:1 }} placeholder="Link" />
+                  <button onClick={()=>{const l=navLinks.filter((_,j)=>j!==i);updateNavbar({...navCfg,links:l});}}
+                    style={{ width:24,height:24,background:"#FFF0EC",border:`1.5px solid ${ORANGE}`,borderRadius:4,cursor:"pointer",color:ORANGE,fontSize:14,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center" }}>×</button>
+                </div>
+              ))}
+            </div>
+            <button onClick={()=>navLinks.length<6&&updateNavbar({...navCfg,links:[...navLinks,{label:"New link"}]})} disabled={navLinks.length>=6}
+              style={{ width:"100%",height:24,background:navLinks.length>=6?"#f0f0f0":"#FFF0E8",border:`1.5px solid ${navLinks.length>=6?"#ccc":ORANGE}`,borderRadius:4,cursor:navLinks.length>=6?"not-allowed":"pointer",fontFamily:DM,fontSize:11,color:navLinks.length>=6?"#aaa":ORANGE }}>
+              + Add link
+            </button>
           </div>
-        </div>
+        )}
+
+        {/* ── Sidebar editor ── */}
+        {isSidebar && (
+          <div onClick={e=>e.stopPropagation()}>
+            <span style={labelStyle}>SIDEBAR ITEMS</span>
+            <div style={{ display:"flex",flexDirection:"column",gap:4 }}>
+              {sideItems.map((item,i)=>(
+                <div key={i}>
+                  <div style={{ display:"flex",gap:4,alignItems:"center" }}>
+                    <button onClick={e=>{e.stopPropagation();setShowEmojiPicker(showEmojiPicker===`side-${i}`?null:`side-${i}`);}}
+                      style={{ ...inputStyle,width:34,padding:"3px 2px",textAlign:"center",cursor:"pointer",flexShrink:0 }}>
+                      {item.icon||"?"}
+                    </button>
+                    <input value={item.label} onChange={e=>{const t=[...sideItems];t[i]={...t[i],label:e.target.value};updateSidebar(t);}} style={{ ...inputStyle,flex:1 }} placeholder="Label" />
+                    <button onClick={()=>{const t=sideItems.map((tb,j)=>j===i?{...tb,active:true}:{...tb,active:false});updateSidebar(t);}} title="Set active"
+                      style={{ width:26,height:26,background:item.active?TEAL:"#FAFAF5",border:`1.5px solid ${item.active?TEAL:"#E8E2D8"}`,borderRadius:4,cursor:"pointer",fontSize:11,color:item.active?"#fff":"#aaa",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center" }}>✓</button>
+                    <button onClick={()=>sideItems.length>2&&updateSidebar(sideItems.filter((_,j)=>j!==i))}
+                      style={{ width:24,height:24,background:"#FFF0EC",border:`1.5px solid ${ORANGE}`,borderRadius:4,cursor:sideItems.length<=2?"not-allowed":"pointer",color:ORANGE,fontSize:14,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",opacity:sideItems.length<=2?0.4:1 }}>×</button>
+                  </div>
+                  {showEmojiPicker===`side-${i}` && (
+                    <div style={emojiPickerStyle} onClick={e=>e.stopPropagation()}>
+                      {EMOJIS.map(e=><button key={e} onClick={()=>{const t=[...sideItems];t[i]={...t[i],icon:e};updateSidebar(t);setShowEmojiPicker(null);}} style={{ border:"none",background:"none",cursor:"pointer",fontSize:15,borderRadius:4,padding:2 }}>{e}</button>)}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            {sideItems.length<8&&(
+              <button onClick={()=>updateSidebar([...sideItems,{icon:"⭐",label:"New",active:false}])}
+                style={{ marginTop:6,width:"100%",height:24,background:"#FFF0E8",border:`1.5px solid ${ORANGE}`,borderRadius:4,cursor:"pointer",fontFamily:DM,fontSize:11,color:ORANGE }}>
+                + Add item
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* ── Tab Bar editor ── */}
+        {isTabbar && (
+          <div onClick={e=>e.stopPropagation()}>
+            <span style={labelStyle}>TABS</span>
+            <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6 }}>
+              <span style={{ fontFamily:DM,fontSize:"0.6rem",color:"#C8B888" }}>{tabItems.length} tab{tabItems.length!==1?"s":""}</span>
+              <div style={{ display:"flex",gap:4 }}>
+                <button onClick={()=>tabItems.length<6&&updateTabbar([...tabItems,{icon:"⭐",label:"New",active:false}])} disabled={tabItems.length>=6}
+                  style={{ height:22,padding:"0 8px",background:tabItems.length>=6?"#f0f0f0":"#FFF0E8",border:`1.5px solid ${tabItems.length>=6?"#ccc":ORANGE}`,borderRadius:4,cursor:tabItems.length>=6?"not-allowed":"pointer",fontFamily:DM,fontSize:11,color:tabItems.length>=6?"#aaa":ORANGE }}>+ Add</button>
+                <button onClick={()=>tabItems.length>2&&updateTabbar(tabItems.slice(0,-1))} disabled={tabItems.length<=2}
+                  style={{ height:22,padding:"0 8px",background:tabItems.length<=2?"#f0f0f0":"#FFF0E8",border:`1.5px solid ${tabItems.length<=2?"#ccc":ORANGE}`,borderRadius:4,cursor:tabItems.length<=2?"not-allowed":"pointer",fontFamily:DM,fontSize:11,color:tabItems.length<=2?"#aaa":ORANGE }}>− Remove</button>
+              </div>
+            </div>
+            <div style={{ display:"flex",flexDirection:"column",gap:4 }}>
+              {tabItems.map((tab,i)=>(
+                <div key={i}>
+                  <div style={{ display:"flex",gap:4,alignItems:"center" }}>
+                    <button onClick={e=>{e.stopPropagation();setShowEmojiPicker(showEmojiPicker===`tab-${i}`?null:`tab-${i}`);}}
+                      style={{ ...inputStyle,width:34,padding:"3px 2px",textAlign:"center",cursor:"pointer",flexShrink:0 }}>
+                      {tab.icon||"?"}
+                    </button>
+                    <input value={tab.label} onChange={e=>{const t=[...tabItems];t[i]={...t[i],label:e.target.value};updateTabbar(t);}} style={{ ...inputStyle,flex:1 }} placeholder="Label" />
+                    <button onClick={()=>{const t=tabItems.map((tb,j)=>j===i?{...tb,active:true}:{...tb,active:false});updateTabbar(t);}} title="Set active"
+                      style={{ width:26,height:26,background:tab.active?TEAL:"#FAFAF5",border:`1.5px solid ${tab.active?TEAL:"#E8E2D8"}`,borderRadius:4,cursor:"pointer",fontSize:11,color:tab.active?"#fff":"#aaa",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center" }}>✓</button>
+                  </div>
+                  {showEmojiPicker===`tab-${i}` && (
+                    <div style={emojiPickerStyle} onClick={e=>e.stopPropagation()}>
+                      {EMOJIS.map(e=><button key={e} onClick={()=>{const t=[...tabItems];t[i]={...t[i],icon:e};updateTabbar(t);setShowEmojiPicker(null);}} style={{ border:"none",background:"none",cursor:"pointer",fontSize:15,borderRadius:4,padding:2 }}>{e}</button>)}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Chart editor ── */}
+        {isChart && (
+          <div>
+            <span style={labelStyle}>CHART</span>
+            <div style={{ display:"flex",flexDirection:"column",gap:6 }}>
+              <div>
+                <div style={{ fontFamily:DM,fontSize:"0.6rem",color:"#C8B888",marginBottom:2 }}>Chart type</div>
+                <div style={{ display:"flex",gap:3 }}>
+                  {(["bar","line","pie","donut"] as const).map(t=>(
+                    <button key={t} onClick={()=>updateChart({chartType:t})}
+                      style={{ flex:1,height:26,background:chartCfg.chartType===t?"#FFF0E8":"#FAFAF5",border:`1.5px solid ${chartCfg.chartType===t?ORANGE:"#E8E2D8"}`,borderRadius:4,cursor:"pointer",fontFamily:DM,fontSize:10,color:chartCfg.chartType===t?ORANGE:"#4A3C22",fontWeight:chartCfg.chartType===t?700:400 }}>
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontFamily:DM,fontSize:"0.6rem",color:"#C8B888",marginBottom:2 }}>Title (optional)</div>
+                <input value={chartCfg.title??""} onChange={e=>updateChart({title:e.target.value})} style={inputStyle} placeholder="Chart title…" />
+              </div>
+              <div>
+                <div style={{ fontFamily:DM,fontSize:"0.6rem",color:"#C8B888",marginBottom:2 }}>Labels (comma separated)</div>
+                <input value={(chartCfg.labels??[]).join(",")} onChange={e=>updateChart({labels:e.target.value.split(",").map(s=>s.trim())})} style={inputStyle} placeholder="Jan,Feb,Mar…" />
+              </div>
+              <div>
+                <div style={{ fontFamily:DM,fontSize:"0.6rem",color:"#C8B888",marginBottom:2 }}>Values (comma separated)</div>
+                <input value={(chartCfg.values??[]).join(",")} onChange={e=>{const v=e.target.value.split(",").map(s=>Number(s.trim())||0);updateChart({values:v});}} style={inputStyle} placeholder="40,65,45…" />
+              </div>
+              <div>
+                <div style={{ fontFamily:DM,fontSize:"0.6rem",color:"#C8B888",marginBottom:2 }}>Chart color</div>
+                <div style={{ display:"grid",gridTemplateColumns:"repeat(8,1fr)",gap:4 }}>
+                  {PALETTE.map(color=>(
+                    <button key={color} onClick={()=>updateChart({color})}
+                      style={{ width:"100%",aspectRatio:"1",borderRadius:"50%",background:color,border:(chartCfg.color??el.fill)===color?`2.5px solid ${TEAL}`:`1.5px solid #E8E2D8`,cursor:"pointer" }} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Fill color (hidden for text/heading; chart uses its own color picker) ── */}
+        {showFillColor && (
+          <div>
+            <span style={labelStyle}>FILL COLOR</span>
+            <div style={{ position:"relative" }}>
+              <button onClick={()=>setShowPicker(v=>!v)}
+                style={{ width:"100%", height:34, background:el.fill==="transparent"?"linear-gradient(135deg,#f55,#5af,#5f5)":el.fill, border:`2px solid ${el.fill==="#ffffff"?"#E8E2D8":el.fill}`, borderRadius:6, cursor:"pointer", display:"flex", alignItems:"center", padding:"0 10px", gap:8 }}>
+                <span style={{ fontFamily:DM, fontSize:"0.72rem", color:el.fill==="transparent"||el.fill==="white"?"#555":"rgba(255,255,255,0.8)", fontWeight:600, textShadow:"0 1px 2px rgba(0,0,0,0.25)" }}>
+                  {el.fill==="transparent"?"Transparent":el.fill}
+                </span>
+              </button>
+              {showPicker && (
+                <div style={{ position:"absolute", top:38, left:0, right:0, background:"#FFFFFF", border:`2px solid #E8E2D8`, borderRadius:8, padding:10, display:"grid", gridTemplateColumns:"repeat(8,1fr)", gap:5, zIndex:50, boxShadow:"0 8px 24px rgba(0,0,0,0.14)" }}>
+                  <button title="Transparent" onClick={()=>{ onUpdate(el.id,{fill:"transparent"}); setShowPicker(false); }}
+                    style={{ width:"100%", aspectRatio:"1", borderRadius:"50%", background:"#ffffff", border:el.fill==="transparent"?`2.5px solid ${TEAL}`:`1.5px solid #E8E2D8`, cursor:"pointer", padding:0, overflow:"hidden" }}>
+                    <svg viewBox="0 0 20 20" style={{ width:"100%", height:"100%", display:"block" }}>
+                      <circle cx="10" cy="10" r="9" fill="white"/>
+                      <line x1="3.5" y1="3.5" x2="16.5" y2="16.5" stroke="#E02020" strokeWidth="2.2" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                  {PALETTE.map(color=>(
+                    <button key={color} onClick={()=>{ onUpdate(el.id,{fill:color}); setShowPicker(false); }}
+                      style={{ width:"100%", aspectRatio:"1", borderRadius:"50%", background:color, border:el.fill===color?`2.5px solid ${TEAL}`:`1.5px solid #E8E2D8`, cursor:"pointer" }} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* ── Position & size ── */}
         <div>
@@ -413,12 +634,27 @@ function PropertiesSidebar({
           </div>
         </div>
 
+        {/* ── Icon size (nav / tab / sidebar) ── */}
+        {isIconElement && (
+          <div>
+            <span style={labelStyle}>ICON SIZE</span>
+            <input type="number" value={el.fontSize??15} min={10} max={40}
+              onChange={(e)=>onUpdate(el.id,{fontSize:Number(e.target.value)})}
+              style={inputStyle} />
+          </div>
+        )}
 
-        {/* ── Typography (text elements) ── */}
+        {/* ── Typography — content text lives here for text elements ── */}
         {isText && (
           <div>
             <span style={labelStyle}>TYPOGRAPHY</span>
             <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+              <div>
+                <div style={{ fontFamily:DM, fontSize:"0.6rem", color:"#C8B888", marginBottom:2 }}>Content text</div>
+                <textarea value={el.content ?? ""} onChange={(e)=>onUpdate(el.id,{content:e.target.value})}
+                  style={{ ...inputStyle, resize:"vertical", minHeight:48, paddingTop:5, paddingBottom:5, lineHeight:1.4 }}
+                  placeholder="Type content…" />
+              </div>
               <div>
                 <div style={{ fontFamily:DM, fontSize:"0.6rem", color:"#C8B888", marginBottom:2 }}>Font size</div>
                 <select value={el.fontSize??14} onChange={(e)=>onUpdate(el.id,{fontSize:Number(e.target.value)})}

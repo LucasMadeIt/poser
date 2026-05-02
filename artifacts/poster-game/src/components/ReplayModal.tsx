@@ -29,9 +29,11 @@ export function ReplayModal({ events, prompt, defaultSpeed = 2, onClose }: Props
   const [currentEv, setCurrentEv]       = useState<ReplayEvent | null>(null);
   const [highlightId, setHighlightId]   = useState<string | null>(null);
   const [showTag, setShowTag]           = useState(false);
+  const [showLog, setShowLog]           = useState(false);
   const timerRef     = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const hlTimerRef   = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const tagTimerRef  = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const logRef       = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setTimeout(() => setPlaying(true), 300);
@@ -41,6 +43,13 @@ export function ReplayModal({ events, prompt, defaultSpeed = 2, onClose }: Props
       clearTimeout(tagTimerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (showLog && logRef.current && eventIndex >= 0) {
+      const item = logRef.current.children[eventIndex] as HTMLElement | undefined;
+      if (item) item.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }, [eventIndex, showLog]);
 
   const applyEvent = useCallback((idx: number) => {
     if (idx < 0 || idx >= events.length) return;
@@ -280,6 +289,50 @@ export function ReplayModal({ events, prompt, defaultSpeed = 2, onClose }: Props
             </span>
           </div>
         </div>
+
+        {/* ── Action log ── */}
+        <div style={{ padding: "0 20px 16px" }}>
+          <button onClick={() => setShowLog(v => !v)} style={{
+            width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "5px 12px", background: showLog ? `${NAVY}12` : "#F5EEE2",
+            border: `1px solid ${showLog ? NAVY + "44" : "#E8E2D8"}`, cursor: "pointer",
+            fontFamily: BEBAS, fontSize: "0.62rem", letterSpacing: "0.12em", color: NAVY,
+          }}>
+            <span>📋 ACTION LOG  ({events.length} edits)</span>
+            <span style={{ fontSize: 10 }}>{showLog ? "▲" : "▼"}</span>
+          </button>
+          {showLog && (
+            <div ref={logRef} style={{
+              maxHeight: 180, overflowY: "auto",
+              border: `1px solid ${NAVY}22`, borderTop: "none",
+              background: "#FAFAF5",
+            }}>
+              {events.map((ev, i) => (
+                <div key={i} style={{
+                  display: "flex", alignItems: "center", gap: 7,
+                  padding: "4px 10px",
+                  background: i === eventIndex ? `${ev.playerColor}18` : "transparent",
+                  borderBottom: "1px solid #F0E8D8",
+                  opacity: i > eventIndex ? 0.32 : 1,
+                  transition: "opacity 0.2s, background 0.2s",
+                }}>
+                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: ev.playerColor, flexShrink: 0 }} />
+                  <span style={{ fontFamily: DM, fontSize: "0.6rem", color: ev.playerColor, fontWeight: 700, flexShrink: 0 }}>{ev.playerName}</span>
+                  <span style={{ fontFamily: DM, fontSize: "0.6rem", color: "#8A7868", flexShrink: 0 }}>
+                    {ev.type === "add" ? "added" : ev.type === "update" ? "edited" : "deleted"}
+                  </span>
+                  <span style={{ fontFamily: DM, fontSize: "0.6rem", color: "#555", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {ev.element?.type ?? (ev.updates ? Object.keys(ev.updates)[0] : "element")}
+                  </span>
+                  <span style={{ fontFamily: BEBAS, fontSize: "0.55rem", color: "#bbb", flexShrink: 0 }}>
+                    {String(Math.floor((ev.timestamp - (events[0]?.timestamp ?? ev.timestamp)) / 1000))}s
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   );

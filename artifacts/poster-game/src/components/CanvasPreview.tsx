@@ -45,15 +45,35 @@ function renderCanvasContent(el: CanvasElement): React.ReactNode {
       return <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", gap:10 }}><div style={{ width:18, height:18, border:"2px solid #bbb", borderRadius:"50%", background:"#fff", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}><div style={{ width:8, height:8, borderRadius:"50%", background:c!=="#ffffff"?c:"#ccc" }} /></div><span style={{ fontFamily:DM, fontSize:13, color:"#333" }}>{el.content||"Option"}</span></div>;
     case "toggle":
       return <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", gap:10 }}><div style={{ width:50, height:28, background:c, borderRadius:100, position:"relative", flexShrink:0 }}><div style={{ position:"absolute", top:4, right:4, width:20, height:20, background:"#fff", borderRadius:"50%", boxShadow:"0 1px 3px rgba(0,0,0,0.2)" }} /></div><span style={{ fontFamily:DM, fontSize:12, color:"#333" }}>{el.content||""}</span></div>;
-    case "navbar":
-      return <div style={{ width:"100%", height:"100%", background:c, borderBottom:"1px solid #e8e8e8", display:"flex", alignItems:"center", padding:"0 20px", gap:28, boxSizing:"border-box" }}><div style={{ width:80, height:22, background:"#1a1a1a", borderRadius:4, flexShrink:0 }} /><div style={{ flex:1 }} />{["Home","About","Work"].map(t=><span key={t} style={{ fontFamily:DM, fontSize:13, color:"#555", flexShrink:0 }}>{t}</span>)}<div style={{ width:34, height:34, borderRadius:"50%", background:"#ddd", flexShrink:0 }} /></div>;
+    case "navbar": {
+      let navCfg: {logo?:boolean;logoText?:string;links?:{label:string}[]} = {logo:true,logoText:"Brand",links:[{label:"Home"},{label:"About"},{label:"Work"}]};
+      if (el.content) { try { navCfg = JSON.parse(el.content); } catch {} }
+      const navLinks = navCfg.links ?? [{label:"Home"},{label:"About"},{label:"Work"}];
+      const linkFs = el.fontSize ?? 13;
+      return <div style={{ width:"100%", height:"100%", background:c, borderBottom:"1px solid #e8e8e8", display:"flex", alignItems:"center", padding:"0 20px", gap:18, boxSizing:"border-box" }}>
+        {navCfg.logo!==false && <div style={{ height:22, background:"#1a1a1a", borderRadius:4, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", padding:"0 8px" }}><span style={{ fontFamily:DM, fontSize:11, color:"#fff", fontWeight:700 }}>{navCfg.logoText||"Brand"}</span></div>}
+        <div style={{ flex:1 }} />
+        {navLinks.map((link,i)=><span key={i} style={{ fontFamily:DM, fontSize:linkFs, color:"#555", flexShrink:0 }}>{link.label}</span>)}
+        <div style={{ width:32, height:32, borderRadius:"50%", background:"#ddd", flexShrink:0 }} />
+      </div>;
+    }
     case "tabbar": {
       let tabs: Array<{icon:string;label:string;active?:boolean}> = [{icon:"🏠",label:"Home",active:true},{icon:"🔍",label:"Search"},{icon:"➕",label:""},{icon:"❤️",label:"Saved"},{icon:"👤",label:"Profile"}];
       if (el.content) { try { const p=JSON.parse(el.content); if(Array.isArray(p)) tabs=p; } catch {} }
-      return <div style={{ width:"100%", height:"100%", background:c, borderTop:"1px solid #e8e8e8", display:"flex", alignItems:"center", justifyContent:"space-around", padding:"0 8px", boxSizing:"border-box" }}>{tabs.map((t,i)=><div key={i} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:2, opacity:t.active?1:0.4, flex:1 }}><span style={{ fontSize:t.label===""?24:18 }}>{t.icon}</span>{t.label&&<span style={{ fontFamily:DM, fontSize:10, color:"#333" }}>{t.label}</span>}</div>)}</div>;
+      const tabIconSz = el.fontSize;
+      return <div style={{ width:"100%", height:"100%", background:c, borderTop:"1px solid #e8e8e8", display:"flex", alignItems:"center", justifyContent:"space-around", padding:"0 8px", boxSizing:"border-box" }}>{tabs.map((t,i)=><div key={i} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:2, opacity:t.active?1:0.4, flex:1 }}><span style={{ fontSize:tabIconSz??(t.label===""?24:18) }}>{t.icon}</span>{t.label&&<span style={{ fontFamily:DM, fontSize:10, color:"#333" }}>{t.label}</span>}</div>)}</div>;
     }
-    case "sidebar":
-      return <div style={{ width:"100%", height:"100%", background:c, borderRight:"1px solid #e8e8e8", padding:"16px 0", display:"flex", flexDirection:"column", gap:2, boxSizing:"border-box" }}>{[["🏠","Home",true],["📁","Projects",false],["⭐","Favorites",false],["⚙️","Settings",false],["👤","Profile",false]].map(([icon,label,active])=><div key={label as string} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 16px", background:active?"rgba(0,0,0,0.06)":"transparent", borderRadius:"0 8px 8px 0", marginRight:8 }}><span style={{ fontSize:15 }}>{icon}</span><span style={{ fontFamily:DM, fontSize:13, color:active?"#222":"#888", fontWeight:active?600:400 }}>{label}</span></div>)}</div>;
+    case "sidebar": {
+      let sideItems: {icon:string;label:string;active?:boolean}[] = [{icon:"🏠",label:"Home",active:true},{icon:"📁",label:"Projects"},{icon:"⭐",label:"Favorites"},{icon:"⚙️",label:"Settings"},{icon:"👤",label:"Profile"}];
+      if (el.content) { try { const p=JSON.parse(el.content); if(Array.isArray(p)) sideItems=p; } catch {} }
+      const iconSz = el.fontSize ?? 15;
+      return <div style={{ width:"100%", height:"100%", background:c, borderRight:"1px solid #e8e8e8", padding:"16px 0", display:"flex", flexDirection:"column", gap:2, boxSizing:"border-box" }}>
+        {sideItems.map((item,i)=><div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 16px", background:item.active?"rgba(0,0,0,0.06)":"transparent", borderRadius:"0 8px 8px 0", marginRight:8 }}>
+          <span style={{ fontSize:iconSz }}>{item.icon}</span>
+          <span style={{ fontFamily:DM, fontSize:13, color:item.active?"#222":"#888", fontWeight:item.active?600:400 }}>{item.label}</span>
+        </div>)}
+      </div>;
+    }
     case "breadcrumb":
       return <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", gap:6 }}>{(el.content||"Home / Page / Current").split("/").map((seg,i,arr)=><span key={i} style={{ fontFamily:DM, fontSize:13, color:i===arr.length-1?"#222":"#999", display:"flex", alignItems:"center", gap:6 }}>{seg.trim()}{i<arr.length-1&&<span style={{ color:"#ddd" }}>›</span>}</span>)}</div>;
     case "listitem":
@@ -103,6 +123,70 @@ function renderCanvasContent(el: CanvasElement): React.ReactNode {
         </svg>
       );
     }
+    case "chart": {
+      const W = el.width, H = el.height;
+      let data: {chartType?:string;title?:string;labels?:string[];values?:number[];color?:string} = {};
+      try { data = JSON.parse(el.content ?? "{}"); } catch {}
+      const chartType = data.chartType ?? "bar";
+      const labels = data.labels ?? ["Jan","Feb","Mar","Apr","May","Jun"];
+      const values = data.values ?? [40,65,45,80,55,70];
+      const color = data.color ?? el.fill ?? TEAL;
+      const maxVal = Math.max(...values, 1);
+      const padL=38, padR=10, padT=data.title?26:14, padB=26;
+      const chartW=W-padL-padR, chartH=H-padT-padB;
+      if (chartType==="pie"||chartType==="donut") {
+        const cx=W/2, cy=H/2+(data.title?8:0);
+        const R=Math.min(W,H)*0.37;
+        const innerR=chartType==="donut"?R*0.55:0;
+        const total=values.reduce((a,b)=>a+b,0)||1;
+        const COLORS=[color,"#F5A623","#E87DBB","#9B59B6","#3498DB","#F1C40F"];
+        let angle=-Math.PI/2;
+        const slices=values.map((v,i)=>{
+          const sweep=(v/total)*Math.PI*2;
+          const x1=cx+R*Math.cos(angle),y1=cy+R*Math.sin(angle);
+          const x2=cx+R*Math.cos(angle+sweep),y2=cy+R*Math.sin(angle+sweep);
+          const ix1=cx+innerR*Math.cos(angle),iy1=cy+innerR*Math.sin(angle);
+          const ix2=cx+innerR*Math.cos(angle+sweep),iy2=cy+innerR*Math.sin(angle+sweep);
+          const large=sweep>Math.PI?1:0;
+          const d=innerR>0
+            ?`M ${x1} ${y1} A ${R} ${R} 0 ${large} 1 ${x2} ${y2} L ${ix2} ${iy2} A ${innerR} ${innerR} 0 ${large} 0 ${ix1} ${iy1} Z`
+            :`M ${cx} ${cy} L ${x1} ${y1} A ${R} ${R} 0 ${large} 1 ${x2} ${y2} Z`;
+          const s={d,fill:COLORS[i%COLORS.length]};
+          angle+=sweep; return s;
+        });
+        return <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ display:"block",width:"100%",height:"100%" }}>
+          {data.title&&<text x={W/2} y={16} textAnchor="middle" fontSize={11} fontFamily={DM} fontWeight="600" fill="#1a1a1a">{data.title}</text>}
+          {slices.map((s,i)=><path key={i} d={s.d} fill={s.fill} stroke="#fff" strokeWidth={1.5}/>)}
+        </svg>;
+      }
+      if (chartType==="line") {
+        const gap=values.length>1?chartW/(values.length-1):chartW;
+        const pts=values.map((v,i)=>({x:padL+i*gap,y:padT+chartH-(v/maxVal)*chartH}));
+        const d=pts.map((p,i)=>i===0?`M ${p.x} ${p.y}`:`L ${p.x} ${p.y}`).join(" ");
+        const areaD=`${d} L ${pts[pts.length-1].x} ${padT+chartH} L ${padL} ${padT+chartH} Z`;
+        return <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ display:"block",width:"100%",height:"100%" }}>
+          {data.title&&<text x={W/2} y={14} textAnchor="middle" fontSize={11} fontFamily={DM} fontWeight="600" fill="#1a1a1a">{data.title}</text>}
+          <line x1={padL} y1={padT} x2={padL} y2={padT+chartH} stroke="#ddd" strokeWidth={1}/>
+          <line x1={padL} y1={padT+chartH} x2={padL+chartW} y2={padT+chartH} stroke="#ddd" strokeWidth={1}/>
+          <path d={areaD} fill={color} opacity={0.12}/>
+          <path d={d} stroke={color} strokeWidth={2.5} fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+          {pts.map((p,i)=><g key={i}><circle cx={p.x} cy={p.y} r={3.5} fill={color}/><text x={p.x} y={padT+chartH+16} textAnchor="middle" fontSize={9} fontFamily={DM} fill="#888">{labels[i]??""}</text></g>)}
+        </svg>;
+      }
+      const barGap=chartW/(values.length||1);
+      const barW=barGap*0.65;
+      return <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ display:"block",width:"100%",height:"100%" }}>
+        {data.title&&<text x={W/2} y={14} textAnchor="middle" fontSize={11} fontFamily={DM} fontWeight="600" fill="#1a1a1a">{data.title}</text>}
+        <line x1={padL} y1={padT} x2={padL} y2={padT+chartH} stroke="#ddd" strokeWidth={1}/>
+        <line x1={padL} y1={padT+chartH} x2={padL+chartW} y2={padT+chartH} stroke="#ddd" strokeWidth={1}/>
+        {values.map((v,i)=>{
+          const bH=Math.max(2,(v/maxVal)*chartH);
+          const bx=padL+i*barGap+(barGap-barW)/2;
+          const by=padT+chartH-bH;
+          return <g key={i}><rect x={bx} y={by} width={barW} height={bH} fill={color} rx={2} opacity={0.85}/><text x={bx+barW/2} y={padT+chartH+16} textAnchor="middle" fontSize={9} fontFamily={DM} fill="#888">{labels[i]??""}</text></g>;
+        })}
+      </svg>;
+    }
     case "rect":    return null;
     case "circle":  return null;
     case "divider": return null;
@@ -130,6 +214,7 @@ function getElementStyle(el: CanvasElement): React.CSSProperties {
     case "button":   { const ghost=el.fill==="transparent"; return { ...base, background:el.fill, border:el.stroke?`2px solid ${el.stroke}`:"none", display:"flex", alignItems:"center", justifyContent:"center", borderRadius:el.cornerRadius??6, color:el.textColor??(ghost?(el.stroke??"#222"):"#fff") }; }
     case "image":    return { ...base, background:el.fill, borderRadius:el.cornerRadius??4 };
     case "video":    return { ...base, borderRadius:el.cornerRadius??4, overflow:"hidden" };
+    case "chart":    return { ...base, background:"#f8f8f8", borderRadius:el.cornerRadius??8 };
     case "freedraw": return { ...base, background:"transparent", overflow:"visible" };
     case "triangle": return { ...base, background:"transparent", overflow:"visible" };
     default:         return base;
