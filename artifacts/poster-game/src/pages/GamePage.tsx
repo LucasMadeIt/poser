@@ -361,6 +361,14 @@ function PropertiesSidebar({
             </button>
             {showPicker && (
               <div style={{ position:"absolute", top:38, left:0, right:0, background:"#FFFFFF", border:`2px solid #E8E2D8`, borderRadius:8, padding:10, display:"grid", gridTemplateColumns:"repeat(8,1fr)", gap:5, zIndex:50, boxShadow:"0 8px 24px rgba(0,0,0,0.14)" }}>
+                {/* Transparent swatch — circle with red no-symbol */}
+                <button title="Transparent" onClick={()=>{ onUpdate(el.id,{fill:"transparent"}); setShowPicker(false); }}
+                  style={{ width:"100%", aspectRatio:"1", borderRadius:"50%", background:"#ffffff", border:el.fill==="transparent"?`2.5px solid ${TEAL}`:`1.5px solid #E8E2D8`, cursor:"pointer", padding:0, overflow:"hidden" }}>
+                  <svg viewBox="0 0 20 20" style={{ width:"100%", height:"100%", display:"block" }}>
+                    <circle cx="10" cy="10" r="9" fill="white"/>
+                    <line x1="3.5" y1="3.5" x2="16.5" y2="16.5" stroke="#E02020" strokeWidth="2.2" strokeLinecap="round"/>
+                  </svg>
+                </button>
                 {PALETTE.map(color=>(
                   <button key={color} onClick={()=>{ onUpdate(el.id,{fill:color}); setShowPicker(false); }}
                     style={{ width:"100%", aspectRatio:"1", borderRadius:"50%", background:color, border:el.fill===color?`2.5px solid ${TEAL}`:`1.5px solid #E8E2D8`, cursor:"pointer" }} />
