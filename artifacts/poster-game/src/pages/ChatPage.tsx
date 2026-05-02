@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect } from "react";
+import type { Socket } from "socket.io-client";
 import type { RoomState, CanvasElement } from "../types/game";
 import type { VoteResult } from "../hooks/useGame";
 import { Timer } from "../components/Timer";
+import { PlayerAvatar } from "../components/PlayerAvatar";
 import { PosterWallBg, TapeCorner } from "../components/PosterWallBg";
+import { useVoiceChat } from "../hooks/useVoiceChat";
 
 const BEBAS   = "'Bebas Neue', sans-serif";
 const DM      = "'DM Sans', sans-serif";
@@ -26,6 +29,8 @@ type Props = {
   voteResult: VoteResult | null;
   typingPlayers: Record<string, number>;
   emitTyping: () => void;
+  socket: Socket;
+  roomId: string;
 };
 
 function renderMiniElement(el: CanvasElement) {
@@ -45,10 +50,106 @@ function renderMiniElement(el: CanvasElement) {
   return <div key={el.id} style={{ ...base, background:el.fill }} />;
 }
 
-export function ChatPage({ room, myPlayerId, amIHost, onSend, onSkip, voteTally, onVote, voteResult, typingPlayers, emitTyping }: Props) {
-  const [draft, setDraft] = useState("");
-  const [now,   setNow]   = useState(Date.now());
+function formatTime(secs: number): string {
+  const s = Math.floor(secs);
+  return `0:${s < 10 ? "0" : ""}${s}`;
+}
+
+const WAVEFORM = [5, 10, 7, 14, 9, 12, 8, 15, 6, 13, 8, 11, 7, 13, 9, 10, 6, 12];
+
+function VoicePlayer({ src, isMine, playerColor }: { src: string; isMine: boolean; playerColor: string }) {
+  const audioRef   = useRef<HTMLAudioElement>(null);
+  const [playing,  setPlaying]  = useState(false);
+  const [duration, setDuration] = useState(0);
+  const [curTime,  setCurTime]  = useState(0);
+
+  const progress = duration > 0 ? curTime / duration : 0;
+  const accent   = isMine ? "rgba(255,255,255,0.9)" : ORANGE;
+  const trackBg  = isMine ? "rgba(255,255,255,0.18)" : `${ORANGE}22`;
+
+  return (
+    <div style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 10px", background:isMine?NAVY:"#F0E8D8", border:`1px solid ${isMine?"#0A2040":"#E8E2D8"}`, borderRadius:"10px", minWidth:168, boxSizing:"border-box" }}>
+      <button
+        onClick={()=>{ const a=audioRef.current; if(!a) return; if(playing) a.pause(); else a.play().catch(()=>{}); }}
+        style={{ width:30, height:30, borderRadius:"50%", border:"none", background:accent, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:isMine?NAVY:ORANGE, fontSize:12, fontWeight:700 }}>
+        {playing ? "⏸" : "▶"}
+      </button>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ display:"flex", alignItems:"flex-end", height:20, gap:2, marginBottom:3 }}>
+          {WAVEFORM.map((h, i) => {
+            const ratio = i / WAVEFORM.length;
+            const isPast = ratio <= progress;
+            return (
+              <div key={i} style={{ flex:1, borderRadius:2, background:isPast ? accent : trackBg, height:`${h * (isPast ? 1 : 0.45)}px`, transition:"height 0.08s" }} />
+            );
+          })}
+        </div>
+        <div style={{ height:2, background:trackBg, borderRadius:1, overflow:"hidden" }}>
+          <div style={{ height:"100%", width:`${progress*100}%`, background:accent, transition:"width 0.1s linear" }} />
+        </div>
+      </div>
+      <span style={{ fontFamily:DM, fontSize:"0.6rem", color:isMine?"rgba(255,255,255,0.5)":"#8A7868", flexShrink:0 }}>
+        {playing ? formatTime(curTime) : formatTime(duration)}
+      </span>
+      <audio ref={audioRef} src={src}
+        onPlay={()=>setPlaying(true)}
+        onPause={()=>setPlaying(false)}
+        onEnded={()=>{ setPlaying(false); setCurTime(0); }}
+        onTimeUpdate={()=>setCurTime(audioRef.current?.currentTime??0)}
+        onLoadedMetadata={()=>setDuration(audioRef.current?.duration??0)} />
+    </div>
+  );
+}
+
+function MicButton({ isRecording, permissionDenied, speakingCount, onStart, onStop }: {
+  isRecording: boolean;
+  permissionDenied: boolean;
+  speakingCount: number;
+  onStart: () => void;
+  onStop: () => void;
+}) {
+  return (
+    <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0 }}>
+      {speakingCount > 0 && !isRecording && (
+        <div style={{ display:"flex", alignItems:"center", gap:3, padding:"2px 7px", background:`${TEAL}18`, border:`1px solid ${TEAL}`, borderRadius:12 }}>
+          <div style={{ width:6, height:6, borderRadius:"50%", background:TEAL, animation:"pulse-speak 0.8s infinite" }} />
+          <span style={{ fontFamily:DM, fontSize:"0.6rem", color:TEAL, fontWeight:600 }}>{speakingCount}</span>
+        </div>
+      )}
+      <button title={permissionDenied?"Mic access denied":isRecording?"Release to send":"Hold to talk"}
+        onMouseDown={!permissionDenied?onStart:undefined}
+        onMouseUp={!permissionDenied?onStop:undefined}
+        onTouchStart={!permissionDenied?(e)=>{e.preventDefault();onStart();}:undefined}
+        onTouchEnd={!permissionDenied?(e)=>{e.preventDefault();onStop();}:undefined}
+        style={{ width:34, height:34, borderRadius:"50%", border:"none", cursor:permissionDenied?"not-allowed":"pointer",
+          background:isRecording?ORANGE:permissionDenied?"#E8E2D8":"#F0E8DC",
+          boxShadow:isRecording?`0 0 0 4px ${ORANGE}44`:"none",
+          transition:"all 0.15s", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>
+        {isRecording ? "🔴" : permissionDenied ? "🚫" : "🎙"}
+      </button>
+      <style>{`@keyframes pulse-speak{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
+    </div>
+  );
+}
+
+export function ChatPage({ room, myPlayerId, amIHost, onSend, onSkip, voteTally, onVote, voteResult, typingPlayers, emitTyping, socket, roomId }: Props) {
+  const [draft,     setDraft]     = useState("");
+  const [now,       setNow]       = useState(Date.now());
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // ── Live voice chat (walkie-talkie)
+  const { isRecording: liveRecording, speakingPlayers, startRecording, stopRecording, permissionDenied } = useVoiceChat(socket, roomId);
+
+  // ── Voice memo states
+  const [memoMode,    setMemoMode]    = useState<"idle"|"recording"|"preview">("idle");
+  const [memoSeconds, setMemoSeconds] = useState(0);
+  const [previewUrl,  setPreviewUrl]  = useState<string|null>(null);
+  const [previewBlob, setPreviewBlob] = useState<Blob|null>(null);
+  const memoRecRef   = useRef<MediaRecorder|null>(null);
+  const memoStreamRef = useRef<MediaStream|null>(null);
+  const memoChunksRef = useRef<Blob[]>([]);
+  const memoTimerRef  = useRef<ReturnType<typeof setInterval>|null>(null);
+  const memoStartRef  = useRef<number>(0);
 
   const isVotePhase = room.phase === "vote";
   const isImposter  = room.myRole === "imposter";
@@ -56,6 +157,67 @@ export function ChatPage({ room, myPlayerId, amIHost, onSend, onSkip, voteTally,
 
   useEffect(() => { const id = setInterval(()=>setNow(Date.now()),500); return ()=>clearInterval(id); }, []);
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior:"smooth" }); }, [room.messages.length]);
+
+  // cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (memoTimerRef.current) clearInterval(memoTimerRef.current);
+      memoStreamRef.current?.getTracks().forEach(t=>t.stop());
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function startMemoRecording() {
+    if (memoMode !== "idle") return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      memoStreamRef.current = stream;
+      const mime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus") ? "audio/webm;codecs=opus" : "audio/webm";
+      const rec = new MediaRecorder(stream, { mimeType: mime });
+      memoRecRef.current = rec;
+      memoChunksRef.current = [];
+      rec.ondataavailable = (e) => { if (e.data.size > 0) memoChunksRef.current.push(e.data); };
+      rec.onstop = () => {
+        const blob = new Blob(memoChunksRef.current, { type: mime });
+        setPreviewBlob(blob);
+        setPreviewUrl(URL.createObjectURL(blob));
+        setMemoMode("preview");
+        memoStreamRef.current?.getTracks().forEach(t=>t.stop());
+      };
+      rec.start();
+      setMemoMode("recording");
+      memoStartRef.current = Date.now();
+      setMemoSeconds(0);
+      memoTimerRef.current = setInterval(() => {
+        const elapsed = (Date.now() - memoStartRef.current) / 1000;
+        setMemoSeconds(elapsed);
+        if (elapsed >= 10) stopMemoRecording();
+      }, 100);
+    } catch {
+      // mic not available
+    }
+  }
+
+  function stopMemoRecording() {
+    if (memoTimerRef.current) { clearInterval(memoTimerRef.current); memoTimerRef.current = null; }
+    memoRecRef.current?.stop();
+  }
+
+  function discardMemo() {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null); setPreviewBlob(null);
+    setMemoMode("idle"); setMemoSeconds(0);
+  }
+
+  async function sendMemo() {
+    if (!previewBlob) return;
+    const buf  = await previewBlob.arrayBuffer();
+    const b64  = btoa(String.fromCharCode(...new Uint8Array(buf)));
+    const mime = previewBlob.type;
+    onSend(`[VOICE]data:${mime};base64,${b64}`);
+    discardMemo();
+  }
 
   function handleSend() { const t=draft.trim(); if(!t||isVotePhase) return; onSend(t); setDraft(""); }
   function handleKey(e: React.KeyboardEvent) { if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();handleSend();} }
@@ -69,7 +231,7 @@ export function ChatPage({ room, myPlayerId, amIHost, onSend, onSkip, voteTally,
     <div style={{ height:"100vh", display:"flex", flexDirection:"column", overflow:"hidden", position:"relative" }}>
       <PosterWallBg />
 
-      {/* ── TOP BAR — white ── */}
+      {/* ── TOP BAR ── */}
       <div style={{ position:"relative", zIndex:20, background:"#FFFFFF", borderBottom:`3px solid ${ORANGE}`, display:"flex", alignItems:"center", padding:"0 1.25rem", height:52, flexShrink:0, gap:"1rem", boxShadow:"0 2px 12px rgba(0,0,0,0.10)" }}>
         <img src="/poster-logo.png" alt="POSTER" style={{ height:38, display:"block", objectFit:"contain" }} />
         <div style={{ width:1, height:24, background:"#E8E2D8" }} />
@@ -82,6 +244,16 @@ export function ChatPage({ room, myPlayerId, amIHost, onSend, onSkip, voteTally,
           </div>
         </div>
         <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:"0.9rem" }}>
+          {/* Speaking indicators */}
+          {room.players.filter(p=>speakingPlayers.has(p.id)).map(p=>(
+            <div key={p.id} style={{ display:"flex", alignItems:"center", gap:4, padding:"2px 7px", background:`${p.color}22`, border:`1.5px solid ${p.color}`, borderRadius:12 }}>
+              <div style={{ width:5, height:5, borderRadius:"50%", background:p.color, animation:"pulse-speak 0.8s infinite" }} />
+              <span style={{ fontFamily:DM, fontSize:"0.6rem", color:p.color, fontWeight:700 }}>{p.name}</span>
+            </div>
+          ))}
+          {/* Live walkie-talkie mic */}
+          <MicButton isRecording={liveRecording} permissionDenied={permissionDenied} speakingCount={speakingPlayers.size} onStart={startRecording} onStop={stopRecording} />
+          <div style={{ width:1, height:24, background:"#E8E2D8" }} />
           {isImposter && (
             <div style={{ fontFamily:BEBAS, fontSize:"0.72rem", letterSpacing:"0.14em", color:ORANGE, border:`2px solid ${ORANGE}`, padding:"0.2rem 0.65rem", background:`${ORANGE}12` }}>
               IMPOSTER — BLEND IN
@@ -102,7 +274,7 @@ export function ChatPage({ room, myPlayerId, amIHost, onSend, onSkip, voteTally,
       {/* ── MAIN LAYOUT ── */}
       <div style={{ flex:1, display:"flex", overflow:"hidden", position:"relative", zIndex:10 }}>
 
-        {/* ── LEFT: canvas preview + voting ── */}
+        {/* LEFT: canvas preview + voting */}
         <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden", background:"rgba(245,238,226,0.85)", backdropFilter:"blur(2px)" }}>
 
           <div style={{ padding:"1rem 1.2rem 0.75rem", flexShrink:0 }}>
@@ -163,8 +335,9 @@ export function ChatPage({ room, myPlayerId, amIHost, onSend, onSkip, voteTally,
                     onMouseLeave={(e)=>{if(!isVotedByMe){e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="2px 2px 0 rgba(0,0,0,0.08)";}}}
                   >
                     {votes>0 && <div style={{ position:"absolute", top:-8, right:-8, background:ORANGE, color:"#fff", fontSize:10, fontFamily:DM, fontWeight:700, padding:"1px 5px", borderRadius:12, minWidth:18, textAlign:"center", zIndex:1, border:"2px solid #fff" }}>{votes}</div>}
-                    <div style={{ position:"relative", width:44, height:44, borderRadius:"50%", background:player.color, boxShadow:`0 0 10px ${player.color}55`, border:"3px solid #fff" }}>
-                      {isVotedByMe&&<div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(0,0,0,0.35)", borderRadius:"50%", fontSize:20, color:"#fff", fontWeight:700 }}>✓</div>}
+                    <div style={{ position:"relative" }}>
+                      <PlayerAvatar playerId={player.id} color={player.color} size={44} showBorder={isVotedByMe} />
+                      {isVotedByMe&&<div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(0,0,0,0.35)", borderRadius:"50%", fontSize:18, color:"#fff", fontWeight:700 }}>✓</div>}
                       {!isVotePhase&&<div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(0,0,0,0.4)", borderRadius:"50%", fontSize:14 }}>🔒</div>}
                     </div>
                     <div style={{ fontFamily:DM, fontSize:"0.7rem", color:"#4A3C22", fontWeight:600, textAlign:"center", maxWidth:72, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
@@ -202,20 +375,23 @@ export function ChatPage({ room, myPlayerId, amIHost, onSend, onSkip, voteTally,
           </div>
         </div>
 
-        {/* ── RIGHT: chat panel — white ── */}
-        <div style={{ width:288, flexShrink:0, display:"flex", flexDirection:"column", background:"#FFFFFF", borderLeft:`3px solid ${NAVY}` }}>
+        {/* RIGHT: chat panel */}
+        <div style={{ width:296, flexShrink:0, display:"flex", flexDirection:"column", background:"#FFFFFF", borderLeft:`3px solid ${NAVY}` }}>
 
-          <div style={{ borderBottom:`2px solid #F0E8D8`, padding:"0.75rem 0.9rem", flexShrink:0, background:"#FAFAF5" }}>
+          {/* Players with avatars */}
+          <div style={{ borderBottom:`2px solid #F0E8D8`, padding:"0.65rem 0.9rem", flexShrink:0, background:"#FAFAF5" }}>
             <div style={{ fontFamily:BEBAS, fontSize:"0.6rem", letterSpacing:"0.25em", color:ORANGE, marginBottom:8 }}>PLAYERS</div>
-            <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
+            <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
               {room.players.map((player) => (
-                <div key={player.id} style={{ display:"flex", alignItems:"center", gap:8, opacity:player.eliminated?0.3:1 }}>
-                  <div style={{ position:"relative", flexShrink:0 }}>
-                    <div style={{ width:26, height:26, borderRadius:"50%", background:player.color, boxShadow:`0 0 8px ${player.color}55`, border:"2px solid #fff" }} />
-                    <div style={{ position:"absolute", bottom:-1, right:-1, width:8, height:8, borderRadius:"50%", background:"#4CAF50", border:"1.5px solid #fff" }} />
+                <div key={player.id} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:2, opacity:player.eliminated?0.35:1 }}>
+                  <div style={{ position:"relative" }}>
+                    <PlayerAvatar playerId={player.id} color={player.color} size={36} showBorder={player.id===myPlayerId} />
+                    {speakingPlayers.has(player.id) && (
+                      <div style={{ position:"absolute", bottom:-2, right:-2, width:10, height:10, borderRadius:"50%", background:TEAL, border:"2px solid #fff", animation:"pulse-speak 0.8s infinite" }} />
+                    )}
                   </div>
-                  <span style={{ fontFamily:DM, fontSize:"0.77rem", color:player.id===myPlayerId?"#1A1208":"#8A7868", fontWeight:player.id===myPlayerId?700:400, textDecoration:player.eliminated?"line-through":"none", flex:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                    {player.name}{player.id===myPlayerId&&<span style={{ color:"#C8B888", fontWeight:400 }}> (you)</span>}
+                  <span style={{ fontFamily:DM, fontSize:"0.55rem", color:player.id===myPlayerId?NAVY:"#8A7868", fontWeight:player.id===myPlayerId?700:400, textDecoration:player.eliminated?"line-through":"none", maxWidth:40, textAlign:"center", lineHeight:1.2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                    {player.id===myPlayerId?"you":player.name}
                   </span>
                 </div>
               ))}
@@ -223,11 +399,10 @@ export function ChatPage({ room, myPlayerId, amIHost, onSend, onSkip, voteTally,
           </div>
 
           <div style={{ borderBottom:`2px solid #F0E8D8`, padding:"0.5rem 0.9rem", flexShrink:0, background:"#FAFAF5" }}>
-            <div style={{ fontFamily:BEBAS, fontSize:"1.1rem", color:NAVY, letterSpacing:"0.1em", lineHeight:1 }}>
-              WHO IS THE IMPOSTER?
-            </div>
+            <div style={{ fontFamily:BEBAS, fontSize:"1.1rem", color:NAVY, letterSpacing:"0.1em", lineHeight:1 }}>WHO IS THE IMPOSTER?</div>
           </div>
 
+          {/* Messages */}
           <div style={{ flex:1, overflowY:"auto", padding:"0.7rem 0.9rem", display:"flex", flexDirection:"column", gap:9, background:"#FFFFFF" }}>
             {room.messages.length===0&&(
               <div style={{ textAlign:"center", fontFamily:DM, fontSize:"0.73rem", color:"#C8B888", marginTop:"1.2rem" }}>
@@ -236,20 +411,27 @@ export function ChatPage({ room, myPlayerId, amIHost, onSend, onSkip, voteTally,
             )}
             {room.messages.map((msg) => {
               const isMine = msg.playerId===myPlayerId;
+              const isVoice = msg.text.startsWith("[VOICE]");
               return (
                 <div key={msg.id} style={{ display:"flex", flexDirection:isMine?"row-reverse":"row", gap:6, alignItems:"flex-end" }}>
-                  <div style={{ width:22, height:22, borderRadius:"50%", background:msg.playerColor, flexShrink:0, boxShadow:`0 0 6px ${msg.playerColor}55`, border:"2px solid #fff" }} />
-                  <div style={{ maxWidth:"80%" }}>
+                  <div style={{ width:22, height:24, flexShrink:0 }}>
+                    <PlayerAvatar playerId={msg.playerId} color={msg.playerColor} size={22} />
+                  </div>
+                  <div style={{ maxWidth:"82%" }}>
                     {!isMine&&<div style={{ fontFamily:DM, fontSize:"0.63rem", fontWeight:700, color:msg.playerColor, marginBottom:2 }}>{msg.playerName}</div>}
-                    <div style={{
-                      background:isMine?NAVY:"#F0E8D8",
-                      color:isMine?"#FFFFFF":"#1A1208",
-                      padding:"0.42rem 0.65rem",
-                      fontFamily:DM, fontSize:"0.82rem", lineHeight:1.45,
-                      borderRadius:isMine?"10px 10px 2px 10px":"10px 10px 10px 2px",
-                      border:isMine?`1px solid #0A2040`:`1px solid #E8E2D8`,
-                      wordBreak:"break-word",
-                    }}>{msg.text}</div>
+                    {isVoice ? (
+                      <VoicePlayer src={msg.text.slice(7)} isMine={isMine} playerColor={msg.playerColor} />
+                    ) : (
+                      <div style={{
+                        background:isMine?NAVY:"#F0E8D8",
+                        color:isMine?"#FFFFFF":"#1A1208",
+                        padding:"0.42rem 0.65rem",
+                        fontFamily:DM, fontSize:"0.82rem", lineHeight:1.45,
+                        borderRadius:isMine?"10px 10px 2px 10px":"10px 10px 10px 2px",
+                        border:isMine?`1px solid #0A2040`:`1px solid #E8E2D8`,
+                        wordBreak:"break-word",
+                      }}>{msg.text}</div>
+                    )}
                   </div>
                 </div>
               );
@@ -267,25 +449,73 @@ export function ChatPage({ room, myPlayerId, amIHost, onSend, onSkip, voteTally,
             <div ref={messagesEndRef} />
           </div>
 
+          {/* Input area */}
           <div style={{ borderTop:`2px solid #F0E8D8`, padding:"0.6rem 0.75rem", flexShrink:0, background:"#FAFAF5" }}>
+
+            {/* Voice memo preview */}
+            {memoMode==="preview" && previewUrl && (
+              <div style={{ marginBottom:8, padding:"8px 10px", background:"#F5EEE2", border:`2px solid ${ORANGE}`, borderRadius:8, display:"flex", flexDirection:"column", gap:8 }}>
+                <div style={{ fontFamily:BEBAS, fontSize:"0.55rem", letterSpacing:"0.18em", color:ORANGE }}>VOICE MEMO — PREVIEW BEFORE SENDING</div>
+                <VoicePlayer src={previewUrl} isMine={false} playerColor={ORANGE} />
+                <div style={{ display:"flex", gap:6 }}>
+                  <button onClick={discardMemo}
+                    style={{ flex:1, height:32, background:"#FFF0EC", border:`1.5px solid ${ORANGE}`, borderRadius:5, cursor:"pointer", fontFamily:DM, fontSize:"0.72rem", color:ORANGE, fontWeight:600 }}>
+                    🗑 Discard
+                  </button>
+                  <button onClick={sendMemo}
+                    style={{ flex:1, height:32, background:ORANGE, border:`1.5px solid #8A3008`, borderRadius:5, cursor:"pointer", fontFamily:DM, fontSize:"0.72rem", color:"#fff", fontWeight:700, boxShadow:`2px 2px 0 ${NAVY}` }}>
+                    ➤ Send
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Recording indicator */}
+            {memoMode==="recording" && (
+              <div style={{ marginBottom:8, padding:"6px 10px", background:`${ORANGE}12`, border:`1.5px solid ${ORANGE}`, borderRadius:6, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                  <div style={{ width:8, height:8, borderRadius:"50%", background:ORANGE, animation:"pulse-speak 0.5s infinite" }} />
+                  <span style={{ fontFamily:DM, fontSize:"0.72rem", color:ORANGE, fontWeight:600 }}>Recording {formatTime(memoSeconds)}/0:10</span>
+                </div>
+                <button onClick={stopMemoRecording}
+                  style={{ background:ORANGE, border:"none", borderRadius:4, padding:"3px 10px", cursor:"pointer", fontFamily:BEBAS, fontSize:"0.65rem", letterSpacing:"0.1em", color:"#fff" }}>
+                  STOP
+                </button>
+              </div>
+            )}
+
             {isVotePhase&&<div style={{ fontFamily:DM, fontSize:"0.66rem", color:"#C8B888", textAlign:"center", marginBottom:5 }}>Chat disabled during vote phase</div>}
-            <div style={{ display:"flex", gap:6 }}>
+
+            <div style={{ display:"flex", gap:6, alignItems:"flex-end" }}>
+              {/* Voice memo record button */}
+              {!isVotePhase && memoMode==="idle" && (
+                <button onClick={startMemoRecording}
+                  title="Record a voice memo"
+                  style={{ width:36, height:36, borderRadius:"50%", border:`1.5px solid #E8E2D8`, background:"#FAFAF5", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, flexShrink:0, color:"#8A7868" }}>
+                  🎤
+                </button>
+              )}
+
               <input
-                disabled={isVotePhase}
+                disabled={isVotePhase || memoMode!=="idle"}
                 value={draft}
                 onChange={(e)=>{setDraft(e.target.value);if(!isVotePhase)emitTyping();}}
                 onKeyDown={handleKey}
-                placeholder="Say something suspicious…"
-                style={{ flex:1, background:isVotePhase?"#FAFAF5":"#FFFFFF", border:`2px solid ${isVotePhase?"#E8E2D8":NAVY}`, color:"#1A1208", padding:"0.45rem 0.7rem", fontFamily:DM, fontSize:"0.82rem", outline:"none", borderRadius:4, opacity:isVotePhase?0.5:1 }}
+                placeholder={memoMode!=="idle" ? "…" : "Say something suspicious…"}
+                style={{ flex:1, background:isVotePhase||memoMode!=="idle"?"#FAFAF5":"#FFFFFF", border:`2px solid ${isVotePhase?"#E8E2D8":NAVY}`, color:"#1A1208", padding:"0.45rem 0.7rem", fontFamily:DM, fontSize:"0.82rem", outline:"none", borderRadius:4, opacity:isVotePhase||memoMode!=="idle"?0.5:1 }}
               />
-              <button onClick={handleSend} disabled={isVotePhase}
-                style={{ background:isVotePhase?"#E8E2D8":ORANGE, border:`2px solid ${isVotePhase?"#E8E2D8":"#8A3008"}`, color:isVotePhase?"#C8B888":"#FFFFFF", padding:"0 12px", cursor:isVotePhase?"default":"pointer", borderRadius:4, fontSize:"1rem", flexShrink:0, boxShadow:isVotePhase?"none":`2px 2px 0 ${NAVY}` }}>
+              <button onClick={handleSend} disabled={isVotePhase || memoMode!=="idle"}
+                style={{ background:isVotePhase||memoMode!=="idle"?"#E8E2D8":ORANGE, border:`2px solid ${isVotePhase?"#E8E2D8":"#8A3008"}`, color:isVotePhase||memoMode!=="idle"?"#C8B888":"#FFFFFF", padding:"0 12px", cursor:isVotePhase||memoMode!=="idle"?"default":"pointer", borderRadius:4, fontSize:"1rem", flexShrink:0, height:36, boxShadow:isVotePhase||memoMode!=="idle"?"none":`2px 2px 0 ${NAVY}` }}>
                 ➤
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes typing-bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
+      `}</style>
     </div>
   );
 }

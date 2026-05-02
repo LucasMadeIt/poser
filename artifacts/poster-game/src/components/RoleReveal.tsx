@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
+import { PlayerAvatar } from "./PlayerAvatar";
 
-const BEBAS   = "'Bebas Neue', sans-serif";
-const DM      = "'DM Sans', sans-serif";
+const BEBAS = "'Bebas Neue', sans-serif";
+const DM    = "'DM Sans', sans-serif";
 const ORANGE  = "#D4561A";
 const NAVY    = "#1C3A60";
 const TEAL    = "#2A8080";
@@ -10,154 +11,244 @@ const MUSTARD = "#C8A028";
 type Props = {
   role: "imposter" | "crewmate";
   onDismiss: () => void;
+  myPlayerId?: string;
+  myPlayerColor?: string;
 };
 
-function CrewmateIcon() {
+/* ── The colourful poster that falls off the wall ─────────────────────────── */
+function FallingPoster({ role }: { role: "imposter" | "crewmate" }) {
+  const blocks = [
+    { x:0, y:0, w:"50%", h:"40%", bg:ORANGE },
+    { x:50, y:0, w:"50%", h:"40%", bg:TEAL },
+    { x:0, y:40, w:"35%", h:"35%", bg:MUSTARD },
+    { x:35, y:40, w:"40%", h:"35%", bg:NAVY },
+    { x:75, y:40, w:"25%", h:"35%", bg:"#9B59B6" },
+    { x:0, y:75, w:"60%", h:"25%", bg:"#1A5A30" },
+    { x:60, y:75, w:"40%", h:"25%", bg:"#8B1A10" },
+  ];
+
   return (
-    <div style={{ position:"relative", width:100, height:120, margin:"0 auto" }}>
-      <div style={{ width:100, height:100, background:TEAL, borderRadius:"50% 50% 44% 44%", position:"absolute", bottom:0, boxShadow:`0 0 28px ${TEAL}88, 4px 4px 0 ${NAVY}` }}>
-        <div style={{ position:"absolute", top:"24%", left:"15%", width:20, height:26, background:"white", borderRadius:"50%" }}><div style={{ position:"absolute", bottom:4, right:3, width:10, height:13, background:"#1a1208", borderRadius:"50%" }} /></div>
-        <div style={{ position:"absolute", top:"24%", right:"15%", width:20, height:26, background:"white", borderRadius:"50%" }}><div style={{ position:"absolute", bottom:4, left:3, width:10, height:13, background:"#1a1208", borderRadius:"50%" }} /></div>
-        <div style={{ position:"absolute", bottom:"16%", left:"50%", transform:"translateX(-50%)", width:36, height:16, borderBottom:`4px solid #1a1208`, borderLeft:`3px solid #1a1208`, borderRight:`3px solid #1a1208`, borderRadius:"0 0 20px 20px" }} />
+    <div style={{ position:"relative", width:520, height:600, overflow:"hidden", boxShadow:"0 20px 60px rgba(0,0,0,0.5), 8px 12px 0 rgba(0,0,0,0.3)" }}>
+      {/* Colour blocks */}
+      {blocks.map((b,i) => (
+        <div key={i} style={{ position:"absolute", left:b.x+"%", top:b.y+"%", width:b.w, height:b.h, background:b.bg }} />
+      ))}
+
+      {/* Ripped paper scraps */}
+      {[
+        { l:"10%", t:"15%", r:"-8deg", bg:"rgba(255,255,255,0.82)", w:160, h:90 },
+        { l:"55%", t:"42%", r:"6deg",  bg:"rgba(255,255,255,0.78)", w:130, h:70 },
+        { l:"5%",  t:"60%", r:"-4deg", bg:"rgba(255,255,255,0.70)", w:200, h:55 },
+      ].map((p,i)=>(
+        <div key={i} style={{ position:"absolute", left:p.l, top:p.t, width:p.w, height:p.h, background:p.bg, transform:`rotate(${p.r})`, clipPath:"polygon(0 0, 98% 3%, 100% 94%, 2% 100%)" }} />
+      ))}
+
+      {/* Big graffiti text */}
+      <div style={{ position:"absolute", top:"8%", left:0, right:0, textAlign:"center", fontFamily:BEBAS, fontSize:"5.5rem", color:"rgba(255,255,255,0.92)", letterSpacing:"0.08em", lineHeight:1, textShadow:"4px 4px 0 rgba(0,0,0,0.35)" }}>
+        POSTER
       </div>
-      <div style={{ position:"absolute", right:-16, top:33, width:20, height:7, background:TEAL, borderRadius:4, transform:"rotate(-32deg)" }}><div style={{ position:"absolute", right:-2, top:-12, width:10, height:15, background:TEAL, borderRadius:"4px 4px 2px 2px" }} /></div>
-      <div style={{ position:"absolute", left:-13, top:42, width:18, height:7, background:TEAL, borderRadius:4, transform:"rotate(18deg)" }} />
+      <div style={{ position:"absolute", top:"36%", left:"8%", fontFamily:BEBAS, fontSize:"2.2rem", color:"rgba(255,255,255,0.7)", transform:"rotate(-8deg)", letterSpacing:"0.2em", textShadow:"2px 2px 0 rgba(0,0,0,0.4)" }}>
+        DESIGN
+      </div>
+      <div style={{ position:"absolute", top:"55%", right:"6%", fontFamily:BEBAS, fontSize:"1.6rem", color:"rgba(255,255,255,0.65)", transform:"rotate(5deg)", letterSpacing:"0.15em" }}>
+        WHO DID IT?
+      </div>
+
+      {/* SVG doodles */}
+      <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", pointerEvents:"none" }} viewBox="0 0 520 600">
+        <circle cx="420" cy="80"  r="45" stroke="rgba(255,255,255,0.35)" strokeWidth="3" fill="none" strokeDasharray="10 14"/>
+        <circle cx="80"  cy="500" r="38" stroke="rgba(255,255,255,0.25)" strokeWidth="2" fill="none" strokeDasharray="8 12"/>
+        <path d="M60 200 Q180 160 280 220 Q380 280 480 200" stroke="rgba(255,255,255,0.3)" strokeWidth="3" fill="none" strokeLinecap="round"/>
+        <path d="M30 350 Q130 310 200 380" stroke="rgba(255,255,255,0.25)" strokeWidth="2" fill="none" strokeLinecap="round"/>
+        {/* star burst */}
+        {Array.from({length:8}).map((_,i)=>{
+          const a=(i/8)*Math.PI*2;
+          return <line key={i} x1={440} y1={420} x2={440+Math.cos(a)*28} y2={420+Math.sin(a)*28} stroke="rgba(255,255,255,0.4)" strokeWidth="2" />;
+        })}
+        <circle cx="440" cy="420" r="8" fill="rgba(255,255,255,0.55)" />
+        {/* drip */}
+        <path d="M200 0 L200 30 Q200 50 208 60 Q216 70 200 80" stroke={ORANGE} strokeWidth="4" fill="none" strokeLinecap="round"/>
+        <circle cx="200" cy="85" r="7" fill={ORANGE}/>
+      </svg>
+
+      {/* Tape strips at top */}
+      <div style={{ position:"absolute", top:-10, left:"18%", width:110, height:28, background:`repeating-linear-gradient(90deg,${ORANGE}CC,${ORANGE}FF 10px,${ORANGE}CC 14px)`, transform:"rotate(-5deg)", boxShadow:"0 3px 10px rgba(0,0,0,0.4)", zIndex:10 }} />
+      <div style={{ position:"absolute", top:-10, right:"18%", width:90, height:28, background:`repeating-linear-gradient(90deg,#1A5070CC,#206090FF 10px,#1A5070CC 14px)`, transform:"rotate(4deg)", boxShadow:"0 3px 10px rgba(0,0,0,0.4)", zIndex:10 }} />
+
+      {/* Bottom torn edge */}
+      <svg viewBox="0 0 520 24" style={{ position:"absolute", bottom:-2, left:0, width:"100%", height:24 }} preserveAspectRatio="none">
+        <path d="M0 0 L0 8 Q20 20 40 10 Q60 2 80 16 Q100 24 120 10 Q140 0 160 18 Q180 24 200 8 Q220 0 240 16 Q260 24 280 8 Q300 2 320 18 Q340 24 360 8 Q380 0 400 16 Q420 22 440 8 Q460 0 480 16 Q500 22 520 8 L520 0 Z" fill="#F5EEE2"/>
+      </svg>
     </div>
   );
 }
 
-function ImposterIcon() {
+/* ── Role content that appears behind the poster ─────────────────────────── */
+function RoleContent({ role, myPlayerId, myPlayerColor }: { role: "imposter"|"crewmate"; myPlayerId?: string; myPlayerColor?: string }) {
+  const isImposter = role === "imposter";
+  const pid  = myPlayerId ?? "defaultplayer";
+  const col  = myPlayerColor ?? (isImposter ? ORANGE : TEAL);
+
   return (
-    <div style={{ position:"relative", width:100, height:145, margin:"0 auto" }}>
-      <div style={{ width:100, height:100, background:"#1A1208", borderRadius:"50% 50% 44% 44%", position:"absolute", top:0, zIndex:2, boxShadow:`0 0 28px ${ORANGE}66, 4px 4px 0 ${NAVY}` }}>
-        <div style={{ position:"absolute", top:"22%", left:"13%", width:20, height:16, background:ORANGE, borderRadius:"50%", transform:"rotate(-12deg)", boxShadow:`0 0 8px ${ORANGE}88` }}><div style={{ position:"absolute", bottom:2, right:3, width:9, height:10, background:"#5A1A00", borderRadius:"50%" }} /></div>
-        <div style={{ position:"absolute", top:"22%", right:"13%", width:20, height:16, background:ORANGE, borderRadius:"50%", transform:"rotate(12deg)", boxShadow:`0 0 8px ${ORANGE}88` }}><div style={{ position:"absolute", bottom:2, left:3, width:9, height:10, background:"#5A1A00", borderRadius:"50%" }} /></div>
-        <div style={{ position:"absolute", bottom:"17%", left:"50%", transform:"translateX(-50%)", width:34, height:13, borderTop:`4px solid ${ORANGE}`, borderLeft:`3px solid ${ORANGE}`, borderRight:`3px solid ${ORANGE}`, borderRadius:"20px 20px 0 0" }} />
+    <div style={{ textAlign:"center", padding:"0 2rem", maxWidth:520, animation:"role-content-in 0.5s cubic-bezier(0.34,1.56,0.64,1) both" }}>
+
+      {/* Avatar */}
+      <div style={{ margin:"0 auto 1.25rem", width:96, height:104, animation:"float-slow 3s ease-in-out infinite" }}>
+        <PlayerAvatar playerId={pid} color={col} size={96} showBorder />
       </div>
-      <div style={{ position:"absolute", top:68, left:-10, right:-10, height:62, background:"#1A1208", borderRadius:"0 0 26px 26px", zIndex:1 }} />
-      <div style={{ position:"absolute", top:88, left:-18, width:26, height:42, background:"#1A1208", borderRadius:"0 0 7px 7px", transform:"rotate(17deg)", zIndex:0 }} />
-      <div style={{ position:"absolute", top:88, right:-18, width:26, height:42, background:"#1A1208", borderRadius:"0 0 7px 7px", transform:"rotate(-17deg)", zIndex:0 }} />
+
+      <div style={{ fontFamily:BEBAS, fontSize:"0.85rem", letterSpacing:"0.4em", color:isImposter?`${ORANGE}CC`:NAVY, marginBottom:"0.4rem" }}>
+        {isImposter ? "YOU ARE THE" : "YOU ARE A"}
+      </div>
+
+      <div style={{
+        fontFamily:BEBAS, fontSize:"clamp(4.5rem,11vw,7rem)", lineHeight:1, letterSpacing:"0.06em",
+        color:isImposter?"#FFFFFF":NAVY,
+        textShadow:isImposter
+          ?`0 0 40px ${ORANGE}BB, 0 0 80px ${ORANGE}44, 4px 4px 0 ${NAVY}`
+          :`4px 4px 0 ${ORANGE}, 8px 8px 0 rgba(0,0,0,0.14)`,
+        animation:isImposter?"imposter-shake 0.5s ease-out 0.1s both":"stamp-in 0.4s ease-out both",
+      }}>
+        {isImposter ? "IMPOSTER" : "CREWMATE"}
+      </div>
+
+      <div style={{ height:5, background:isImposter?ORANGE:NAVY, margin:"0.6rem auto 1.4rem", width:"65%", boxShadow:isImposter?`4px 4px 0 ${NAVY}`:`4px 4px 0 ${ORANGE}` }} />
+
+      <div style={{
+        background:isImposter?"rgba(20,6,0,0.9)":"#FFFFFF",
+        border:isImposter?`3px solid ${ORANGE}`:`3px solid ${NAVY}`,
+        boxShadow:isImposter?`4px 4px 0 ${NAVY}`:`4px 4px 0 ${ORANGE}`,
+        padding:"0.9rem 1.4rem", marginBottom:"1.25rem",
+      }}>
+        <p style={{ fontFamily:DM, fontSize:"0.88rem", color:isImposter?"rgba(237,229,204,0.8)":NAVY, margin:0, lineHeight:1.6, fontWeight:600 }}>
+          {isImposter
+            ? "Sabotage the UI without getting caught. You have the same tools — use them against the team."
+            : "Work with your team to build the best design. Watch for suspicious moves and catch the imposter."}
+        </p>
+      </div>
+
+      <div style={{ fontFamily:BEBAS, fontSize:"0.7rem", letterSpacing:"0.2em", color:isImposter?"rgba(255,255,255,0.4)":NAVY, opacity:0.55, animation:"blink-hint 1.2s ease-in-out infinite" }}>
+        STARTING SOON…
+      </div>
     </div>
   );
 }
 
-export function RoleReveal({ role, onDismiss }: Props) {
-  const [fading,   setFading]   = useState(false);
-  const [progress, setProgress] = useState(0);
+/* ── Main component ───────────────────────────────────────────────────────── */
+export function RoleReveal({ role, onDismiss, myPlayerId, myPlayerColor }: Props) {
+  const [phase, setPhase] = useState<"hanging" | "falling" | "revealed" | "fading">("hanging");
   const isImposter = role === "imposter";
 
   useEffect(() => {
-    const start = Date.now();
-    const interval = setInterval(()=>setProgress(Math.min(100,((Date.now()-start)/4200)*100)), 50);
-    const fadeTimer    = setTimeout(()=>setFading(true), 3700);
-    const dismissTimer = setTimeout(()=>onDismiss(), 4300);
-    return ()=>{clearInterval(interval);clearTimeout(fadeTimer);clearTimeout(dismissTimer);};
+    // Poster wobbles then falls
+    const fallTimer    = setTimeout(() => setPhase("falling"),  1600);
+    const revealTimer  = setTimeout(() => setPhase("revealed"), 3100);
+    const fadeTimer    = setTimeout(() => setPhase("fading"),   5800);
+    const dismissTimer = setTimeout(() => onDismiss(),          6500);
+    return () => { clearTimeout(fallTimer); clearTimeout(revealTimer); clearTimeout(fadeTimer); clearTimeout(dismissTimer); };
   }, [onDismiss]);
+
+  const bg = isImposter
+    ? "radial-gradient(ellipse at center, #2A0E00 0%, #150500 60%, #0A0200 100%)"
+    : "radial-gradient(ellipse at center, #EDE5CC 0%, #D8CEAE 50%, #C4B898 100%)";
 
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9999,
-      display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-      background: isImposter
-        ? `radial-gradient(ellipse at center, #3A1800 0%, #1A0A00 50%, #0A0400 100%)`
-        : `radial-gradient(ellipse at center, #EDE5CC 0%, #D4C8A8 50%, #C0B090 100%)`,
-      opacity:fading?0:1, transition:"opacity 0.55s ease", overflow:"hidden",
+      position:"fixed", inset:0, zIndex:9999, overflow:"hidden",
+      background:bg,
+      opacity:phase==="fading"?0:1,
+      transition:"opacity 0.65s ease",
     }}>
 
-      {/* Background poster patches */}
-      <div style={{ position:"absolute", inset:0, overflow:"hidden", pointerEvents:"none", zIndex:0 }}>
+      {/* Wall texture / background patches */}
+      <div style={{ position:"absolute", inset:0, pointerEvents:"none" }}>
         {isImposter ? (<>
-          <div style={{ position:"absolute", top:"-20%", left:"-15%", width:"55%", height:"65%", background:ORANGE, opacity:0.20, transform:"rotate(-5deg)" }} />
-          <div style={{ position:"absolute", bottom:"-15%", right:"-10%", width:"50%", height:"60%", background:"#5A1A00", opacity:0.35, transform:"rotate(4deg)" }} />
-          <div style={{ position:"absolute", top:"30%", right:"15%", width:"25%", height:"35%", background:"#8B1A10", opacity:0.20, transform:"rotate(-8deg)" }} />
+          <div style={{ position:"absolute", top:"-20%", left:"-10%", width:"55%", height:"60%", background:ORANGE, opacity:0.12, transform:"rotate(-5deg)" }} />
+          <div style={{ position:"absolute", bottom:"-15%", right:"-10%", width:"50%", height:"55%", background:"#5A1A00", opacity:0.28, transform:"rotate(4deg)" }} />
+          <div style={{ position:"absolute", top:"35%", right:"20%", width:"20%", height:"30%", background:"#8B1A10", opacity:0.18, transform:"rotate(-8deg)" }} />
         </>) : (<>
-          <div style={{ position:"absolute", top:"-20%", left:"-15%", width:"55%", height:"65%", background:NAVY, opacity:0.18, transform:"rotate(-5deg)" }} />
-          <div style={{ position:"absolute", bottom:"-15%", right:"-10%", width:"50%", height:"60%", background:TEAL, opacity:0.14, transform:"rotate(4deg)" }} />
-          <div style={{ position:"absolute", top:"30%", right:"15%", width:"25%", height:"35%", background:MUSTARD, opacity:0.22, transform:"rotate(-5deg)" }} />
+          <div style={{ position:"absolute", top:"-20%", left:"-12%", width:"50%", height:"58%", background:NAVY, opacity:0.14, transform:"rotate(-5deg)" }} />
+          <div style={{ position:"absolute", bottom:"-15%", right:"-8%", width:"48%", height:"55%", background:TEAL, opacity:0.12, transform:"rotate(4deg)" }} />
+          <div style={{ position:"absolute", top:"32%", right:"18%", width:"22%", height:"32%", background:MUSTARD, opacity:0.18, transform:"rotate(-6deg)" }} />
         </>)}
 
-        {/* Tape strips */}
-        <div style={{ position:"absolute", top:"12%", left:"8%", width:140, height:22, background:`repeating-linear-gradient(90deg,${ORANGE}BB,${ORANGE}FF 10px,${ORANGE}BB 14px)`, transform:"rotate(-38deg)", opacity:0.65 }} />
-        <div style={{ position:"absolute", bottom:"18%", right:"10%", width:120, height:20, background:`repeating-linear-gradient(90deg,#1A5070BB,#206090FF 10px,#1A5070BB 14px)`, transform:"rotate(22deg)", opacity:0.65 }} />
+        {/* Wall tape strips (always visible) */}
+        <div style={{ position:"absolute", top:"8%", left:"6%", width:120, height:18, background:`repeating-linear-gradient(90deg,${ORANGE}99,${ORANGE}BB 10px,${ORANGE}99 14px)`, transform:"rotate(-32deg)", opacity:0.5 }} />
+        <div style={{ position:"absolute", top:"12%", right:"8%", width:100, height:16, background:`repeating-linear-gradient(90deg,#1A507088,#20609088 10px,#1A507088 14px)`, transform:"rotate(18deg)", opacity:0.5 }} />
+        <div style={{ position:"absolute", bottom:"20%", left:"12%", width:90, height:14, background:`repeating-linear-gradient(90deg,${MUSTARD}99,${MUSTARD}BB 10px,${MUSTARD}99 14px)`, transform:"rotate(8deg)", opacity:0.4 }} />
 
-        {/* Particles for imposter */}
-        {isImposter&&Array.from({length:16}).map((_,i)=>(
-          <div key={i} style={{
-            position:"absolute", left:`${10+(i*47)%80}%`, top:`${5+(i*31)%90}%`,
-            width:i%3===0?6:4, height:i%3===0?6:4,
-            background:ORANGE, borderRadius:"50%",
-            animation:`float-particle ${2.5+(i%5)*0.6}s ease-in-out infinite`,
-            animationDelay:`${(i*0.27)%2}s`, opacity:0.6,
-            boxShadow:`0 0 6px ${ORANGE}CC`,
-          }} />
-        ))}
-
-        {/* Scribble SVG */}
-        <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", opacity:isImposter?0.12:0.08 }} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-          <path d="M60 100 Q200 70 320 140 Q440 210 560 110" stroke={isImposter?"#FFFFFF":NAVY} strokeWidth="3" fill="none" strokeLinecap="round"/>
-          <circle cx="80" cy="200" r="35" stroke={isImposter?"#FFFFFF":NAVY} strokeWidth="2" fill="none" strokeDasharray="7 9"/>
-          <circle cx="1380" cy="700" r="28" stroke={isImposter?"#FFFFFF":NAVY} strokeWidth="2" fill="none" strokeDasharray="5 8"/>
-          <text x="1118" y="505" fontFamily={BEBAS} fontSize="55" fill={isImposter?"#FFFFFF":NAVY} transform="rotate(-12 1118 505)" opacity="0.2">POSTER</text>
-        </svg>
+        {/* Grain texture */}
+        <div style={{ position:"absolute", inset:0, backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`, backgroundSize:"160px", opacity:0.04, mixBlendMode:"overlay" }} />
       </div>
 
-      {/* Grain */}
-      <div style={{ position:"absolute", inset:0, backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`, backgroundSize:"160px", opacity:0.05, mixBlendMode:"overlay", pointerEvents:"none", zIndex:1 }} />
+      {/* ── Role content (behind the poster) ── */}
+      <div style={{
+        position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center",
+        opacity:phase==="revealed"||phase==="fading"?1:0,
+        transition:"opacity 0.45s ease",
+        zIndex:2,
+      }}>
+        <RoleContent role={role} myPlayerId={myPlayerId} myPlayerColor={myPlayerColor} />
+      </div>
 
-      {/* ── CONTENT ── */}
-      <div style={{ textAlign:"center", padding:"0 2rem", maxWidth:560, position:"relative", zIndex:10 }}>
-
-        <div style={{ fontFamily:BEBAS, fontSize:"1.1rem", letterSpacing:"0.35em", color:isImposter?`${ORANGE}CC`:NAVY, marginBottom:"0.6rem" }}>
-          {isImposter?"YOU ARE THE":"YOU ARE A"}
-        </div>
-
+      {/* ── Falling poster (sits on top) ── */}
+      <div style={{
+        position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center",
+        zIndex:10, pointerEvents:"none",
+      }}>
         <div style={{
-          fontFamily:BEBAS, fontSize:"clamp(4.5rem, 11vw, 7.5rem)", lineHeight:1, marginBottom:"0.25rem", letterSpacing:"0.06em",
-          color:isImposter?"#FFFFFF":NAVY,
-          textShadow:isImposter
-            ?`0 0 50px ${ORANGE}CC, 0 0 100px ${ORANGE}66, 4px 4px 0 ${NAVY}`
-            :`4px 4px 0 ${ORANGE}, 8px 8px 0 rgba(0,0,0,0.15)`,
-          animation:isImposter?"imposter-shake 0.55s ease-in-out 0.25s both":"stamp-in 0.4s ease-out both",
-          position:"relative",
+          transformOrigin:"50% 0%",
+          animation:
+            phase==="hanging"  ? "poster-wobble 1.6s ease-in-out" :
+            phase==="falling"  ? "poster-fall 1.5s cubic-bezier(0.4,0,1,1) forwards" :
+            "none",
+          display: phase==="revealed"||phase==="fading" ? "none" : "block",
         }}>
-          {isImposter?"IMPOSTER":"CREWMATE"}
-        </div>
-
-        {/* Stamp underline */}
-        <div style={{ height:5, background:isImposter?ORANGE:NAVY, margin:"0.5rem auto 1.75rem", width:"70%", boxShadow:isImposter?`4px 4px 0 ${NAVY}`:`4px 4px 0 ${ORANGE}` }} />
-
-        <div style={{ margin:"0 auto 1.75rem", animation:"float-slow 3s ease-in-out infinite" }}>
-          {isImposter?<ImposterIcon/>:<CrewmateIcon/>}
-        </div>
-
-        {/* Description card */}
-        <div style={{
-          background:isImposter?"rgba(26,8,0,0.85)":"#FFFFFF",
-          border:isImposter?`3px solid ${ORANGE}`:`3px solid ${NAVY}`,
-          boxShadow:isImposter?`4px 4px 0 ${NAVY}`:`4px 4px 0 ${ORANGE}`,
-          padding:"0.9rem 1.4rem", marginBottom:"1.75rem",
-        }}>
-          <p style={{ fontFamily:DM, fontSize:"0.9rem", color:isImposter?"rgba(237,229,204,0.75)":NAVY, margin:0, lineHeight:1.6, fontWeight:isImposter?400:600 }}>
-            {isImposter
-              ?"Sabotage the UI without getting caught. You have the same tools as everyone — use them against the team."
-              :"Work with your team to build the best UI. Catch the imposter before all rounds are up."}
-          </p>
-        </div>
-
-        {/* Progress bar */}
-        <div style={{ width:180, height:5, background:isImposter?"rgba(255,255,255,0.15)":"rgba(28,58,96,0.15)", margin:"0 auto 0.5rem", overflow:"hidden", border:isImposter?`1px solid ${ORANGE}44`:`1px solid ${NAVY}44` }}>
-          <div style={{ height:"100%", background:isImposter?ORANGE:NAVY, width:`${progress}%`, transition:"width 0.05s linear", boxShadow:isImposter?`0 0 8px ${ORANGE}CC`:undefined }} />
-        </div>
-        <div style={{ fontFamily:DM, fontSize:"0.72rem", color:isImposter?"rgba(255,255,255,0.35)":NAVY, opacity:0.5 }}>
-          Starting in {Math.max(0,Math.ceil(4-progress/25))}s
+          <FallingPoster role={role} />
         </div>
       </div>
 
       <style>{`
-        @keyframes imposter-shake { 0%{transform:scale(0.7) rotate(-2deg);opacity:0} 40%{transform:scale(1.08) rotate(1.5deg);opacity:1} 60%{transform:scale(0.97) rotate(-0.8deg)} 80%{transform:scale(1.03) rotate(0.5deg)} 100%{transform:scale(1) rotate(0deg)} }
-        @keyframes stamp-in { 0%{transform:scale(1.4);opacity:0} 60%{transform:scale(0.96);opacity:1} 80%{transform:scale(1.02)} 100%{transform:scale(1)} }
-        @keyframes float-slow { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-8px)} }
-        @keyframes float-particle { 0%,100%{transform:translateY(0) scale(1);opacity:0.5} 50%{transform:translateY(-18px) scale(1.2);opacity:0.9} }
+        @keyframes poster-wobble {
+          0%   { transform: rotate(0deg); }
+          20%  { transform: rotate(-1.5deg); }
+          40%  { transform: rotate(1.2deg); }
+          60%  { transform: rotate(-2deg); }
+          80%  { transform: rotate(1.5deg); }
+          100% { transform: rotate(-1deg); }
+        }
+        @keyframes poster-fall {
+          0%   { transform: rotate(0deg)    translateY(0)    translateX(0);   opacity:1; }
+          15%  { transform: rotate(-4deg)   translateY(2%)   translateX(-2%); opacity:1; }
+          35%  { transform: rotate(18deg)   translateY(18%)  translateX(8%);  opacity:1; }
+          65%  { transform: rotate(42deg)   translateY(55%)  translateX(22%); opacity:0.8; }
+          100% { transform: rotate(75deg)   translateY(130%) translateX(40%); opacity:0; }
+        }
+        @keyframes role-content-in {
+          0%   { transform: scale(0.85) translateY(10px); opacity:0; }
+          100% { transform: scale(1)    translateY(0);    opacity:1; }
+        }
+        @keyframes stamp-in {
+          0%   { transform: scale(1.4); opacity:0; }
+          60%  { transform: scale(0.97); opacity:1; }
+          80%  { transform: scale(1.02); }
+          100% { transform: scale(1); }
+        }
+        @keyframes imposter-shake {
+          0%   { transform: scale(0.7) rotate(-3deg); opacity:0; }
+          40%  { transform: scale(1.1)  rotate(2deg);  opacity:1; }
+          60%  { transform: scale(0.97) rotate(-1deg); }
+          80%  { transform: scale(1.03) rotate(0.5deg); }
+          100% { transform: scale(1)    rotate(0deg); }
+        }
+        @keyframes float-slow {
+          0%,100% { transform: translateY(0px); }
+          50%     { transform: translateY(-8px); }
+        }
+        @keyframes blink-hint {
+          0%,100% { opacity:0.55; }
+          50%     { opacity:0.3; }
+        }
       `}</style>
     </div>
   );

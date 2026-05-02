@@ -75,7 +75,7 @@ export default function App() {
     return (
       <>
         {showReveal && (
-          <RoleReveal role={myRole} onDismiss={() => setShowReveal(false)} />
+          <RoleReveal role={myRole} onDismiss={() => setShowReveal(false)} myPlayerId={myPlayerId} myPlayerColor={room.players.find(p=>p.id===myPlayerId)?.color} />
         )}
         <GamePage
           room={room}
@@ -107,6 +107,8 @@ export default function App() {
         voteResult={voteResult}
         typingPlayers={typingPlayers}
         emitTyping={emitTyping}
+        socket={socket}
+        roomId={roomId}
       />
     );
   }

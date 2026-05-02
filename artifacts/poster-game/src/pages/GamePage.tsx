@@ -4,6 +4,7 @@ import type { RoomState, CanvasElement } from "../types/game";
 import { Timer } from "../components/Timer";
 import type { RemoteCursor } from "../hooks/useGame";
 import { useVoiceChat } from "../hooks/useVoiceChat";
+import { PlayerAvatar } from "../components/PlayerAvatar";
 
 type Props = {
   room: RoomState;
@@ -312,23 +313,6 @@ function PropertiesSidebar({
           </div>
         </div>
 
-        {/* ── Alignment ── */}
-        <div>
-          <span style={labelStyle}>ALIGN TO CANVAS</span>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:5 }}>
-            {([
-              ["⊢","lx","Left"],["↔","cx","Center H"],["⊣","rx","Right"],
-              ["⊤","ty","Top"],["↕","cy","Center V"],["⊥","by","Bottom"],
-            ] as [string,string,string][]).map(([icon,axis,title])=>(
-              <button key={axis} title={title} onClick={()=>alignEl(axis as "lx"|"cx"|"rx"|"ty"|"cy"|"by")}
-                style={{ height:30, background:"#FFFFFF", border:`1.5px solid #E8E2D8`, borderRadius:6, cursor:"pointer", fontFamily:DM, fontSize:14, color:"#4A3C22", display:"flex", alignItems:"center", justifyContent:"center" }}
-                onMouseEnter={(e)=>{e.currentTarget.style.background="#FFF0E8";e.currentTarget.style.borderColor=ORANGE;}}
-                onMouseLeave={(e)=>{e.currentTarget.style.background="#FFFFFF";e.currentTarget.style.borderColor="#E8E2D8";}}>
-                {icon}
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* ── Typography (text elements) ── */}
         {isText && (
@@ -439,6 +423,7 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
   });
   const [hoveredChip, setHoveredChip] = useState<string|null>(null);
   const [dragOver,    setDragOver]    = useState(false);
+  const [layerMenu,   setLayerMenu]   = useState<{ elId:string; x:number; y:number }|null>(null);
 
   const { isRecording, speakingPlayers, startRecording, stopRecording, permissionDenied } = useVoiceChat(socket, roomId);
 
@@ -550,9 +535,17 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
     resizingRef.current={elId:el.id,handle,startX:e.clientX,startY:e.clientY,origX:el.x,origY:el.y,origW:el.width,origH:el.height};
   }
   function handleElementDoubleClick(e: React.MouseEvent, el: CanvasElement) {
-    if(!TEXT_TYPES.includes(el.type)) return;
-    e.stopPropagation(); setEditingId(el.id); setSelectedId(el.id);
+    e.stopPropagation();
+    if (TEXT_TYPES.includes(el.type)) {
+      setEditingId(el.id); setSelectedId(el.id);
+    } else {
+      setLayerMenu({ elId:el.id, x:e.clientX, y:e.clientY });
+    }
   }
+  function bringToFront(elId: string) { const maxZ=Math.max(0,...room.canvas.map(e=>e.zIndex)); onUpdate(elId,{zIndex:maxZ+1}); setLayerMenu(null); }
+  function sendToBack(elId: string)   { const minZ=Math.min(0,...room.canvas.map(e=>e.zIndex)); onUpdate(elId,{zIndex:minZ-1}); setLayerMenu(null); }
+  function bringForward(elId: string) { const el=room.canvas.find(e=>e.id===elId); if(!el) return; const higher=room.canvas.filter(e=>e.zIndex>el.zIndex).map(e=>e.zIndex).sort((a,b)=>a-b); onUpdate(elId,{zIndex:higher.length>0?higher[0]+1:el.zIndex+1}); setLayerMenu(null); }
+  function sendBackward(elId: string) { const el=room.canvas.find(e=>e.id===elId); if(!el) return; const lower=room.canvas.filter(e=>e.zIndex<el.zIndex).map(e=>e.zIndex).sort((a,b)=>b-a); onUpdate(elId,{zIndex:lower.length>0?lower[0]-1:el.zIndex-1}); setLayerMenu(null); }
   function commitEdit(el: CanvasElement, div: HTMLElement|null) {
     if(!div) return;
     onUpdate(el.id,{content:div.innerText??div.textContent??""});
@@ -582,6 +575,37 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
   const canvasMode=detectCanvasMode(room.prompt);
   const lowerSearch=search.toLowerCase().trim();
   const filteredSections=SECTIONS.map(s=>({...s,chips:lowerSearch?s.chips.filter(c=>c.label.toLowerCase().includes(lowerSearch)):s.chips})).filter(s=>s.chips.length>0);
+
+  // Context-aware icons based on prompt keywords
+  function getContextIcons(): { emoji:string; label:string }[] {
+    const p = room.prompt.toLowerCase();
+    const sets: Record<string,{emoji:string;label:string}[]> = {
+      checkout:  [{emoji:"🛒",label:"Cart"},{emoji:"💳",label:"Card"},{emoji:"📦",label:"Package"},{emoji:"✅",label:"Confirm"},{emoji:"🏷️",label:"Price tag"},{emoji:"💰",label:"Price"},{emoji:"🔒",label:"Secure"},{emoji:"🎁",label:"Gift"},{emoji:"🧾",label:"Receipt"},{emoji:"↩️",label:"Return"},{emoji:"⭐",label:"Rating"},{emoji:"🚚",label:"Delivery"}],
+      login:     [{emoji:"🔐",label:"Lock"},{emoji:"👤",label:"User"},{emoji:"📧",label:"Email"},{emoji:"🔑",label:"Key"},{emoji:"✉️",label:"Message"},{emoji:"🛡️",label:"Shield"},{emoji:"👁️",label:"Show pw"},{emoji:"📱",label:"Phone"},{emoji:"🔄",label:"Reset"},{emoji:"🔓",label:"Unlocked"},{emoji:"🍎",label:"Apple"},{emoji:"🔔",label:"Notify"}],
+      signup:    [{emoji:"👤",label:"User"},{emoji:"📧",label:"Email"},{emoji:"🎂",label:"Birthday"},{emoji:"🌍",label:"Country"},{emoji:"📸",label:"Photo"},{emoji:"✅",label:"Agree"},{emoji:"🎉",label:"Welcome"},{emoji:"🔑",label:"Password"},{emoji:"📱",label:"Phone"},{emoji:"🔗",label:"Link"}],
+      dashboard: [{emoji:"📊",label:"Chart"},{emoji:"📈",label:"Graph"},{emoji:"🔔",label:"Alert"},{emoji:"⚙️",label:"Settings"},{emoji:"📅",label:"Calendar"},{emoji:"👥",label:"Users"},{emoji:"💬",label:"Messages"},{emoji:"🔍",label:"Search"},{emoji:"📌",label:"Pin"},{emoji:"🏠",label:"Home"},{emoji:"📋",label:"Report"},{emoji:"🔗",label:"Link"}],
+      profile:   [{emoji:"👤",label:"Avatar"},{emoji:"📸",label:"Photo"},{emoji:"✏️",label:"Edit"},{emoji:"📧",label:"Email"},{emoji:"🌍",label:"Location"},{emoji:"🔗",label:"Link"},{emoji:"⭐",label:"Badge"},{emoji:"🔔",label:"Notify"},{emoji:"🔒",label:"Private"},{emoji:"❤️",label:"Follow"},{emoji:"📊",label:"Stats"},{emoji:"🎨",label:"Theme"}],
+      social:    [{emoji:"❤️",label:"Like"},{emoji:"👍",label:"Thumbs up"},{emoji:"💬",label:"Comment"},{emoji:"🔔",label:"Notify"},{emoji:"📸",label:"Photo"},{emoji:"🌟",label:"Star"},{emoji:"✉️",label:"Message"},{emoji:"📤",label:"Share"},{emoji:"🔗",label:"Link"},{emoji:"👥",label:"Friends"},{emoji:"🎉",label:"Celebrate"},{emoji:"🔁",label:"Repost"}],
+      blog:      [{emoji:"📝",label:"Post"},{emoji:"🔖",label:"Bookmark"},{emoji:"❤️",label:"Like"},{emoji:"💬",label:"Comment"},{emoji:"📸",label:"Image"},{emoji:"🏷️",label:"Tag"},{emoji:"📅",label:"Date"},{emoji:"✏️",label:"Edit"},{emoji:"📤",label:"Share"},{emoji:"🔗",label:"Read more"},{emoji:"🔍",label:"Search"},{emoji:"📢",label:"Publish"}],
+      ecommerce: [{emoji:"🛒",label:"Cart"},{emoji:"❤️",label:"Wishlist"},{emoji:"🔍",label:"Search"},{emoji:"💳",label:"Pay"},{emoji:"📦",label:"Orders"},{emoji:"⭐",label:"Rating"},{emoji:"🏷️",label:"Sale"},{emoji:"🔄",label:"Return"},{emoji:"📍",label:"Delivery"},{emoji:"🎁",label:"Gift"},{emoji:"💰",label:"Price"},{emoji:"🔒",label:"Secure"}],
+      onboarding:[{emoji:"👋",label:"Welcome"},{emoji:"🎯",label:"Goal"},{emoji:"✅",label:"Step done"},{emoji:"➡️",label:"Next"},{emoji:"🔑",label:"Setup"},{emoji:"📱",label:"Device"},{emoji:"🎉",label:"Success"},{emoji:"⭐",label:"Favourite"},{emoji:"🔔",label:"Notify"},{emoji:"🌟",label:"Star"},{emoji:"📸",label:"Photo"},{emoji:"🤝",label:"Connect"}],
+      landing:   [{emoji:"🚀",label:"Launch"},{emoji:"⭐",label:"Feature"},{emoji:"💬",label:"Testimonial"},{emoji:"💰",label:"Pricing"},{emoji:"✅",label:"Check"},{emoji:"📧",label:"Email"},{emoji:"🎯",label:"CTA"},{emoji:"🏆",label:"Award"},{emoji:"🔗",label:"Link"},{emoji:"📱",label:"Mobile"},{emoji:"🌍",label:"Global"},{emoji:"🎁",label:"Offer"}],
+      settings:  [{emoji:"⚙️",label:"Settings"},{emoji:"🔔",label:"Notify"},{emoji:"🔒",label:"Privacy"},{emoji:"🌙",label:"Dark mode"},{emoji:"🌍",label:"Language"},{emoji:"💳",label:"Billing"},{emoji:"👤",label:"Account"},{emoji:"🔗",label:"Connect"},{emoji:"📱",label:"Device"},{emoji:"🔑",label:"Password"},{emoji:"🎨",label:"Theme"},{emoji:"❓",label:"Help"}],
+    };
+    const keywords = Object.keys(sets);
+    const matched = keywords.filter(k=>p.includes(k));
+    if (matched.length === 0) {
+      if (p.includes("shop")||p.includes("store")||p.includes("product")) return sets.ecommerce;
+      if (p.includes("sign in")||p.includes("sign up")||p.includes("auth")) return sets.login;
+      if (p.includes("home")||p.includes("portfolio")||p.includes("hero")) return sets.landing;
+      return [];
+    }
+    const combined = matched.flatMap(k=>sets[k]);
+    // dedupe by emoji
+    const seen = new Set<string>();
+    return combined.filter(i=>{ if(seen.has(i.emoji)) return false; seen.add(i.emoji); return true; }).slice(0,12);
+  }
+  const contextIcons = getContextIcons();
 
   const selectedEl = selectedId ? (room.canvas.find(e=>e.id===selectedId)??null) : null;
   const selectedLT = selectedEl ? (localTransforms[selectedId!]??{x:selectedEl.x,y:selectedEl.y,w:selectedEl.width,h:selectedEl.height}) : null;
@@ -642,6 +666,29 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
             </div>
           </div>
           <div style={{ flex:1, overflowY:"auto", padding:"0 0.4rem 0.4rem" }}>
+
+            {/* Context-aware icons section */}
+            {!lowerSearch && contextIcons.length > 0 && (
+              <div style={{ marginBottom:"0.15rem" }}>
+                <div style={{ fontFamily:BEBAS, fontSize:"0.62rem", letterSpacing:"0.16em", color:MUSTARD, padding:"0.5rem 0.3rem 0.25rem", marginTop:4, display:"flex", alignItems:"center", gap:"0.35rem" }}>
+                  <span style={{ fontSize:9, color:"#C8B888" }}>▸</span>ICONS
+                </div>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:4, paddingBottom:4 }}>
+                  {contextIcons.map(ic=>(
+                    <div key={ic.emoji}
+                      onClick={()=>onAdd({ type:"text", x:Math.floor(Math.random()*(CANVAS_W-60))+10, y:Math.floor(Math.random()*(CANVAS_H-60))+10, width:60, height:60, fill:"#1a1a1a", content:ic.emoji, fontSize:36 })}
+                      title={ic.label}
+                      style={{ background:"#FFFFFF", border:"1.5px solid #EAE4DC", borderRadius:6, cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"5px 2px 3px", gap:2, transition:"all 0.12s" }}
+                      onMouseEnter={(e)=>{e.currentTarget.style.borderColor=MUSTARD;e.currentTarget.style.background="#FFFBF0";e.currentTarget.style.transform="translateY(-2px)";}}
+                      onMouseLeave={(e)=>{e.currentTarget.style.borderColor="#EAE4DC";e.currentTarget.style.background="#FFFFFF";e.currentTarget.style.transform="none";}}>
+                      <span style={{ fontSize:18, lineHeight:1 }}>{ic.emoji}</span>
+                      <span style={{ fontFamily:DM, fontSize:"0.48rem", color:"#8A7868", lineHeight:1.2, textAlign:"center" }}>{ic.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {filteredSections.length===0
               ? <div style={{ textAlign:"center", color:"#C8B888", fontFamily:DM, fontSize:"0.73rem", marginTop:"2rem" }}>No results</div>
               : filteredSections.map(section=>{
@@ -680,22 +727,21 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
           </div>
           {/* Players */}
           <div style={{ borderTop:`2px solid #F0E8D8`, padding:"0.55rem 0.8rem 0.6rem" }}>
-            <div style={{ fontFamily:BEBAS, fontSize:"0.58rem", letterSpacing:"0.15em", color:ORANGE, marginBottom:"0.35rem" }}>PLAYERS</div>
-            <div style={{ display:"flex", flexDirection:"column", gap:"0.25rem" }}>
+            <div style={{ fontFamily:BEBAS, fontSize:"0.58rem", letterSpacing:"0.15em", color:ORANGE, marginBottom:"0.45rem" }}>PLAYERS</div>
+            <div style={{ display:"flex", gap:4, flexWrap:"wrap" }}>
               {room.players.map(p=>(
-                <div key={p.id} style={{ display:"flex", alignItems:"center", gap:"0.5rem" }}>
-                  <div style={{ position:"relative", flexShrink:0 }}>
-                    <div style={{ width:8, height:8, borderRadius:"50%", background:p.color, boxShadow:`0 0 5px ${p.color}88` }} />
-                    {speakingPlayers.has(p.id) && <div style={{ position:"absolute", inset:-2, borderRadius:"50%", border:`1.5px solid ${p.color}`, animation:"pulse-speaking 0.8s infinite" }} />}
+                <div key={p.id} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:2, opacity:p.eliminated?0.3:1 }}>
+                  <div style={{ position:"relative" }}>
+                    <PlayerAvatar playerId={p.id} color={p.color} size={30} showBorder={p.id===myPlayerId} />
+                    {speakingPlayers.has(p.id) && <div style={{ position:"absolute", bottom:-1, right:-1, width:7, height:7, borderRadius:"50%", background:TEAL, border:"1.5px solid #fff", animation:"pulse-speaking 0.8s infinite" }} />}
                   </div>
-                  <span style={{ fontFamily:DM, fontSize:"0.69rem", color:p.id===myPlayerId?"#1A1208":"#8A7868", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", fontWeight:p.id===myPlayerId?700:400 }}>
-                    {p.name}{p.id===myPlayerId?" (you)":""}
-                    {speakingPlayers.has(p.id)&&<span style={{ marginLeft:4, color:p.color }}>🎙</span>}
+                  <span style={{ fontFamily:DM, fontSize:"0.48rem", color:p.id===myPlayerId?NAVY:"#8A7868", fontWeight:p.id===myPlayerId?700:400, maxWidth:32, textAlign:"center", lineHeight:1.2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                    {p.id===myPlayerId?"you":p.name}
                   </span>
                 </div>
               ))}
             </div>
-            <div style={{ fontFamily:DM, fontSize:"0.55rem", color:"#C8B888", marginTop:"0.4rem", lineHeight:1.55 }}>
+            <div style={{ fontFamily:DM, fontSize:"0.55rem", color:"#C8B888", marginTop:"0.45rem", lineHeight:1.55 }}>
               R=Rect · T=Text · Ctrl+D dupe
             </div>
           </div>
@@ -800,6 +846,28 @@ export function GamePage({ room, myPlayerId, amIHost, onAdd, onUpdate, onDelete,
           />
         )}
       </div>
+
+      {/* Layer reorder context menu */}
+      {layerMenu && (
+        <div
+          style={{ position:"fixed", left:layerMenu.x, top:layerMenu.y, zIndex:9999, background:"#FFFFFF", border:`2px solid ${NAVY}`, boxShadow:`4px 4px 0 ${ORANGE}`, borderRadius:6, overflow:"hidden", minWidth:170 }}
+          onMouseLeave={()=>setLayerMenu(null)}>
+          <div style={{ fontFamily:BEBAS, fontSize:"0.55rem", letterSpacing:"0.18em", color:"#B8A880", padding:"6px 12px 4px", borderBottom:"1px solid #F0E8D8" }}>LAYER ORDER</div>
+          {([
+            ["⬆ Bring to Front", ()=>bringToFront(layerMenu.elId)],
+            ["↑ Bring Forward",  ()=>bringForward(layerMenu.elId)],
+            ["↓ Send Backward",  ()=>sendBackward(layerMenu.elId)],
+            ["⬇ Send to Back",   ()=>sendToBack(layerMenu.elId)],
+          ] as [string, ()=>void][]).map(([label, fn])=>(
+            <button key={label} onClick={fn}
+              style={{ display:"block", width:"100%", background:"none", border:"none", padding:"7px 12px", textAlign:"left", fontFamily:DM, fontSize:"0.78rem", color:NAVY, cursor:"pointer" }}
+              onMouseEnter={(e)=>{e.currentTarget.style.background="#FFF0E8";e.currentTarget.style.color=ORANGE;}}
+              onMouseLeave={(e)=>{e.currentTarget.style.background="none";e.currentTarget.style.color=NAVY;}}>
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
